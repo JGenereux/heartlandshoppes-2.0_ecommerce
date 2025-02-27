@@ -46,10 +46,10 @@ function Items() {
 }
 
 function Item() {
-    return <div className="flex flex-col h-fit pl-2 py-4 rounded-md bg-white">
+    return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white shadow-black shadow-sm">
         <div className="w-[90%] h-[160px] border-black border-1">
         </div>
-        <div className="flex flex-col ml-1 font-regular">
+        <div className="flex flex-col font-regular">
             <p>Item name</p>
             <p>$Item price</p>
         </div>

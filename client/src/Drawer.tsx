@@ -25,7 +25,7 @@ export default function Drawer() {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit border-black  bg-white border-2 items-center fixed md:static z-50" : "flex flex-row w-full h-fit items-center static z-50"}>
+    return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit border-black  bg-white border-2 items-center fixed md:static z-50" : "flex flex-row w-full h-fit items-center md:static z-50"}>
         <div className={"flex flex-col md:flex-row w-full h-full"}>
             <div className={isOpen ? "flex flex-row cursor-pointer w-fit items-center pr-2 md:pr-0" : "cursor-pointer w-8 h-full border-black border-2"}>
                 <img src={menuIcon} onClick={handleDrawer} className="w-8 h-8"></img>

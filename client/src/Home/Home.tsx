@@ -20,7 +20,7 @@ function Header() {
     return (
         <div className="flex justify-center w-[100%] h-[30%] sm:h-[20%] md:h-[30%]">
             <div className="w-full h-full  relative border-b-2 border-black">
-                <div className="w-[100%] h-full ">
+                <div className="w-[100%] h-full">
                 </div>
                 <div className="flex flex-col w-full justify-between h-full absolute top-0 py-2 pl-2">
                     <div>
