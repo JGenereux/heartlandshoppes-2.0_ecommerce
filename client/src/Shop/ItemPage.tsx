@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Drawer from "../Drawer";
+import Drawer from "../Navbar/Drawer";
 import Rating from '@mui/material/Rating';
 
 export default function ItemPage() {

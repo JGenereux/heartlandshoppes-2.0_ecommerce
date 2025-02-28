@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import menuIcon from './assets/menuicon.png'
+import menuIcon from '../assets/menuicon.png'
 import { Link } from 'react-router-dom'
 
 export default function Drawer() {
@@ -41,11 +41,13 @@ export default function Drawer() {
                     <Link to="/inventory">Inventory</Link>
                     <Link to="/login">Login</Link>
                     <p>🛒</p>
+                    {/*<Cart />*/}
                 </div>
             </div>}
         </div>
     </div>
 }
+
 
 function SearchBar() {
     return <div className="flex w-full justify-center">

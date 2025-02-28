@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Drawer from "../Drawer";
+import Drawer from "../Navbar/Drawer";
 import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'

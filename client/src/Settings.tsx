@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Drawer from "./Drawer";
+import Drawer from "./Navbar/Drawer";
 
 export default function Settings() {
     return <div className="h-screen">

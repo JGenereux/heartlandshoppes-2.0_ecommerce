@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import Drawer from "../Drawer";
+import Drawer from "../Navbar/Drawer";
 
 export default function Signup() {
     return <div className="h-[90vh]">
