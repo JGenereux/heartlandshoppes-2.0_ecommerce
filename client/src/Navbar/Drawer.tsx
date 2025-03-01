@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import menuIcon from '../assets/menuicon.png'
 import { Link } from 'react-router-dom'
+import Cart from './Cart'
 
 export default function Drawer() {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
@@ -41,7 +42,7 @@ export default function Drawer() {
                     <Link to="/inventory">Inventory</Link>
                     <Link to="/login">Login</Link>
                     <p>🛒</p>
-                    {/*<Cart />*/}
+                    <Cart />
                 </div>
             </div>}
         </div>

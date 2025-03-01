@@ -5,7 +5,7 @@ export default function Cart() {
 
     return (
         <div className="w-full relative">
-            <div
+            {isOpen ? <div
                 className={`absolute top-0 left-0 md:left-auto md:right-0 z-10 bg-white text-black p-4 rounded shadow-lg transition-all duration-1000 ease-out transform ${isOpen ? 'translate-x-0' : 'translate-x-full'
                     }`}
                 style={{
@@ -22,10 +22,10 @@ export default function Cart() {
                     <button className="self-start my-2 bg-[#f8b4c4] p-0.5 text-white font-bold text-lg rounded-lg">Checkout</button>
                 </div>
             </div>
-
-            <div className="flex justify-end">
-                <button onClick={() => setIsOpen(!isOpen)}>🛒</button>
-            </div>
+                :
+                <div className="flex justify-end">
+                    <button onClick={() => setIsOpen(!isOpen)}>🛒</button>
+                </div>}
         </div>
     )
 }
