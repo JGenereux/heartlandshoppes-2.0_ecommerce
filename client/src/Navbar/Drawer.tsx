@@ -41,7 +41,6 @@ export default function Drawer() {
                 <div className="flex flex-col md:flex-row md:ml-auto mr-6 space-x-6">
                     <Link to="/inventory">Inventory</Link>
                     <Link to="/login">Login</Link>
-                    <p>🛒</p>
                     <Cart />
                 </div>
             </div>}
