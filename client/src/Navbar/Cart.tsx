@@ -23,7 +23,7 @@ export default function Cart() {
                 </div>
             </div>
                 :
-                <div className="flex justify-end">
+                <div className="flex md:justify-end">
                     <button onClick={() => setIsOpen(!isOpen)}>🛒</button>
                 </div>}
         </div>
