@@ -19,4 +19,7 @@
     --font-headerFont: 'headerFont';
     --font-button: 'button';
     --font-regular: 'regular';
+    --color-textColor: #000000;
+    --color-backgroundColor: #FFFFFF;
+    --color-actionColor: #f8b4c4; 
 }

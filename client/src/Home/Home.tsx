@@ -3,6 +3,7 @@ import Drawer from "../Navbar/Drawer";
 import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'
+import { Link } from "react-router-dom";
 
 export default function Home() {
     return (
@@ -27,7 +28,7 @@ function Header() {
                         <p className="text-2xl md:text-[2.8rem] font-headerFont ">Heartland Shoppes</p>
                     </div>
                     <p className="font-regular text-lg">Discover the heart of shopping at heartland shoppes where quality meets community</p>
-                    <button className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit mx-auto p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white">Shop now</button>
+                    <Link to="/shop" className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit mx-auto p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white">Shop now</Link>
                 </div>
             </div>
         </div>
