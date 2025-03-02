@@ -1,0 +1,10 @@
+{
+    "entryPoints": ["src"],
+    "out": "docs",
+    "exclude": ["node_modules"],
+    "theme": "default",
+    "hideGenerator": true,
+    "excludePrivate": true,
+    "entryPointStrategy": "expand"
+  }
+  

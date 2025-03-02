@@ -1,6 +1,7 @@
-const express = require('express')
-const cors = require('cors')
-const dotenv = require('dotenv')
+import express from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
+import mongoose from 'mongoose'
 
 dotenv.config()
 
@@ -11,10 +12,20 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-const inventoryRouter = require('./Routes/Inventory')
-const userRouter = require('./Routes/Users')
+const URI = process.env.ATLAS_URI || ''
+mongoose.connect(URI)
+
+const connection = mongoose.connection
+connection.once("open", () => {
+    console.log("MongoDB connected successfully")
+})
+
+import inventoryRouter from './src/Routes/Inventory'
+import userRouter from './src/Routes/Users'
+import orderRouter from './src/Routes/Orders'
 app.use('/inventory', inventoryRouter)
 app.use('/users', userRouter)
+app.use('/orders', orderRouter)
 
 app.get('/', (req: any, res: any) => {
     res.send('API is running')

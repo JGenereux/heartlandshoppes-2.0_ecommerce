@@ -4,10 +4,10 @@ const Schema = mongoose.Schema
 
 const itemSchema = new Schema(
     {
-        name: {type: String, required: true},
+        name: {type: String, required: true, unique: true},
         price: {type: Number, required: true},
         category: {type: [String], required: true},
-        options: {type: JSON, required: false},
+        options: {type: Object, required: false},
         quantity: {type: Number, required: true},
         description: {type: String, required: true},
         photos: {type: [String], required: true}
