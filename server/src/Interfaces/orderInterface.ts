@@ -15,6 +15,7 @@ interface Order {
     totalPrice: Number,
     billingInfo: Bill,
     status: Boolean,
+    trackingNumber: String,
     date: String
 }
 
