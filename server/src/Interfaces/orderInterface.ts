@@ -10,7 +10,6 @@ interface Bill {
 }
 
 interface Order {
-    orderId: String,
     items: String,
     totalPrice: Number,
     billingInfo: Bill,

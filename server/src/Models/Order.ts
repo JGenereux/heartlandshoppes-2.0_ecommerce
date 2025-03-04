@@ -14,7 +14,6 @@ const billingSchema = new mongoose.Schema({
 })
 
 const orderSchema = new mongoose.Schema({
-    orderId: { type: String, required: true },
     items: { type: [String], required: true },
     totalPrice: { type: Number, required: true },
     billingInfo: { type: billingSchema, required: true }, 
@@ -22,6 +21,6 @@ const orderSchema = new mongoose.Schema({
     trackingNumber: {type: String, required: false},
     date: { type: Date, default: Date.now, required: true }
 });
-const Order = mongoose.model('Orders', orderSchema)
+const Orders = mongoose.model('Orders', orderSchema)
 
-export {Order, orderSchema, billingSchema}
+export {Orders, orderSchema, billingSchema}
