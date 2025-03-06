@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./server  # Backend located in the /server directory
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb+srv://jacegenereux:lK8FBWwsxwm0eJcj@heartlandshoppes.gqlzxyo.mongodb.net/?retryWrites=true&w=majority&appName=HeartlandShoppes
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./server:/app  # Mapping the server folder
+      - /app/node_modules
+    restart: unless-stopped
+
+  frontend:
+    build: ./client  # Frontend located in the /client directory
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./client:/app  # Mapping the client folder
+      - /app/node_modules
+    restart: unless-stopped
+
+  redis:
+    image: "redis:alpine"
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped

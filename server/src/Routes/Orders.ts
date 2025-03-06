@@ -2,8 +2,132 @@ import { Request, Response } from "express";
 import express from 'express'
 import { Order } from '../Interfaces/orderInterface'
 import { Orders } from '../Models/Order'
+import { client } from "../../redis-client";
+
+/**
+ * UPDATE ORDERS TO HAVE ID STORED IN CACHE!
+ */
 
 const router = express.Router()
+
+async function retrieveOrders(): Promise<any | null> {
+    try{
+    const ordersExist = await client.exists('orders');
+    
+        if (ordersExist === 1) {
+            // Fetch all orders from the cache
+            const cachedOrders = await client.sendCommand(['LRANGE', 'orders', '0', '-1']);
+            const orders: Order[] = cachedOrders.map((order: string) => JSON.parse(order));
+
+            return orders
+        }
+
+        return null
+    } catch(error) {
+        console.log(error)
+        return null
+    }
+}
+
+async function retrieveOrder(property: string, value: any): Promise<any | null> {
+    // Check if orders exist in the cache
+    try {
+        const ordersExist = await client.exists('orders');
+
+        if (ordersExist === 1) {
+            // Fetch all orders from the cache
+            const cachedOrders = await client.sendCommand(['LRANGE', 'orders', '0', '-1']);
+            const orders: Order[] = cachedOrders.map((order: string) => JSON.parse(order));
+
+            // Find the order that matches the given property and value
+            const foundOrder = orders.find((order: Order) => (order as any)[property] === value);
+
+            // Return the found order or null if not found
+            return foundOrder || null;
+        }
+
+        const query = {
+            [property]: value
+        };
+
+        const order = await Orders.findOne(query)
+
+        return order || null;
+    } catch (error) {
+        console.log(`Error retrieving single order: ${error}`);
+        return null;
+    }
+}
+
+//queryProp is a string currently cause its only used for 'id
+async function updateOrder(
+    queryProp: keyof Order, 
+    queryVal: any, 
+    updatedProp: keyof Order, 
+    updatedVal: Order[keyof Order] // Ensure correct type for updated value
+): Promise<Order[] | null> {
+
+    try {
+        const ordersExist = await client.exists('orders');
+
+        if (ordersExist === 1) {
+            const cachedOrders = await client.sendCommand(['LRANGE', 'orders', '0', '-1']);
+            const orders: Order[] = cachedOrders.map((order: string) => JSON.parse(order));
+
+            const orderIndex = orders.findIndex((order: Order) => (order as any)[queryProp] == queryVal);
+
+            if (orderIndex === -1) return null;
+
+            // Use type assertion to safely access the property
+            const order = orders[orderIndex];
+
+            // Type assertion to ensure that `updatedProp` is valid for this order
+            (order as any)[updatedProp] = updatedVal;
+
+            await client.sendCommand(['DEL', 'orders']);
+            await client.sendCommand(['RPUSH', 'orders', ...orders.map(order => JSON.stringify(order))]);
+
+            return orders;
+        }
+
+        return null;
+    } catch (error) {
+        console.log(`Error updating order: ${error}`);
+        return null;
+    }
+}
+
+
+async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | null> {
+    try {
+        const ordersExist = await client.exists('orders');
+
+        if (ordersExist === 1) {
+            const cachedOrders = await client.sendCommand(['LRANGE', 'orders', '0', '-1']);
+            const orders: Order[] = cachedOrders.map((order: string) => JSON.parse(order));
+
+            // Find the index of the order
+            const index = orders.findIndex((order: Order) => (order as any)[queryProp] === queryVal);
+
+            // If no order is found, return false
+            if (index === -1) return false;
+
+            // Use splice to properly remove the order from the array
+            orders.splice(index, 1);
+
+            // Clear the cached orders in Redis and re-push the updated array
+            await client.sendCommand(['DEL', 'orders']);
+            await client.sendCommand(['RPUSH', 'orders', ...orders.map((order) => JSON.stringify(order))]);
+
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.log(`Error removing order: ${error}`);
+        return null;
+    }
+}
 
 /**
  * Retrieves all orders
@@ -11,11 +135,33 @@ const router = express.Router()
  */
 router.get('/', async(req: Request,res: Response) : Promise<any> => {
     try{
-        const orders = await Orders.find()
+        // if orders are cached returns Order[], else null
+        const cachedOrders = await retrieveOrders()
+        if(cachedOrders != null) {
+            return res.status(200).json(cachedOrders)
+        }
+
+        const orders = await Orders.find();
+        const formattedOrders: Order[] = orders.map(order => ({
+            orderId: order._id.toString(), // Convert ObjectId to string
+            items: order.items,
+            totalPrice: order.totalPrice,
+            billingInfo: order.billingInfo,
+            status: order.status,
+            trackingNumber: order.trackingNumber,
+            date: order.date
+        }));
+        
         
         if(!orders) {
             return res.status(404).json("Error fetching all orders from db")
+        } else if(orders.length == 0) {
+            return res.status(200).json([])
         }
+        
+        // Set orders list to fetched orders
+        await client.sendCommand(["DEL", "orders"])
+        await client.sendCommand(["LPUSH", "orders", ...formattedOrders.map((order: Order) => JSON.stringify(order))])
 
         return res.status(200).json(orders)
     } catch(error) {
@@ -28,12 +174,12 @@ router.get('/', async(req: Request,res: Response) : Promise<any> => {
  * @param {String} orderID The ID for the order
  * @returns {Order} The information for the order
  */
-router.get('/:id', async(req: Request,res: Response) : Promise<any> => {
+router.get('/id/:id', async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
    
     try{
-        const order = await Orders.findOne({_id: id})
-        if(!order){
+        const order = await retrieveOrder('orderId', id)
+        if(order === null){
             return res.status(404).json("Error fetching order from db")
         }
 
@@ -53,7 +199,10 @@ router.post('/', async(req: Request,res: Response) : Promise<any> => {
     
     try{
         const newOrder = new Orders(order)
+        newOrder.orderId = newOrder._id
         await newOrder.save()
+
+        await client.sendCommand(["RPUSH", "orders", JSON.stringify(newOrder)])
 
         return res.status(200).json("Order successfully added")
     } catch(error) {
@@ -70,12 +219,18 @@ router.post('/', async(req: Request,res: Response) : Promise<any> => {
 router.put('/:id/status', async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
     const {status} = req.body
-    console.log(id)
+
     try{
-        const orderUpdated = await Orders.findOneAndUpdate({_id: id}, {status: status}, {new: true})
+        const orderUpdated = await Orders.findOneAndUpdate({orderId: id}, {status: status}, {new: true})
         
         if(!orderUpdated){
             return res.status(404).json("Error updating status for order")
+        }
+
+        //update cache
+        const orderCacheUpdated = await updateOrder('orderId', id, 'status', status)
+        if(orderCacheUpdated === null) {
+            return res.status(404).json("Error updating cache for order")
         }
 
         return res.status(200).json("Order status successfully updated")
@@ -95,10 +250,16 @@ router.put('/:id/trackingNumber', async(req: Request,res: Response) : Promise<an
     const {trackingNumber} = req.body
 
     try{
-        const orderUpdated = await Orders.findOneAndUpdate({_id: id}, {trackingNumber: trackingNumber}, {new: true})
+        const orderUpdated = await Orders.findOneAndUpdate({orderId: id}, {trackingNumber: trackingNumber}, {new: true})
         
         if(!orderUpdated){
             return res.status(404).json("Error updating tracking number for order")
+        }
+
+        //update cache
+        const orderCacheUpdated = await updateOrder('orderId', id, 'trackingNumber', trackingNumber)
+        if(orderCacheUpdated === null) {
+            return res.status(404).json("Error updating cache for order")
         }
 
         return res.status(200).json("Tracking number for order successfully updated")
@@ -114,14 +275,21 @@ router.put('/:id/trackingNumber', async(req: Request,res: Response) : Promise<an
  */
 router.delete('/:id', async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
-
+   
     try{
-        const orderDel = await Orders.findOneAndDelete({_id: id})
+        const orderDel = await Orders.findOneAndDelete({orderId: id})
+        
         if(!orderDel) {
             return res.status(404).json("Error deleting order")
         }
 
-        res.status(200).json("Successfully deleted order")
+        const orderRemoved = await removeOrder('orderId', id)
+        
+        if(!orderRemoved || orderRemoved === null) {
+            return res.status(404).json("Error removing order from cache")
+        } 
+
+        return res.status(200).json("Successfully deleted order")
     } catch(error) {
         res.status(500).json(`Internal Server Error: ${error}`)
     }

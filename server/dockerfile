@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Install TypeScript and ts-node globally
+RUN npm install -g typescript ts-node nodemon
+
+# Expose backend port
+EXPOSE 5000
+
+# Start the application in development mode (using ts-node)
+CMD ["npm", "run", "dev"]

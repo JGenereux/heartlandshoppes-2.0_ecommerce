@@ -14,6 +14,7 @@ const billingSchema = new mongoose.Schema({
 })
 
 const orderSchema = new mongoose.Schema({
+    orderId: { type: Schema.Types.ObjectId, auto: true },
     items: { type: [String], required: true },
     totalPrice: { type: Number, required: true },
     billingInfo: { type: billingSchema, required: true }, 

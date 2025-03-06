@@ -100,7 +100,7 @@ router.get('/:email/orders', async(req: Request, res: Response): Promise<any> =>
     try{
         const user = await Users.findOne({email: email})
         if(!user) {
-            res.status(404).json('Error retrieving users information from db')
+            return res.status(404).json('Error retrieving users information from db')
         }
 
         const orders = user?.orderHistory

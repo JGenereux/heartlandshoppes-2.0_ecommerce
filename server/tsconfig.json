@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES2017", //just changed for redis-client.ts may need to be revert back in future
     "module": "commonjs",
     "outDir": "./dist",  
     "esModuleInterop": true,
@@ -8,7 +8,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "index.ts", "redis-client.ts"  ],
   "exclude": [
     "node_modules"
   ]

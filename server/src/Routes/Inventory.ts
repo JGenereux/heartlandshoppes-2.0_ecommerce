@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import express from 'express';
 import {Items}from '../Models/Item';
 import {Item} from '../Interfaces/itemInterface';
+import { client } from "../../redis-client";
+import { Orders } from "../Models/Order";
 
 const router = express.Router();
 
@@ -12,6 +14,15 @@ const router = express.Router();
  */
 router.get('/', async(req: Request,res: Response) => {
     try{
+        const exists = await client.exists('items')
+        
+        if(exists === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', 'items', '0', '-1'])
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
+            res.status(200).json(items)
+            return
+        }
+
         const items: Item[] = await Items.find()
 
         if(!items) {
@@ -19,10 +30,13 @@ router.get('/', async(req: Request,res: Response) => {
             return
         }
 
+        await client.sendCommand(['DEL', 'items']); // Clear old list
+        await client.sendCommand(['RPUSH', 'items', ...items.map(item => JSON.stringify(item))]); // Push all to Redis
+
         res.status(200).json(items)
         return
     } catch(error) {
-        res.status(500).json("Internal server error")
+        res.status(500).json(`Internal server error ${error}`)
     }
 })
 
@@ -31,18 +45,43 @@ router.get('/', async(req: Request,res: Response) => {
  * @param {String} category The name of the category
  * @returns {Item[]} An array of the items belonging to the category 
  */
-router.get('/:category', async(req: Request,res: Response) => {
+router.get('/:category', async(req: Request,res: Response) : Promise<any> => {
     const {category} = req.params
     try{
-        const items: Item[] = await Items.find({category: {$in: [category]}})
-    
-        if(!items) {
-            res.status(417).json("Error fetching items from db")
-            return
+        // check if a cache exists for the category being queried already
+        const categoryExist = await client.exists(`${category}`)
+
+        if(categoryExist === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', `${category}`, '0', '-1'])
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
+            return res.status(200).json(items) 
+        } 
+
+        // since category doesn't exist check if the items cache exists
+        const itemsExist = await client.exists('items')
+        if(itemsExist === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item)).filter((item: Item) => item.category.includes(category))
+            await client.sendCommand(["RPUSH", `${category}`, ...items.map(item => JSON.stringify(item))])
+            return res.status(200).json(items)
         }
 
-        res.status(200).json(items)
-        return
+        // else query db and set in cache
+        const items: Item[] = await Items.find()
+
+        if(!items) {
+            return res.status(417).json("Error fetching items from db")
+        }
+
+        const filteredItems: Item[] = items.filter((item: Item) => item.category.includes(category))
+
+        // ensure category and items dont exist before writing values to those keys
+        await client.sendCommand(["DEL", `${category}`])
+        await client.sendCommand(["DEL", `items`])
+        await client.sendCommand(["RPUSH", `${category}`, ...filteredItems.map(item => JSON.stringify(item))])
+        await client.sendCommand(["RPUSH", `items`, ...items.map(item => JSON.stringify(item))])
+
+        return res.status(200).json(items)
     } catch(error) {
         res.status(500).json("Internal server error")
     }
@@ -53,21 +92,26 @@ router.get('/:category', async(req: Request,res: Response) => {
  * @param {String} itemName The name of the item
  * @returns {Item} The info for the item
  */
-router.get('/item/:name', async(req: Request,res: Response) => {
+router.get('/item/:name', async(req: Request,res: Response): Promise<any> => {
     const {name} = req.params
-    console.log(name)
-    console.log('merp')
+  
     try{
-        console.log('merp')
+        const itemsExist = await client.exists('items')
+        if(itemsExist === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
+
+            const item = items.find((item: Item) => item.name === name)
+            return res.status(200).json(item)
+        }
+
         const item: Item | null = await Items.findOne({name: name})
 
         if(!item) {
-            res.status(417).json("Error retrieving item from db")
-            return
+            return res.status(417).json("Error retrieving item from db")
         }
 
-        res.status(200).json(item)
-        return
+        return res.status(200).json(item)
     } catch(error) {
         res.status(500).json("Internal server error")
     }
@@ -78,15 +122,21 @@ router.get('/item/:name', async(req: Request,res: Response) => {
  * @param {Item} item The information of the item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.post('/item', async(req,res) => {
-   
+router.post('/item', async(req,res) : Promise<any> => {
+    const {item} = req.body
+
     try{
-        const newItem = new Items(req.body)
+        const newItem = new Items(item)
         await newItem.save()
-        res.status(200).json("Successfully added item")
-        return
+
+        //add new item to items cache and category cache that item belongs too
+        await client.sendCommand(['LPUSH','items', JSON.stringify(newItem)])
+    //FIX NEWITEM.CATEGORY
+        await client.sendCommand(['LPUSH', `${newItem.category}`, JSON.stringify(newItem)])
+   
+        return res.status(200).json("Successfully added item")
     } catch(error) {
-        res.status(500).json("Internal server error")
+        res.status(500).json(`Internal server error: ${error} `)
     }
 })
 
@@ -96,7 +146,7 @@ router.post('/item', async(req,res) => {
  * @param {Item} newItem The updated information for the requested item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.put('/item/:name', async(req: Request,res: Response) => {
+router.put('/item/:name', async(req: Request,res: Response) : Promise<any> => {
     const {name} = req.params
     const {item} = req.body
 
@@ -108,12 +158,46 @@ router.put('/item/:name', async(req: Request,res: Response) => {
         );
 
         if(!updated) {
-            res.status(404).json("Item not found")
-            return
+            return res.status(404).json("Item not found")
         }
 
-        res.status(200).json("Item was successfully updated")
-        return
+        const itemsExists = await client.exists('items')
+
+        if(itemsExists === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            //remove item from items list
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
+            //add new updated item to list
+            //get index of item to update so it can be done in-place
+            const index = items.findIndex((item: Item) => item.name === name)
+            
+            if (index === -1) {
+                return res.status(404).json("Item not found in cache");
+            }
+
+            //update item in items cache
+            items[index] = {...items[index], ...item}
+            
+            await client.sendCommand(['DEL', `items`])
+            await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+        
+            // update item in category list cache
+            const itemCategory = items[index].category
+            const categoryExist = await client.exists(`${itemCategory}`)
+            if(categoryExist === 1) {
+                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+                const index = categoryItems.findIndex((item: Item) => item.name === name)
+                if (index != -1) {
+                    categoryItems[index] = {...categoryItems[index], ...item}
+                }
+
+                await client.sendCommand(['DEL', `${itemCategory}`])
+                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+            }
+        }
+
+        return res.status(200).json("Item was successfully updated")
     } catch(error) {
         res.status(500).json("Internal server error")
     }
@@ -131,6 +215,38 @@ router.delete('/item/:name', async(req,res) => {
         if(!removed) {
             res.status(404).json("Item wasn't found")
             return
+        }
+
+        // remove item from items cache if it exists 
+        const itemsExists = await client.exists('items')
+
+        if(itemsExists === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
+
+            const index = items.findIndex((item: Item) => item.name === name)
+
+            
+            if(index !== 1) {
+                items.splice(index, 1)
+
+                await client.sendCommand(['DEL', `items`])
+                await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+            }
+        }
+
+        const itemCategory = removed.category
+        const categoryExist = await client.exists(`${itemCategory}`)
+        if(categoryExist === 1) {
+            const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+            const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+            const index = categoryItems.findIndex((item: Item) => item.name === name)
+            if (index != -1) {
+                delete categoryItems[index]
+
+                await client.sendCommand(['DEL', `${itemCategory}`])
+                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+            }
         }
 
         res.status(200).json("Item successfully deleted")

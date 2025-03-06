@@ -1,21 +1,23 @@
+
 interface Bill {
-    fullName:  String,
-    address:  String,
-    country:  String,
-    province:  String,
-    city:  String,
-    postalCode:  String,
-    email:  String,
-    phone:  String
+    fullName:  string,
+    address:  string,
+    country:  string,
+    province:  string,
+    city:  string,
+    postalCode:  string,
+    email:  string,
+    phone?:  string | null
 }
 
 interface Order {
-    items: String,
-    totalPrice: Number,
+    orderId: string,
+    items: string[],
+    totalPrice: number,
     billingInfo: Bill,
     status: Boolean,
-    trackingNumber: String,
-    date: String
+    trackingNumber?: string | null,
+    date: Date
 }
 
 export {Bill, Order}
