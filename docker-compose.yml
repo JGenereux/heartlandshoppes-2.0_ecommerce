@@ -7,9 +7,10 @@ services:
       - "5000:5000"
     depends_on:
       - redis
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb+srv://jacegenereux:lK8FBWwsxwm0eJcj@heartlandshoppes.gqlzxyo.mongodb.net/?retryWrites=true&w=majority&appName=HeartlandShoppes
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     volumes:
