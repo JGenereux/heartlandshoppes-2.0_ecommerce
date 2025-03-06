@@ -86,6 +86,7 @@ async function updateOrder(
 
             await client.sendCommand(['DEL', 'orders']);
             await client.sendCommand(['RPUSH', 'orders', ...orders.map(order => JSON.stringify(order))]);
+            await client.sendCommand(["EXPIRE", "orders", 1000])
 
             return orders;
         }
@@ -118,6 +119,7 @@ async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | 
             // Clear the cached orders in Redis and re-push the updated array
             await client.sendCommand(['DEL', 'orders']);
             await client.sendCommand(['RPUSH', 'orders', ...orders.map((order) => JSON.stringify(order))]);
+            await client.sendCommand(["EXPIRE", "orders", 1000])
 
             return true;
         }
@@ -163,6 +165,8 @@ router.get('/', async(req: Request,res: Response) : Promise<any> => {
         await client.sendCommand(["DEL", "orders"])
         await client.sendCommand(["LPUSH", "orders", ...formattedOrders.map((order: Order) => JSON.stringify(order))])
 
+        await client.sendCommand(["EXPIRE", "orders", 1000])
+
         return res.status(200).json(orders)
     } catch(error) {
         res.status(500).json(`Internal Server Error: ${error}`)
@@ -203,6 +207,7 @@ router.post('/', async(req: Request,res: Response) : Promise<any> => {
         await newOrder.save()
 
         await client.sendCommand(["RPUSH", "orders", JSON.stringify(newOrder)])
+        await client.sendCommand(["EXPIRE", "orders", 1000])
 
         return res.status(200).json("Order successfully added")
     } catch(error) {
