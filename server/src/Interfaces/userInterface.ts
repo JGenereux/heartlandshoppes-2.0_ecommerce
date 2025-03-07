@@ -1,10 +1,11 @@
 import { Order, Bill } from "./orderInterface";
 
 interface User {
-    email: String,
-    password: String,
+    email: string,
+    password: string,
     billingInfo: Bill,
-    orderHistory: [Order]
+    orderHistory: [Order],
+    role: string,
 }
 
 export {User}

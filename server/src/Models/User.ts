@@ -7,7 +7,8 @@ const userSchema = new Schema(
         email: {type: String, required: true},
         password: {type: String, required: true},
         billingInfo: {type: billingSchema, required: false},
-        orderHistory: {type: [orderSchema], required: true, default: []}
+        orderHistory: {type: [orderSchema], required: true, default: []},
+        role: {type: String, required: true, default: 'user'}
     },
     {
         timestamps: true,

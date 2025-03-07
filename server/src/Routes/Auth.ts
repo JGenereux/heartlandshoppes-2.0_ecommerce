@@ -4,18 +4,18 @@ import jwt from 'jsonwebtoken';
 import { generateAccessToken } from '../Utils/authHelpers';
 import { Users } from '../Models/User';
 import { Token } from '../Models/RefreshToken';
-import bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs';
 
 const router = express.Router()
 
-async function getTokens(userEmail: string) {
-    const accessToken = generateAccessToken(userEmail)
+async function getTokens(userEmail: string, userRole: string) {
+    const accessToken = generateAccessToken(userEmail, userRole)
 
     const secret = process.env.REFRESH_TOKEN_SECRET
     if(!secret) {
         throw new Error("Internal server error while generating refresh token")
     }
-    const refreshToken = jwt.sign(userEmail, secret, {expiresIn: '72hr'})
+    const refreshToken = jwt.sign({email: userEmail, role: userRole}, secret, {expiresIn: '72h'})
 
     // if user has a refreshToken replace it with the new one
     const hasToken = await Token.findOne({email: userEmail})
@@ -48,7 +48,7 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
         }
 
         // create access and refresh token
-        const {accessToken, refreshToken} = await getTokens(user.email)
+        const {accessToken, refreshToken} = await getTokens(user.email, user.role)
 
         // store refreshToken as httpOnly to prevent JS access
         res.cookie('refreshToken', refreshToken, {
@@ -68,7 +68,7 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
 })
 
 router.route('/signup').post(async(req: Request, res: Response) : Promise<any> => {
-    const {userEmail, password} = req.body
+    const {userEmail, password, userRole} = req.body
 
     try{
         //check if user already exists
@@ -84,11 +84,11 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
             return res.status(500).json("Server error while hashing the password.");
         }
 
-        const newUser = new Users({email: userEmail, password: hashedPassword})
+        const newUser = new Users({email: userEmail, password: hashedPassword, role: userRole})
         await newUser.save()
 
         // create access and refresh token
-        const {accessToken, refreshToken} = await getTokens(userEmail)
+        const {accessToken, refreshToken} = await getTokens(userEmail, userRole)
 
         // store refreshToken as httpOnly to prevent JS access
         res.cookie('refreshToken', refreshToken, {
@@ -108,7 +108,7 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
 })
 
 router.route('/token').post(async(req: Request, res: Response) : Promise<any> => {
-    const {refreshToken, email} = req.body
+    const {refreshToken, email, userRole} = req.body
     
     if(refreshToken == null) return res.status(403)
 
@@ -120,7 +120,7 @@ router.route('/token').post(async(req: Request, res: Response) : Promise<any> =>
     }
     jwt.verify(refreshToken, secret, (err: any, user: any) => {
         if(err) return res.status(403)
-        const accessToken = generateAccessToken({email: email})
+        const accessToken = generateAccessToken(user.email, user.role)
         res.status(200).json({accessToken: accessToken})
     })
 })
