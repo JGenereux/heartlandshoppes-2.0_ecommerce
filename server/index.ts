@@ -23,9 +23,11 @@ connection.once("open", () => {
 import inventoryRouter from './src/Routes/Inventory'
 import userRouter from './src/Routes/Users'
 import orderRouter from './src/Routes/Orders'
+import authRouter from './src/Routes/Auth'
 app.use('/inventory', inventoryRouter)
 app.use('/users', userRouter)
 app.use('/orders', orderRouter)
+app.use('/auth', authRouter)
 
 app.get('/', (req: any, res: any) => {
     res.send('API is running')

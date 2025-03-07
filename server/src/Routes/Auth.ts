@@ -124,3 +124,5 @@ router.route('/token').post(async(req: Request, res: Response) : Promise<any> =>
         res.status(200).json({accessToken: accessToken})
     })
 })
+
+export default router
