@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from 'jsonwebtoken';
 
-function generateAccessToken(user: any) {
+function generateAccessToken(userEmail: any) {
     const secret = process.env.ACCESS_TOKEN_SECRET
 
     if(!secret) {
         return null
     }
 
-    return jwt.sign(user, secret, {expiresIn: '1hr'})
+    return jwt.sign(userEmail, secret, {expiresIn: '1hr'})
 }
 
 

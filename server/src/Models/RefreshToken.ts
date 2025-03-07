@@ -4,10 +4,7 @@ const Schema = mongoose.Schema;
 
 const tokenSchema = new Schema({
     email: { type: String, required: true, unique: true },
-    refreshTokens: {
-        type: [String], // Array of refresh tokens
-        default: [],
-    },
+    refreshTokens: { type: String },
 });
 
 
