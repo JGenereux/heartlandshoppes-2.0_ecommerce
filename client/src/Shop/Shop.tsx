@@ -1,34 +1,54 @@
-import { Link } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import Drawer from "../Navbar/Drawer";
 
 export default function Shop() {
-    return (
-        <div className="">
-            <Drawer />
-            <Categories />
-            <Items />
-        </div>
-    )
+    return <Routes>
+        <Route path="/" element={<ShopMenu category="Featured" />} />
+        <Route path="tshirts" element={<ShopMenu category="T-Shirts" />} />
+        <Route path="tumblercups" element={<ShopMenu category="Tumbler Cups" />} />
+        <Route path="homedecor" element={<ShopMenu category="Home Decor" />} />
+        <Route path="seasonal" element={<ShopMenu category="Seasonal" />} />
+        <Route path="craftingsupplies" element={<ShopMenu category="Crafting Supplies" />} />
+        <Route path="accessories" element={<ShopMenu category="Tumbler Accessories" />} />
+    </Routes>
 }
 
-function Categories() {
+interface ShopMenuProps {
+    category: string
+}
+function ShopMenu({ category }: ShopMenuProps) {
+    return <div>
+        <Drawer />
+        <Categories category={category} />
+        <Items />
+    </div>
+}
+
+interface categoryProps {
+    category: string
+}
+
+function Categories({ category }: categoryProps) {
     return (
         <div className="flex flex-col w-full h-fit border-gray-600 border-b-2 items-center justify-center font-button pt-0.5">
-            <p className="text-sm md:text-lg">Featured</p>
+            <p className="text-sm md:text-lg">{category}</p>
             <div className="flex flex-row flex-wrap w-full text-sm md:text-lg space-x-4 md:space-x-8 justify-center">
-                <Link to="shop/featured">Featured</Link>
-                <Link to="shop/tshirts">T-Shirts</Link>
-                <Link to="shop/tumblercups">Tumbler Cups</Link>
-                <Link to="shop/homedecor">Home Decor</Link>
-                <Link to="shop/seasonal">Seasonal</Link>
-                <Link to="shop/craftingsupplies">Crafting Supplies</Link>
-                <Link to="shop/accessories">Tumbler Accessories</Link>
+                <Link to="/shop">Featured</Link>
+                <Link to="/shop/tshirts">T-Shirts</Link>
+                <Link to="/shop/tumblercups">Tumbler Cups</Link>
+                <Link to="/shop/homedecor">Home Decor</Link>
+                <Link to="/shop/seasonal">Seasonal</Link>
+                <Link to="/shop/craftingsupplies">Crafting Supplies</Link>
+                <Link to="/shop/accessories">Tumbler Accessories</Link>
             </div>
         </div>
     )
 }
 
 function Items() {
+    /**
+     * Make post req for items and map them 
+     */
     return <div className="w-full h-full ">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 w-full pb-4 pt-4 pr-2 pl-2">
             <Item />
