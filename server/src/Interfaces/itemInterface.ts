@@ -2,7 +2,7 @@ interface Item {
     name: String,
     price: Number,
     category: String[],
-    options: Object,
+    options: Record<string, string[]>,
     quantity: Number,
     description: String,
     photos: String[]

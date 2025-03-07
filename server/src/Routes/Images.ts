@@ -1,12 +1,16 @@
 import { Request, Response } from "express";
 import multer, { Multer } from "multer";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import FormData from "form-data";
 
 const router = require("express").Router();
 
 const upload: Multer = multer({ storage: multer.memoryStorage() });
 
+
+interface ImageResponse {
+  data: {link: string}
+}
 /**
  * Helper function to upload image to Imgur API 
  * @param imageBuffer Buffer containing the bytes of the uploaded image
@@ -21,7 +25,7 @@ async function uploadImage(imageBuffer: Buffer, fileName: string): Promise<strin
   });
 
   try {
-    const response: AxiosResponse<any> = await axios.post(
+    const response = await axios.post<ImageResponse>(
       "https://api.imgur.com/3/image",
       formData,
       {
@@ -57,4 +61,4 @@ router.route("/").post(upload.single("image"), async (req: Request, res: Respons
   }
 });
 
-module.exports = router;
+export default router

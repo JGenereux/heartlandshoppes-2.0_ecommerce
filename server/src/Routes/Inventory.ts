@@ -123,7 +123,8 @@ router.route('/item/:name').get(async(req: Request,res: Response): Promise<any> 
  * @param {Item} item The information of the item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : Promise<any> => {
+// add authenticateToken, checkAdminRole when auth ui is implemented
+router.route('/item').post(async(req,res) : Promise<any> => {
     const {item} = req.body
 
     try{
@@ -132,7 +133,7 @@ router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : P
 
         //add new item to items cache and category cache that item belongs too
         await client.sendCommand(['LPUSH','items', JSON.stringify(newItem)])
-    //FIX NEWITEM.CATEGORY
+        //FIX NEWITEM.CATEGORY
         await client.sendCommand(['LPUSH', `${newItem.category}`, JSON.stringify(newItem)])
    
         return res.status(200).json("Successfully added item")
