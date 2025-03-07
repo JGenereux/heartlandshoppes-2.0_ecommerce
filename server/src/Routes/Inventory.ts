@@ -4,6 +4,7 @@ import {Items}from '../Models/Item';
 import {Item} from '../Interfaces/itemInterface';
 import { client } from "../../redis-client";
 import { Orders } from "../Models/Order";
+import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const router = express.Router();
  * Retrieves all items 
  * @returns {Item[]} An array of all the items 
  */
-router.get('/', async(req: Request,res: Response) => {
+router.route('/').get(async(req: Request,res: Response) => {
     try{
         const exists = await client.exists('items')
         
@@ -45,7 +46,7 @@ router.get('/', async(req: Request,res: Response) => {
  * @param {String} category The name of the category
  * @returns {Item[]} An array of the items belonging to the category 
  */
-router.get('/:category', async(req: Request,res: Response) : Promise<any> => {
+router.route('/:category').get(async(req: Request,res: Response) : Promise<any> => {
     const {category} = req.params
     try{
         // check if a cache exists for the category being queried already
@@ -92,7 +93,7 @@ router.get('/:category', async(req: Request,res: Response) : Promise<any> => {
  * @param {String} itemName The name of the item
  * @returns {Item} The info for the item
  */
-router.get('/item/:name', async(req: Request,res: Response): Promise<any> => {
+router.route('/item/:name').get(async(req: Request,res: Response): Promise<any> => {
     const {name} = req.params
   
     try{
@@ -122,7 +123,7 @@ router.get('/item/:name', async(req: Request,res: Response): Promise<any> => {
  * @param {Item} item The information of the item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.post('/item', async(req,res) : Promise<any> => {
+router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : Promise<any> => {
     const {item} = req.body
 
     try{
@@ -146,7 +147,7 @@ router.post('/item', async(req,res) : Promise<any> => {
  * @param {Item} newItem The updated information for the requested item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.put('/item/:name', async(req: Request,res: Response) : Promise<any> => {
+router.route('/item/:name').put(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
     const {name} = req.params
     const {item} = req.body
 
@@ -208,7 +209,7 @@ router.put('/item/:name', async(req: Request,res: Response) : Promise<any> => {
  * @param {String} itemName The name of the item to remove
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.delete('/item/:name', async(req,res) => {
+router.route('/item/:name').delete(authenticateToken, checkAdminRole, async(req,res) => {
     const {name} = req.params
     try{
         const removed = await Items.findOneAndDelete({name: name}) 

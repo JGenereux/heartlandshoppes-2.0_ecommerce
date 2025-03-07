@@ -3,6 +3,7 @@ import express from 'express'
 import { Order } from '../Interfaces/orderInterface'
 import { Orders } from '../Models/Order'
 import { client } from "../../redis-client";
+import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
 
 /**
  * UPDATE ORDERS TO HAVE ID STORED IN CACHE!
@@ -135,7 +136,7 @@ async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | 
  * Retrieves all orders
  * @returns {Orders[]} An array containing all orders
  */
-router.get('/', async(req: Request,res: Response) : Promise<any> => {
+router.route('/').get(authenticateToken, checkAdminRole,  async(req: Request,res: Response) : Promise<any> => {
     try{
         // if orders are cached returns Order[], else null
         const cachedOrders = await retrieveOrders()
@@ -178,7 +179,7 @@ router.get('/', async(req: Request,res: Response) : Promise<any> => {
  * @param {String} orderID The ID for the order
  * @returns {Order} The information for the order
  */
-router.get('/id/:id', async(req: Request,res: Response) : Promise<any> => {
+router.route('/id/:id').get(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
    
     try{
@@ -198,7 +199,7 @@ router.get('/id/:id', async(req: Request,res: Response) : Promise<any> => {
  * @param {Order} order The information for the order
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.post('/', async(req: Request,res: Response) : Promise<any> => {
+router.route('/').post(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
     const {order} = req.body
     
     try{
@@ -221,7 +222,7 @@ router.post('/', async(req: Request,res: Response) : Promise<any> => {
  * @param {Boolean} status If status true, order is still on-going else order is fulfilled
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.put('/:id/status', async(req: Request,res: Response) : Promise<any> => {
+router.route('/:id/status').put(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
     const {status} = req.body
 
@@ -250,7 +251,7 @@ router.put('/:id/status', async(req: Request,res: Response) : Promise<any> => {
  * @param {trackingNumber} trackingNum The tracking number for an order
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.put('/:id/trackingNumber', async(req: Request,res: Response) : Promise<any> => {
+router.route('/:id/trackingNumber').put(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
     const {trackingNumber} = req.body
 
@@ -278,7 +279,7 @@ router.put('/:id/trackingNumber', async(req: Request,res: Response) : Promise<an
  * @param {String} orderID The ID for the order
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.delete('/:id', async(req: Request,res: Response) : Promise<any> => {
+router.route('/:id').delete(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
    
     try{
