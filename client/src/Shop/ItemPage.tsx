@@ -79,7 +79,7 @@ function Reviews() {
     const reviews = [1, 2]
     return <div className="flex flex-col self-center  w-[95%] h-fit">
         <div className="flex flex-col md:flex-row py-1">
-            <h3 className="font-headerFont text-2xl">Reviews</h3>
+            <h3 className="font-headerFont text-2xl">Review</h3>
             <button className=" w-fit md:ml-auto text-xl md:mr-8 rounded-lg p-1 font-button bg-[#f8b4c4] text-white font-bold" onClick={() => setLeaveReview((review) => !review)}>{leaveReview ? 'Go Back' : 'Leave a review'}</button>
         </div>
         {leaveReview && <AddReview />}

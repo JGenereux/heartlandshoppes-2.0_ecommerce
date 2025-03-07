@@ -6,7 +6,15 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    host: '0.0.0.0',
-    port: 3000,
+    watch: {
+      usePolling: true,
+    },
+    host: '0.0.0.0',  // Listen on all network interfaces
+    port: 3000,  // Expose on port 3000
+    hmr: {
+      protocol: 'ws',  // Use WebSocket protocol for HMR
+      host: 'localhost',  // Adjust WebSocket connection to point to localhost (the Docker host)
+      clientPort: 3000,  // Ensure the WebSocket client is on the correct port
+    }
   }
 })
