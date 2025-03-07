@@ -37,7 +37,7 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
         const user = await Users.findOne({email: userEmail})
         
         if(!user) {
-            return res.status(400).json("User not found")
+            return res.status(400).json("User with this email doesn't exist")
         }
 
         //check if given password is the same as hashed password
@@ -77,7 +77,7 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
         if(userExist) {
             return res.status(409).json("User with this email already exists!")
         }
-        
+
         // create hashedPassword
         const hashedPassword = await bcrypt.hash(password, 10)
         if (!hashedPassword) {
