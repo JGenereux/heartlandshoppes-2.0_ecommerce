@@ -204,7 +204,76 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole, async(req: Re
 
         return res.status(200).json("Item was successfully updated")
     } catch(error) {
-        res.status(500).json("Internal server error")
+        res.status(500).json(`Internal server error ${error}`)
+    }
+})
+
+router.route('/item/:name/review').put(async(req: Request, res: Response) : Promise<any> => {
+    const {name} = req.params
+    const {review} = req.body
+    
+    try{
+        // update item then validate cache again
+        const itemUpdated = await Items.findOneAndUpdate(
+            {name: name}, 
+            { $push: {reviews: review}}, 
+            { new: true}
+        )
+
+        if(!itemUpdated) {
+            res.status(404).json("Error retrieving item, make sure item name exists")
+        }
+
+        const itemsExists = await client.exists('items')
+
+        if(itemsExists === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            //remove item from items list
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
+            //add new updated item to list
+            //get index of item to update so it can be done in-place
+            const index = items.findIndex((item: Item) => item.name === name)
+            
+            if (index === -1) {
+                return res.status(417).json("Item not found in items cache");
+            }
+
+            //update item in items cache
+            
+            if(items[index].reviews.length === 0) {
+                items[index].reviews = [review]
+            } else{
+                items[index].reviews.push(review)
+            }
+
+            await client.sendCommand(['DEL', `items`])
+            await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+        
+            // update item in category list cache
+            const itemCategory = items[index].category
+            const categoryExist = await client.exists(`${itemCategory}`)
+            if(categoryExist === 1) {
+                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+                const index = categoryItems.findIndex((item: Item) => item.name === name)
+                if (index === -1) {
+                    return res.status(413).json("Item not found in category cache")
+                }
+
+                if(categoryItems[index].reviews.length === 0) {
+                    categoryItems[index].reviews = [review]
+                } else{
+                    categoryItems[index].reviews.push(review)
+                }
+
+                await client.sendCommand(['DEL', `${itemCategory}`])
+                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+            }
+        }
+
+        return res.status(200).json("Successfully added review")
+    } catch(error) {
+        res.status(500).json(`Internal server error ${error}`)
     }
 })
 

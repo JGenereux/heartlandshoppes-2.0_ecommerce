@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import Drawer from "../Navbar/Drawer";
 import { Item } from "../interfaces/iteminterface";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +28,9 @@ function ShopMenu({ category }: ShopMenuProps) {
             console.log("axios", res)
             return res.data
         },
+        staleTime: 60 * 1000,
+        gcTime: 2 * 60 * 1000,
+        refetchInterval: 30 * 1000
     })
 
     if (isPending) { return 'Loading...' }
@@ -79,7 +82,12 @@ interface ItemProps {
     item: Item
 }
 function DisplayItem({ item }: ItemProps) {
-    return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white shadow-black shadow-sm">
+    const navigate = useNavigate()
+
+    const handleItemRedirect = () => {
+        navigate(`/shop/item/${item.name}`)
+    }
+    return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white shadow-black shadow-sm" onClick={handleItemRedirect}>
         <img src={item?.photos[0]} className="w-[90%] h-[160px] border-black border-1">
         </img>
         <div className="flex flex-col font-regular">

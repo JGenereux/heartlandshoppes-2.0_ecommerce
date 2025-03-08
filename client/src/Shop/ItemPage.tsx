@@ -1,42 +1,75 @@
 import { useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import Rating from '@mui/material/Rating';
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Item } from "../interfaces/iteminterface";
+import axios from "axios";
 
 export default function ItemPage() {
+    const { name } = useParams()
+
+    const { isPending, isError, data: item, error } = useQuery<Item, Error>({
+        queryKey: [name],
+        queryFn: async () => {
+            const res = await axios.get<Item>(`http://localhost:5000/inventory/item/${name}`);
+            console.log("axios", res);
+            return res.data;
+        },
+        staleTime: 60 * 1000,
+        gcTime: 2 * 60 * 1000,
+        refetchInterval: 15 * 1000
+    });
+
+    if (isPending) { return <span>'Loading...'</span> }
+    if (isError) { return <span>Error: {error.message}</span> }
+
+    console.log(name)
     return (
         <div className="">
             <Drawer />
             <div className="w-full h-full py-6">
-                <Item />
+                {item && <DisplayItem item={item} />}
             </div>
         </div>
     )
 }
 
-function Item() {
+interface DisplayItemProps {
+    item: Item
+}
+
+function DisplayItem({ item }: DisplayItemProps) {
+    const [photoUrl, setPhotoUrl] = useState(item?.photos[0] || "")
     return (
         <div className="w-[90%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
             <div className="flex flex-col md:flex-row w-full h-[90%] bg-white py-2">
                 <div className="flex flex-col w-[90%] md:w-[45%] h-full items-center mx-auto">
-                    <img className="w-full h-[65vh] border-black border-2"></img>
-                    <ImageSlider />
+                    <img src={photoUrl} className="w-full h-[65vh] border-black border-2"></img>
+                    <ImageSlider item={item} setPhotoUrl={setPhotoUrl} />
                 </div>
                 <div className="md:w-1/2 h-full flex flex-col pl-2 md:pl-0">
-                    <ItemDescription />
+                    <ItemDescription item={item} />
                 </div>
             </div>
-            <Reviews />
+            <Reviews item={item} />
         </div>
     )
 }
 
-function ImageSlider() {
-    return <div className="w-full flex flex-col border-black border-2 items-center">
+interface ImageSliderProps {
+    item: Item,
+    setPhotoUrl: (url: string) => void
+}
+
+function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
+    const photosSliced = item.photos.slice(0, 2)
+    return < div className="w-full flex flex-col border-black border-2 items-center" >
         <div className="flex flex-row w-full p-2 justify-center space-x-3">
-            <div className="w-3/6 flex flex-row space-x-2">
-                <img className="w-1/3 h-16 border-black border-2"></img>
-                <img className="w-1/3 h-16 border-black border-2"></img>
-                <img className="w-1/3 h-16 border-black border-2"></img>
+            <div className="w-3/6 flex flex-row space-x-2 justify-center">
+                {photosSliced.map((photo, index) => {
+                    return <img key={index} src={photo} className="w-1/3 h-16 border-black border-2" onClick={() => setPhotoUrl(photo)}></img>
+                })}
             </div>
         </div>
         <div className="flex flex-row space-x-2 pb-1">
@@ -44,14 +77,14 @@ function ImageSlider() {
             <button className="w-4 h-4 rounded-lg border-black border-2"></button>
             <button className="w-4 h-4 rounded-lg border-black border-2"></button>
         </div>
-    </div>
+    </div >
 }
 
-function ItemDescription() {
+function ItemDescription({ item }: DisplayItemProps) {
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
         <div className="flex flex-col">
-            <h3 className="text-3xl font-headerFont">Tumbler Cup</h3>
-            <p className="text-xl font-regular">$19.99</p>
+            <h3 className="text-3xl font-headerFont">{item.name}</h3>
+            <p className="text-xl font-regular">${item.price}</p>
         </div>
         <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-12">
             <p className="text-xl">Size: </p>
@@ -69,12 +102,12 @@ function ItemDescription() {
         </div>
         <div className="flex flex-col pt-4 w-[95%]">
             <p className="font-button font-bold">About this item: </p>
-            <p className="font-regular text-md">This is the description for an item wow this is really descriptive blah blah blah</p>
+            <p className="font-regular text-md">{item.description}</p>
         </div>
     </div>
 }
 
-function Reviews() {
+function Reviews({ item }: DisplayItemProps) {
     const [leaveReview, setLeaveReview] = useState(false)
     const reviews = [1, 2]
     return <div className="flex flex-col self-center  w-[95%] h-fit">
