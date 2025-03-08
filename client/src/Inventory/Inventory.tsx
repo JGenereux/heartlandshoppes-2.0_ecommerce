@@ -4,6 +4,7 @@ import uploadPhotoICON from '../assets/uploadPhotoICON.png'
 import { Item } from "../interfaces/iteminterface";
 import axios from 'axios'
 import FormData from "form-data";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Inventory() {
     return (
@@ -15,7 +16,19 @@ export default function Inventory() {
 }
 
 function DisplayInventory() {
+
+    const { isPending, error, data: inventoryData = [] } = useQuery<Item[], Error>({
+        queryKey: ['inventory'],
+        queryFn: async () => {
+            const res = await axios.get<Item[]>('http://localhost:5000/inventory')
+            return res.data
+        },
+    })
+
     const [addItem, setAddItem] = useState(false)
+
+    if (isPending) { return 'Loading...' }
+    if (error) { return `error: ${error}` }
 
     return <div className="flex flex-col w-[90%] h-fit mx-auto md:my-4">
         <div className="flex flex-row flex-wrap w-full">
@@ -32,19 +45,9 @@ function DisplayInventory() {
         </div>
         {addItem && <AddItem />}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-120 border-black border-2 my-2 shadow-gray-400 shadow-lg">
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
-
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
-            <DisplayItem />
+            {inventoryData?.map((item: Item, index) => {
+                return <DisplayItem key={index} item={item} />
+            })}
         </div>
     </div>
 }
@@ -305,18 +308,22 @@ function PhotoUpload({ item, setItem }: PhotoUploadProps) {
     </div>
 }
 
-function DisplayItem() {
+interface DisplayItemProps {
+    item: Item
+}
+function DisplayItem({ item }: DisplayItemProps) {
+
     const [modify, setModify] = useState(false)
     return <div className={modify ? "flex flex-col h-120 justify-center items-center border-black border-2 pb-1" : "flex flex-col h-120 justify-center items-center border-black border-2 pb-1"}>
         <div className={modify ? "flex flex-col w-[85%] h-full my-2 font-regular" : "flex flex-col w-[85%] h-full justify-center font-regular"}>
             {modify ?
                 <ModifyItem /> : <>
-                    <div className="border-2 border-black w-full h-[60%]"></div>
-                    <p>Item Name</p>
-                    <p>Item Price</p>
-                    <p>Quantity</p>
-                    <p>Category</p>
-                    <p>Description</p>
+                    <img src={item?.photos[0]} className="border-2 border-black w-full h-[60%]" ></img>
+                    <p>{item.name}</p>
+                    <p>{item.price}</p>
+                    <p>{item.quantity}</p>
+                    <p>{item.category}</p>
+                    <p>{item.description}</p>
                 </>}
         </div>
         <button className="border-black border-2 p-0.5 rounded-sm font-button" onClick={() => setModify((modify) => !modify)}>Modify</button>
