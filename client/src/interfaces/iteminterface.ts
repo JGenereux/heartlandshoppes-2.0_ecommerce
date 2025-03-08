@@ -1,3 +1,10 @@
+interface Review {
+    fullName: string,
+    stars: number,
+    description: string,
+    photos: string[]
+}
+
 interface Item {
     name: string,
     price: number,
@@ -5,6 +12,7 @@ interface Item {
     options: Record<string, string[]>,
     quantity: number,
     description: string,
-    photos: string[]
+    photos: string[],
+    reviews: Review[]
 }
-export type {Item}
+export type {Item, Review}

@@ -239,12 +239,13 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
             }
 
             //update item in items cache
-            
+            console.log(items[index])
             if(items[index].reviews.length === 0) {
                 items[index].reviews = [review]
             } else{
                 items[index].reviews.push(review)
             }
+            console.log('nope')
 
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
@@ -265,7 +266,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
                 } else{
                     categoryItems[index].reviews.push(review)
                 }
-
+            
                 await client.sendCommand(['DEL', `${itemCategory}`])
                 await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
             }
@@ -274,6 +275,72 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
         return res.status(200).json("Successfully added review")
     } catch(error) {
         res.status(500).json(`Internal server error ${error}`)
+    }
+})
+
+router.route('/item/:name/review').delete(async(req: Request, res: Response): Promise<any> => {
+    const {name} = req.params
+    const {review} = req.body
+
+    try{
+        const item = await Items.findOne({name: name})
+
+        if(!item) {
+            return res.status(404).json("Item name not found, please retry")
+        }
+
+        const reviewExists = item.reviews.some((r) => r.fullName === review.fullName);
+     
+        if(!reviewExists) {
+            return res.status(400).json("Review doesn't exist!")
+        }
+
+        item.reviews.pull({ fullName: review.fullName });
+        await item.save()
+
+
+        // validate caches with updatedItem
+        const itemsExists = await client.exists('items')
+
+        if(itemsExists === 1) {
+            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            //remove item from items list
+            const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
+            
+            //add new updated item to list
+            //get index of item to update so it can be done in-place
+            const index = items.findIndex((item: Item) => item.name === name)
+            
+            if (index === -1) {
+                return res.status(417).json("Item not found in items cache");
+            }
+
+            //update item in items and categories caches
+            items[index].reviews = items[index].reviews.filter((currReview) => currReview.fullName === review.fullName)
+            
+            await client.sendCommand(['DEL', `items`])
+            await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+        
+            // update item in category list cache
+            const itemCategory = items[index].category
+            const categoryExist = await client.exists(`${itemCategory}`)
+            if(categoryExist === 1) {
+                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+                const index = categoryItems.findIndex((item: Item) => item.name === name)
+                if (index === -1) {
+                    return res.status(413).json("Item not found in category cache")
+                }
+
+                categoryItems[index].reviews = items[index].reviews.filter((currReview) => currReview.fullName === review.fullName)
+            
+                await client.sendCommand(['DEL', `${itemCategory}`])
+                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+            }
+        }
+        return res.status(200).json("Successfully deleted review")
+    } catch(error) {
+        res.status(500).json(`Internal server error: ${error}`)
     }
 })
 

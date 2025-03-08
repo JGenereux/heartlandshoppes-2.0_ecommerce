@@ -3,7 +3,7 @@ import Drawer from "../Navbar/Drawer";
 import Rating from '@mui/material/Rating';
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Item } from "../interfaces/iteminterface";
+import { Item, Review } from "../interfaces/iteminterface";
 import axios from "axios";
 
 export default function ItemPage() {
@@ -16,15 +16,13 @@ export default function ItemPage() {
             console.log("axios", res);
             return res.data;
         },
-        staleTime: 60 * 1000,
-        gcTime: 2 * 60 * 1000,
-        refetchInterval: 15 * 1000
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000
     });
 
     if (isPending) { return <span>'Loading...'</span> }
     if (isError) { return <span>Error: {error.message}</span> }
 
-    console.log(name)
     return (
         <div className="">
             <Drawer />
@@ -109,7 +107,6 @@ function ItemDescription({ item }: DisplayItemProps) {
 
 function Reviews({ item }: DisplayItemProps) {
     const [leaveReview, setLeaveReview] = useState(false)
-    const reviews = [1, 2]
     return <div className="flex flex-col self-center  w-[95%] h-fit">
         <div className="flex flex-col md:flex-row py-1">
             <h3 className="font-headerFont text-2xl">Reviews</h3>
@@ -117,8 +114,8 @@ function Reviews({ item }: DisplayItemProps) {
         </div>
         {leaveReview && <AddReview />}
         <div className="flex flex-col space-y-6 mb-2">
-            {reviews.map((review, index) => {
-                return <Review key={index} />
+            {item.reviews?.map((review: Review, index) => {
+                return <DisplayReview key={index} review={review} />
             })}
         </div>
     </div>
@@ -134,11 +131,19 @@ function AddReview() {
     </div>
 }
 
-function Review() {
+interface ReviewProps {
+    review: Review
+}
+
+function DisplayReview({ review }: ReviewProps) {
     return <div className="flex flex-col font-regular w-[80%]">
-        <p>First Name Last Name on Date</p>
-        <Rating name="half-rating" defaultValue={2.5} precision={0.5} readOnly />
-        <p>Review</p>
-        <p>Optional Picture</p>
+        <p>{review.fullName}</p>
+        <Rating name="half-rating" defaultValue={review.stars} precision={0.5} readOnly />
+        <p>{review.description}</p>
+        <div className="flex flex-row">
+            {review.photos?.map((photo, index) => {
+                return <img src={photo} key={index} className="w-22"></img>
+            })}
+        </div>
     </div>
 }

@@ -47,7 +47,7 @@ function DisplayInventory() {
             </div>
         </div>
         {addItem && <AddItem />}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-120 border-black border-2 my-2 shadow-gray-400 shadow-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-fit border-black border-2 my-2 shadow-gray-400 shadow-lg">
             {inventoryData?.map((item: Item, index) => {
                 return <DisplayItem key={index} item={item} />
             })}

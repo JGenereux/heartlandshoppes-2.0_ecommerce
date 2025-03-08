@@ -25,12 +25,11 @@ function ShopMenu({ category }: ShopMenuProps) {
         queryKey: ['inventory', category],
         queryFn: async () => {
             const res = await axios.get<Item[]>(`http://localhost:5000/inventory/${category}`)
-            console.log("axios", res)
             return res.data
         },
-        staleTime: 60 * 1000,
-        gcTime: 2 * 60 * 1000,
-        refetchInterval: 30 * 1000
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchInterval: 10 * 60 * 1000
     })
 
     if (isPending) { return 'Loading...' }

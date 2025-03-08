@@ -4,6 +4,9 @@ import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { Item } from "../interfaces/iteminterface";
 
 export default function Home() {
     return (
@@ -36,10 +39,19 @@ function Header() {
 }
 
 function Featured() {
-    const arr = [1, 2, 3]
+    const { data: featuredItems = [], isError, error, isFetching } = useQuery<Item[]>({
+        queryKey: ['inventory', 'Featured'],
+        queryFn: async () => {
+            const res = await axios.get<Item[]>('http://localhost:5000/inventory/Featured')
+            return res.data
+        },
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000
+    })
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
-    const amountOfItems = isDesktop ? 3 : 2
-    const modarr = arr.slice(0, amountOfItems)
+    const [leftIndex, setLeftIndex] = useState(0)
+    const [rightIndex, setRightIndex] = useState(isDesktop ? 3 : 2)
+    const featuredItemsSlice = featuredItems.slice(leftIndex, rightIndex)
 
     const handleResize = () => {
         setIsDesktop(window.innerWidth >= 768)
@@ -50,29 +62,48 @@ function Featured() {
         return () => window.removeEventListener('resize', handleResize)
     })
 
+    const handleMoveLeft = () => {
+        if (leftIndex > 0) {
+            setLeftIndex(leftIndex - 1)
+        }
+    }
+
+    const handleMoveRight = () => {
+        if (leftIndex < featuredItems.length - 1) {
+            setRightIndex(leftIndex - 1)
+        }
+    }
+
+    if (isFetching) return "Loading"
+    if (isError) return `${error.message}`
+
     return (
         <div className="flex flex-col w-full h-fit items-center justify-center pb-2 space-y-1.5 my-2">
             <h3 className="text-lg md:text-xl">Featured Products</h3>
             <div className="w-full flex flex-row space-x-2 items-center justify-center">
-                <button className="bg-[#f8b4c4] font-semibold rounded-lg p-0.5 pl-1 pr-1 text-white shadow-gray-400 shadow-md">{'<-'}</button>
-                <div className="w-[70%] grid grid-cols-2 md:grid-cols-3 gap-2 ">
-                    {modarr?.map((item, index) =>
-                        <Item key={index} />
+                <button className="bg-[#f8b4c4] font-semibold rounded-lg p-0.5 pl-1 pr-1 text-white shadow-gray-400 shadow-md cursor-pointer" onClick={handleMoveLeft}>{'<-'}</button>
+                <div className="w-[70%] grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {featuredItemsSlice?.map((item, index) =>
+                        <DisplayItem key={index} item={item} />
                     )}
                 </div>
-                <button className="bg-[#f8b4c4] font-semibold rounded-lg p-0.5 pl-1 pr-1 text-white shadow-gray-400 shadow-md">{'->'}</button>
+                <button className="bg-[#f8b4c4] font-semibold rounded-lg p-0.5 pl-1 pr-1 text-white shadow-gray-400 shadow-md cursor-pointer" onClick={handleMoveRight}>{'->'}</button>
             </div>
         </div>
     )
 }
 
-function Item() {
+interface DisplayItemProps {
+    item: Item
+}
+
+function DisplayItem({ item }: DisplayItemProps) {
     return (
         <div className="flex flex-col w-full pl-2 pt-2 shadow-gray-400 shadow-md font-regular">
-            <div className="w-[90%] h-[160px] md:h-[200px] border-black border-2">
-            </div>
-            <p>Item Name</p>
-            <p>$Item Price</p>
+            <img src={item.photos[0]} className="w-[90%] h-[160px] md:h-[200px] border-black border-2">
+            </img>
+            <p>{item.name}</p>
+            <p>${item.price}</p>
         </div>
     )
 }
