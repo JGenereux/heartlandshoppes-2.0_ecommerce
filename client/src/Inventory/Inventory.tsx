@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import uploadPhotoICON from '../assets/uploadPhotoICON.png'
 import { Item } from "../interfaces/iteminterface";
 import axios from 'axios'
 import FormData from "form-data";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Inventory() {
     return (
@@ -64,7 +64,8 @@ function AddItem() {
         options: {},
         quantity: 0,
         description: "",
-        photos: []
+        photos: [],
+        reviews: []
     })
 
     const handleAddItem = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -320,7 +321,7 @@ function DisplayItem({ item }: DisplayItemProps) {
     return <div className={modify ? "flex flex-col h-120 justify-center items-center border-black border-2 pb-1" : "flex flex-col h-120 justify-center items-center border-black border-2 pb-1"}>
         <div className={modify ? "flex flex-col w-[85%] h-full my-2 font-regular" : "flex flex-col w-[85%] h-full justify-center font-regular"}>
             {modify ?
-                <ModifyItem /> : <>
+                <ModifyItem item={item} /> : <>
                     <img src={item?.photos[0]} className="border-2 border-black w-full h-[60%]" ></img>
                     <p>{item.name}</p>
                     <p>{item.price}</p>
@@ -333,17 +334,53 @@ function DisplayItem({ item }: DisplayItemProps) {
     </div>
 }
 
-function ModifyItem() {
-    return <form>
+function ModifyItem({ item }: DisplayItemProps) {
+    const [modifiedItem, setModifiedItem] = useState<Item>(item)
+
+    const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
+        setModifiedItem({
+            ...modifiedItem,
+            [property]: value
+        })
+    }
+
+    const queryClient = useQueryClient()
+
+    const mutation = useMutation(
+        {
+            mutationFn: async (updatedItem: Item) => {
+                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategory: item.category })
+                console.log(response)
+                return response.data
+            },
+            onSuccess: () => {
+                console.log(item.category)
+                queryClient.invalidateQueries({ queryKey: ['inventory'] })
+                queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
+                queryClient.invalidateQueries({ queryKey: [item.name] })
+                window.alert('item updated')
+            }
+        }
+    )
+
+    const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
+        console.log('running')
+        mutation.mutate(modifiedItem)
+    }
+
+    return <form onSubmit={(event) => onSubmit(event)}>
         <p>Item Name</p>
-        <input type="text" className="border-black border-2"></input>
+        <input type="text" className="border-black border-2" value={modifiedItem.name} onChange={(event) => handleItemChange('name', event.target.value)}></input>
         <p>Item Price</p>
-        <input type="text" className="border-black border-2"></input>
+        <input type="text" className="border-black border-2" value={modifiedItem.price} onChange={(event) => handleItemChange('price', event.target.value)}></input>
         <p>Quantity</p>
-        <input type="text" className="border-black border-2 w-10"></input>
+        <input type="text" className="border-black border-2 w-10" value={modifiedItem.quantity} onChange={(event) => handleItemChange('quantity', event.target.value)}></input>
         <p>Category</p>
-        <input type="text" className="border-black border-2"></input>
+        <input type="text" className="border-black border-2" value={modifiedItem.category} onChange={(event) => handleItemChange('category', event.target.value)}></input>
         <p>Description</p>
-        <textarea className="resize:none border-black border-2 w-full h-40"></textarea>
+        <textarea className="resize:none border-black border-2 w-full h-40" value={modifiedItem.description} onChange={(event) => handleItemChange('description', event.target.value)}></textarea>
+        <button type="submit" className="w-full border-black border-1">Submit Changes</button>
     </form>
 }

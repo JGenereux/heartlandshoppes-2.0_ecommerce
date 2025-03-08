@@ -30,10 +30,12 @@ router.route('/').get(async(req: Request,res: Response) => {
             res.status(417).json("Error retrieving items from db")
             return
         }
-
+        
+        
         await client.sendCommand(['DEL', 'items']); // Clear old list
-        await client.sendCommand(['RPUSH', 'items', ...items.map(item => JSON.stringify(item))]); // Push all to Redis
-
+        if(items.length > 0) {
+            await client.sendCommand(['RPUSH', 'items', ...items.map(item => JSON.stringify(item))]); // Push all to Redis
+        }
         res.status(200).json(items)
         return
     } catch(error) {
@@ -79,11 +81,15 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
 
         const filteredItems: Item[] = items.filter((item: Item) => item.category.includes(category))
 
+        if(items.length > 0) {
+            await client.sendCommand(["DEL", `items`])
+            await client.sendCommand(["RPUSH", `items`, ...items.map(item => JSON.stringify(item))])
+        }
         // ensure category and items dont exist before writing values to those keys
-        await client.sendCommand(["DEL", `${category}`])
-        await client.sendCommand(["DEL", `items`])
-        await client.sendCommand(["RPUSH", `${category}`, ...filteredItems.map(item => JSON.stringify(item))])
-        await client.sendCommand(["RPUSH", `items`, ...items.map(item => JSON.stringify(item))])
+        if(filteredItems.length > 0) {
+            await client.sendCommand(["DEL", `${category}`])
+            await client.sendCommand(["RPUSH", `${category}`, ...filteredItems.map(item => JSON.stringify(item))])
+        }
 
         return res.status(200).json(items)
     } catch(error) {
@@ -151,9 +157,9 @@ router.route('/item').post(async(req,res) : Promise<any> => {
  * @param {Item} newItem The updated information for the requested item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.route('/item/:name').put(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
+router.route('/item/:name').put(async(req: Request,res: Response) : Promise<any> => {
     const {name} = req.params
-    const {item} = req.body
+    const {item, oldCategory} = req.body
 
     try{
         const updated = await Items.findOneAndUpdate(
@@ -199,7 +205,10 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole, async(req: Re
 
                 await client.sendCommand(['DEL', `${itemCategory}`])
                 await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                console.log(`Removed item from ${itemCategory} cache`)
             }
+            // HANDLE DELETE CATEGORY HERE
+            await client.sendCommand(['DEL', `${oldCategory}`]) // delete old category. 
         }
 
         return res.status(200).json("Item was successfully updated")
@@ -238,18 +247,16 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
                 return res.status(417).json("Item not found in items cache");
             }
 
-            //update item in items cache
-            console.log(items[index])
+
             if(items[index].reviews.length === 0) {
                 items[index].reviews = [review]
             } else{
                 items[index].reviews.push(review)
             }
-            console.log('nope')
 
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
-        
+         
             // update item in category list cache
             const itemCategory = items[index].category
             const categoryExist = await client.exists(`${itemCategory}`)
