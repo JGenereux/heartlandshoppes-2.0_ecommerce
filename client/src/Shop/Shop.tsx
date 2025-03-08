@@ -1,5 +1,8 @@
 import { Link, Route, Routes } from "react-router-dom";
 import Drawer from "../Navbar/Drawer";
+import { Item } from "../interfaces/iteminterface";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 export default function Shop() {
     return <Routes>
@@ -17,10 +20,22 @@ interface ShopMenuProps {
     category: string
 }
 function ShopMenu({ category }: ShopMenuProps) {
+
+    const { isPending, data: inventoryData = [] } = useQuery<Item[], Error>({
+        queryKey: ['inventory', category],
+        queryFn: async () => {
+            const res = await axios.get<Item[]>(`http://localhost:5000/inventory/${category}`)
+            console.log("axios", res)
+            return res.data
+        },
+    })
+
+    if (isPending) { return 'Loading...' }
+
     return <div>
         <Drawer />
-        <Categories category={category} />
-        <Items />
+        <CategoriesBar category={category} />
+        <DisplayItems items={inventoryData} />
     </div>
 }
 
@@ -28,7 +43,7 @@ interface categoryProps {
     category: string
 }
 
-function Categories({ category }: categoryProps) {
+function CategoriesBar({ category }: categoryProps) {
     return (
         <div className="flex flex-col w-full h-fit border-gray-600 border-b-2 items-center justify-center font-button pt-0.5">
             <p className="text-sm md:text-lg">{category}</p>
@@ -45,33 +60,31 @@ function Categories({ category }: categoryProps) {
     )
 }
 
-function Items() {
-    /**
-     * Make post req for items and map them 
-     */
+interface DisplayItemsProps {
+    items: Item[]
+}
+
+function DisplayItems({ items }: DisplayItemsProps) {
+
     return <div className="w-full h-full ">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 w-full pb-4 pt-4 pr-2 pl-2">
-            <Item />
-            <Item />
-            <Item />
-            <Item />
-            <Item />
-            <Item />
-            <Item />
-            <Item />
-            <Item />
-            <Item />
+            {items?.map((item, index) => {
+                return <DisplayItem key={index} item={item} />
+            })}
         </div>
     </div>
 }
 
-function Item() {
+interface ItemProps {
+    item: Item
+}
+function DisplayItem({ item }: ItemProps) {
     return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white shadow-black shadow-sm">
-        <div className="w-[90%] h-[160px] border-black border-1">
-        </div>
+        <img src={item?.photos[0]} className="w-[90%] h-[160px] border-black border-1">
+        </img>
         <div className="flex flex-col font-regular">
-            <p>Item name</p>
-            <p>$Item price</p>
+            <p>{item.name}</p>
+            <p>${item.price}</p>
         </div>
     </div>
 }

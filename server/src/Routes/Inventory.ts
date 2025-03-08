@@ -63,6 +63,9 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
         if(itemsExist === 1) {
             const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item)).filter((item: Item) => item.category.includes(category))
+            if(items.length == 0 ){
+                return res.status(200).json([])
+            }
             await client.sendCommand(["RPUSH", `${category}`, ...items.map(item => JSON.stringify(item))])
             return res.status(200).json(items)
         }
