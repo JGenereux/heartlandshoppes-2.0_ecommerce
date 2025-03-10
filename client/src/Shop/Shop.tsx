@@ -86,12 +86,13 @@ function DisplayItem({ item }: ItemProps) {
     const handleItemRedirect = () => {
         navigate(`/shop/item/${item.name}`)
     }
-    return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white shadow-black shadow-sm" onClick={handleItemRedirect}>
-        <img src={item?.photos[0]} className="w-[90%] h-[160px] border-black border-1">
+    return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white shadow-black shadow-sm cursor-pointer items-center" onClick={handleItemRedirect}>
+        <img src={item?.photos[0]} className="w-[90%] h-[160px] border-black border-1 ">
         </img>
-        <div className="flex flex-col font-regular">
+        <div className="flex flex-col font-regular items-center">
             <p>{item.name}</p>
-            <p>${item.price}</p>
+            <p>${item.price}.00</p>
+            <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button">Buy Now</button>
         </div>
     </div>
 }

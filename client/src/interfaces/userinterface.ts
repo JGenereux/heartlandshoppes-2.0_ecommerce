@@ -1,5 +1,5 @@
-import { Item } from "./itemInterface";
-import { Order, Bill } from "./orderInterface";
+import { Item } from "./iteminterface";
+import { Bill, Order } from "./orderInterface";
 
 interface User {
     email: string,
@@ -10,4 +10,4 @@ interface User {
     role: string,
 }
 
-export {User}
+export type {User}

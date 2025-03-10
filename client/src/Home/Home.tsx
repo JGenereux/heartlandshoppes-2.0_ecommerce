@@ -82,7 +82,7 @@ function Featured() {
             <h3 className="text-lg md:text-xl">Featured Products</h3>
             <div className="w-full flex flex-row space-x-2 items-center justify-center">
                 <button className="bg-[#f8b4c4] font-semibold rounded-lg p-0.5 pl-1 pr-1 text-white shadow-gray-400 shadow-md cursor-pointer" onClick={handleMoveLeft}>{'<-'}</button>
-                <div className="w-[70%] grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="flex flex-row space-x-2">
                     {featuredItemsSlice?.map((item, index) =>
                         <DisplayItem key={index} item={item} />
                     )}

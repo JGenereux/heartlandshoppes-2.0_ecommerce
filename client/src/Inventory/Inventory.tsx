@@ -29,6 +29,25 @@ function DisplayInventory() {
     })
 
     const [addItem, setAddItem] = useState(false)
+    const [currentCategories, setCurrentCategories] = useState<Set<string>>(new Set())
+
+    useEffect(() => {
+        const newCategories = new Set<string>()
+        inventoryData.forEach((item) => {
+            if (typeof item.category === "string") {
+                if (!newCategories.has(item.category)) {
+                    newCategories.add(item.category)
+                }
+            } else {
+                item.category.forEach((category) => {
+                    if (!newCategories.has(category)) {
+                        newCategories.add(category)
+                    }
+                })
+            }
+        })
+        setCurrentCategories(newCategories)
+    }, [inventoryData])
 
     if (isPending) { return 'Loading...' }
     if (error) { return `error: ${error}` }
@@ -46,7 +65,7 @@ function DisplayInventory() {
                 </select>
             </div>
         </div>
-        {addItem && <AddItem />}
+        {addItem && <AddItem categories={currentCategories} />}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-fit border-black border-2 my-2 shadow-gray-400 shadow-lg">
             {inventoryData?.map((item: Item, index) => {
                 return <DisplayItem key={index} item={item} />
@@ -55,8 +74,10 @@ function DisplayInventory() {
     </div>
 }
 
-
-function AddItem() {
+interface AddItemProps {
+    categories: Set<string>
+}
+function AddItem({ categories }: AddItemProps) {
     const [item, setItem] = useState<Item>({
         name: "",
         price: 0,
@@ -90,7 +111,7 @@ function AddItem() {
     return <div className="w-full p-2 p-r-0 border-black border-2 my-2 font-regular">
         <form onSubmit={(event) => handleAddItem(event)}>
             <div className="flex flex-col w-full">
-                <div className="flex flex-row">
+                <div className="flex flex-col md:flex-row">
                     <div className="flex flex-col w-1/2">
                         <p>Item Name</p>
                         <input type="text" className="border-black border-1 pl-1 ml-2" value={item.name} onChange={(event) => handleInputChange(event, "name")}></input>
@@ -103,7 +124,10 @@ function AddItem() {
                         <p>Description</p>
                         <textarea className="resize-none border-black border-1 h-fit ml-2" value={item.description} onChange={(event) => handleInputChange(event, "description")}></textarea>
                     </div>
-                    <DisplayOptions item={item} setItem={setItem} />
+                    <div className="flex flex-col my-4 md:my-auto ml-2 md:mx-auto space-y-4">
+                        <DisplayCategories categories={categories} />
+                        <DisplayOptions item={item} setItem={setItem} />
+                    </div>
                 </div>
                 <div className="flex flex-col mx-auto w-fit my-2">
                     <h3 className="text-xl">Photos</h3>
@@ -116,6 +140,32 @@ function AddItem() {
                 <button className="border-black border-1 w-fit self-center p-0.5" type="submit">Add Item to inventory</button>
             </div>
         </form>
+    </div>
+}
+
+interface DisplayCategoriesProps {
+    categories: Set<string>
+}
+
+function DisplayCategories({ categories }: DisplayCategoriesProps) {
+
+    return <div className="flex flex-col border-black border-2 w-fit p-1">
+        <p>Categories</p>
+        <div className="grid grid-cols-3 gap-2">
+            {Array.from(categories)?.map((category, index) => {
+                return <DisplayCategory key={index} category={category} />
+            })}
+        </div>
+    </div>
+}
+
+interface DisplayCategoryProps {
+    category: string
+}
+
+function DisplayCategory({ category }: DisplayCategoryProps) {
+    return <div className="border-black border-1 p-0.5">
+        <p>{category}</p>
     </div>
 }
 
@@ -148,10 +198,10 @@ function DisplayOptions({ item, setItem }: DisplayOptionsProps) {
         setCurrOption("")
     }
 
-    return <div className="flex flex-col my-auto mx-auto pl-2 w-1/3 h-full border-black border-2 p-2">
+    return <div className="flex flex-col pl-2 w-fit border-black border-2 p-2">
         <p>Options</p>
         <p>Enter Option</p>
-        <div className="flex flex-row space-x-4">
+        <div className="flex flex-row flex-wrap space-x-4">
             <input type="text" className="border-black border-1  pl-1" value={currOption} onChange={(event) => setCurrOption(event.target.value)}></input>
             <button className="border-black border-1 pl-0.5 pr-0.5" type="button" onClick={handleAddOption}>Add</button>
         </div>
@@ -354,7 +404,6 @@ function ModifyItem({ item }: DisplayItemProps) {
                 return response.data
             },
             onSuccess: () => {
-                console.log(item.category)
                 queryClient.invalidateQueries({ queryKey: ['inventory'] })
                 queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
                 queryClient.invalidateQueries({ queryKey: [item.name] })

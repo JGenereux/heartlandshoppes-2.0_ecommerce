@@ -2,9 +2,10 @@ import { useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import Rating from '@mui/material/Rating';
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Item, Review } from "../interfaces/iteminterface";
 import axios from "axios";
+import uploadPhotoICON from '../assets/uploadPhotoICON.png'
 
 export default function ItemPage() {
     const { name } = useParams()
@@ -112,7 +113,7 @@ function Reviews({ item }: DisplayItemProps) {
             <h3 className="font-headerFont text-2xl">Reviews</h3>
             <button className=" w-fit md:ml-auto text-xl md:mr-8 rounded-lg p-1 font-button bg-[#f8b4c4] text-white font-bold" onClick={() => setLeaveReview((review) => !review)}>{leaveReview ? 'Go Back' : 'Leave a review'}</button>
         </div>
-        {leaveReview && <AddReview />}
+        {leaveReview && <AddReview item={item} setLeaveReview={setLeaveReview} />}
         <div className="flex flex-col space-y-6 mb-2">
             {item.reviews?.map((review: Review, index) => {
                 return <DisplayReview key={index} review={review} />
@@ -121,13 +122,125 @@ function Reviews({ item }: DisplayItemProps) {
     </div>
 }
 
-function AddReview() {
+interface ImageResponse {
+    imageUrl: string;
+}
+
+interface AddReviewProps {
+    item: Item,
+    setLeaveReview: (flag: boolean) => void
+}
+
+function AddReview({ item, setLeaveReview }: AddReviewProps) {
+    const queryClient = useQueryClient()
+
+    const [review, setReview] = useState<Review>({
+        fullName: "First name Last name / Date",
+        stars: 5,
+        description: "",
+        photos: []
+    })
+
+    const mutation = useMutation(
+        {
+            mutationFn: async (review: Review) => {
+                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}/review`, { review: review })
+                return response.data
+            },
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['inventory'] })
+                queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
+                queryClient.invalidateQueries({ queryKey: [item.name] })
+            }
+        }
+    )
+
+    const handleReviewChange = (property: keyof Review, value: string | string[] | number | null) => {
+        if (value === null) return
+        setReview((prevReview) => ({
+            ...prevReview,
+            [property]: value
+        }))
+    }
+
+    const handleAddReview = async () => {
+        mutation.mutate(review)
+        setLeaveReview(false)
+        setReview({
+            fullName: "First name Last name / Date",
+            stars: 5,
+            description: "",
+            photos: []
+        })
+    }
+
     return <div className="flex flex-col mb-4 font-regular">
-        <p>First Name Last Name on Date</p>
-        <Rating name="half-rating" defaultValue={2.5} precision={0.5} />
-        <textarea className="border-black border-1 w-[80%] resize-none pl-0.5 my-1"></textarea>
-        <p>Optional Picture</p>
-        <button className="self-start my-2 p-1 rounded-lg font-button bg-[#f8b4c4] text-white font-bold">Add Review</button>
+        <p>{review.fullName}</p>
+        <Rating name="half-rating" value={review.stars} onChange={(event, newValue) => handleReviewChange('stars', newValue)} precision={0.5} />
+        <textarea className="border-black border-1 w-[80%] resize-none pl-0.5 my-1" value={review.description} onChange={(event) => handleReviewChange('description', event.target.value)}></textarea>
+        <UploadPhoto review={review} handleReviewChange={handleReviewChange} />
+        <button className="self-start my-2 p-1 rounded-lg font-button bg-[#f8b4c4] text-white font-bold" onClick={handleAddReview}>Add Review</button>
+    </div>
+}
+
+interface UploadPhotoProps {
+    review: Review,
+    handleReviewChange: (property: keyof Review, value: string | string[] | number | null) => void
+}
+
+function UploadPhoto({ review, handleReviewChange }: UploadPhotoProps) {
+    const [photoUrl, setPhotoUrl] = useState("")
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+
+        if (!file) {
+            console.error('Error retrieving uploaded file')
+            return
+        }
+
+        const formData = new FormData()
+        formData.append("image", file)
+
+        try {
+            const res = await axios.post<ImageResponse>('http://localhost:5000/image/', formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                }
+            })
+            setPhotoUrl(res.data.imageUrl)
+            const newPhotos = review.photos
+            newPhotos.push(res.data.imageUrl)
+            handleReviewChange('photos', newPhotos)
+            event.target.value = ""
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const handleFileRemove = () => {
+        const photos = review.photos
+        console.log(photoUrl)
+        const filteredPhotos = photos.filter((photo) => photo !== photoUrl)
+
+        handleReviewChange('photos', filteredPhotos)
+        setPhotoUrl('')
+    }
+
+    return <div>
+        {(photoUrl && photoUrl.length > 0) ?
+            <div className="w-full h-full relative">
+                <img src={photoUrl} className="w-28 h-28"></img>
+                <button className="bg-red-500 p-0.5 pt-0 pb-0 rounded-lg absolute top-0 left-1 text-white" onClick={handleFileRemove}>-</button>
+            </div>
+            :
+            <div className="flex flex-col">
+                <div className="flex flex-col w-fit h-24 relative items-center justify-center pl-2">
+                    <p>Click to upload photo</p>
+                    <img src={uploadPhotoICON} className="h-10 w-10"></img>
+                    <input type="file" className="text-transparent w-full h-full absolute top-0" onChange={(event) => handleFileUpload(event)}></input>
+                </div>
+            </div>}
     </div>
 }
 
