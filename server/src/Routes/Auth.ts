@@ -58,8 +58,8 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
             sameSite: 'strict', // Helps mitigate CSRF attacks
         });
 
-        const {email, orderHistory, billingInfo} = user
-        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo}
+        const {email, orderHistory, billingInfo, cart} = user
+        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart}
      
         return res.status(200).json({user: currUser, accessToken: accessToken})
     } catch(error) {
@@ -98,8 +98,8 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
             sameSite: 'strict', // Helps mitigate CSRF attacks
         });
 
-        const {email, orderHistory, billingInfo} = newUser
-        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo}
+        const {email, orderHistory, billingInfo, cart} = newUser
+        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart}
         
         console.log('Sending account info')
         return res.status(200).json({user: currUser, accessToken: accessToken})

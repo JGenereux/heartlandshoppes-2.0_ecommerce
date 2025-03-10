@@ -1,6 +1,14 @@
 import mongoose from 'mongoose'
 import {billingSchema, orderSchema} from './Order'
+import { itemSchema } from './Item'
 const Schema = mongoose.Schema
+
+const cartSchema = new Schema (
+    {
+        item:  {type: itemSchema, required: true, default: []},
+        quantity: {type: Number, required: true, default: 0}
+    }
+)
 
 const userSchema = new Schema(
     {
@@ -8,7 +16,8 @@ const userSchema = new Schema(
         password: {type: String, required: true},
         billingInfo: {type: billingSchema, required: false},
         orderHistory: {type: [orderSchema], required: true, default: []},
-        role: {type: String, required: true, default: 'user'}
+        role: {type: String, required: true, default: 'user'},
+        cart: {type: [cartSchema], default: []}
     },
     {
         timestamps: true,

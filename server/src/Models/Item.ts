@@ -27,4 +27,4 @@ const itemSchema = new Schema(
 
 const Items = mongoose.model('Items', itemSchema)
 
-export {Items}
+export {Items, itemSchema}

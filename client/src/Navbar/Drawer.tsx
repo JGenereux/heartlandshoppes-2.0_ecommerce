@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import menuIcon from '../assets/menuicon.png'
 import { Link } from 'react-router-dom'
 import Cart from './Cart'
+import { useAuth } from '../Contexts/authContext'
 
 export default function Drawer() {
+    const { user } = useAuth()
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
 
     const [isOpen, setIsOpen] = useState(false)
@@ -40,7 +42,7 @@ export default function Drawer() {
                 {isDesktop && <SearchBar />}
                 <div className="flex flex-col md:flex-row md:ml-auto mr-6 space-x-6">
                     <Link to="/inventory">Inventory</Link>
-                    <Link to="/login">Login</Link>
+                    {user ? <Link to="/account">Account</Link> : <Link to="/login">Login</Link>}
                     <Cart />
                 </div>
             </div>}
