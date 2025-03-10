@@ -21,7 +21,7 @@ export default function Cart() {
                         <button onClick={() => setIsOpen(false)} className="ml-auto">🛒</button>
                     </div>
                     <Items />
-                    <button className="self-start my-2 bg-[#f8b4c4] p-0.5 text-white font-bold text-lg rounded-lg">Checkout</button>
+                    <button className="self-center my-2 bg-[#f8b4c4] p-0.5 text-white font-bold text-lg rounded-lg">Checkout</button>
                 </div>
             </div>
                 :
@@ -47,16 +47,24 @@ interface ItemProps {
 }
 
 function Item({ item }: ItemProps) {
+    const firstKey = Object.keys(item.item.options)[0]
+    console.log(firstKey)
     const { addToCart, removeFromCart } = useCart()
-    return <div className="flex flex-row border-black border-1 h-22">
-        <img src={item.item?.photos[0]} className="h-full w-[30%] border-black border-2"></img>
+    return <div className="flex flex-row border-black border-1">
+        <img src={item.item?.photos[0]} className="w-[35%] border-black border-2"></img>
         <div className="flex flex-col pl-2 py-0.5 w-[70%]">
             <p>{item.item.name}</p>
             <p>{item.item.price}</p>
+            <p>Options</p>
+            {Object.keys(item.item.options).map((option) => {
+                return <div>
+                    <p>{item.item.options[option]}</p>
+                </div>
+            })}
             <div className="flex flex-row self-end space-x-2 border-black border-2 mr-4 pl-1 pr-1 rounded-lg">
                 <button onClick={() => removeFromCart(item)}>-</button>
                 <p>{item.quantity}</p>
-                <button onClick={() => addToCart(item)}>+</button>
+                <button onClick={() => addToCart({ item: item.item, quantity: item.quantity + 1 })}>+</button>
             </div>
         </div>
     </div>

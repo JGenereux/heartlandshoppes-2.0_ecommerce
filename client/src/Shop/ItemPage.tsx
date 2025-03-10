@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import Rating from '@mui/material/Rating';
 import { useParams } from "react-router-dom";
@@ -82,10 +82,19 @@ function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
 
 function ItemDescription({ item }: DisplayItemProps) {
     const { cart, addToCart, removeFromCart } = useCart()
+    const [tempItem, setTempItem] = useState<Item>({
+        ...item,
+        options: {}
+    })
 
     const retrieveItem = (): number => {
         if (!cart) return 0
-        const itemIndex = cart.findIndex((currItem) => currItem.item.name === item.name)
+        const itemIndex = cart.findIndex(
+            (currItem) =>
+                currItem.item.name === item.name &&
+                JSON.stringify(currItem.item.options) === JSON.stringify(tempItem.options)
+        );
+        console.log('item index is', cart[itemIndex]?.quantity)
         if (itemIndex !== -1) {
             return cart[itemIndex].quantity
         } else {
@@ -97,7 +106,18 @@ function ItemDescription({ item }: DisplayItemProps) {
 
     useEffect(() => {
         setQuantity(retrieveItem())
-    }, [cart])
+    }, [cart, tempItem.options])
+
+    const handleAddQuantity = () => {
+        setQuantity(quantity => quantity + 1)
+        addToCart({ item: tempItem, quantity: quantity + 1 })
+    }
+
+    const handleRemoveQuantity = () => {
+        if (quantity <= 0) return
+        setQuantity(quantity => quantity - 1)
+        removeFromCart({ item: tempItem, quantity: quantity - 1 })
+    }
 
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
         <div className="flex flex-col">
@@ -105,24 +125,71 @@ function ItemDescription({ item }: DisplayItemProps) {
             <p className="text-xl font-regular">${item.price}</p>
         </div>
         <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-12">
-            <p className="text-xl">Size: </p>
-            <select className="bg-[#f8b4c4] text-white w-fit p-0.5">
-                <option>S</option>
-            </select>
+            <DisplayOptions options={item.options} setItem={setTempItem} />
         </div>
+
         <div className="flex flex-col pt-2">
             <p className="font-regular">Quantity</p>
             <div className="flex flex-row space-x-4 font-button bg-[#f8b4c4] text-white font-bold w-fit p-1 rounded-lg">
-                <button onClick={() => removeFromCart({ item: item, quantity: 1 })}>-</button>
+                <button onClick={handleRemoveQuantity}>-</button>
                 <p>{quantity}</p>
-                <button onClick={() => addToCart({ item: item, quantity: 1 })}>+</button>
+                <button onClick={handleAddQuantity}>+</button>
             </div>
         </div>
+        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="self-start my-4 text-xl border-black border-1 p-1">Add To Cart</button>
         <div className="flex flex-col pt-4 w-[95%]">
             <p className="font-button font-bold">About this item: </p>
             <p className="font-regular text-md">{item.description}</p>
         </div>
     </div>
+}
+
+interface DisplayOptionsProps {
+    setItem: React.Dispatch<React.SetStateAction<Item>>,
+    options: Record<string, string[]>
+}
+
+function DisplayOptions({ options, setItem }: DisplayOptionsProps) {
+    const firstKey = Object.keys(options)[0]
+    const initialOptions = firstKey ? { [firstKey]: [options[firstKey][0]] } : {}
+
+    const [currOptions, setCurrOptions] = useState<Record<string, string[]>>(initialOptions)
+    useEffect(() => {
+        setItem((prevItem) => {
+            return { ...prevItem, options: currOptions }
+        })
+    }, [currOptions, setItem])
+
+    return <div>
+        {Object.keys(options).map((option) => {
+            return <label key={option}>
+                {option}:
+                <DisplayOption option={option} optionValues={options} currOptions={currOptions} setCurrOptions={setCurrOptions} />
+            </label>
+        })}
+    </div>
+}
+
+interface DisplayOptionProps {
+    option: string,
+    optionValues: Record<string, string[]>,
+    currOptions: Record<string, string[]>,
+    setCurrOptions: React.Dispatch<React.SetStateAction<Record<string, string[]>>>
+}
+
+function DisplayOption({ option, optionValues, currOptions, setCurrOptions }: DisplayOptionProps) {
+
+    const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setCurrOptions((prevOptions) => {
+            return { ...prevOptions, [option]: [e.target.value] }
+        })
+    }
+
+    return <select value={currOptions[option] || ' '} onChange={(e) => handleOptionChange(e)}>
+        {optionValues[option].map((currValue) => {
+            return <option key={currValue} value={currValue}>{currValue}</option>
+        })}
+    </select>
 }
 
 function Reviews({ item }: DisplayItemProps) {

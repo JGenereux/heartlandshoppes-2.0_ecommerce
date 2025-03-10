@@ -300,11 +300,12 @@ interface ImageResponse {
 
 interface PhotoUploadProps {
     item: Item,
-    setItem: (item: Item) => void,
+    setItem?: (item: Item) => void,
+    setPhotos?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-function PhotoUpload({ item, setItem }: PhotoUploadProps) {
-    const [photoUrl, setPhotoUrl] = useState('')
+function PhotoUpload({ item, setItem, setPhotos }: PhotoUploadProps) {
+    const [photoUrl, setPhotoUrl] = useState<string>('')
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -324,10 +325,13 @@ function PhotoUpload({ item, setItem }: PhotoUploadProps) {
                 }
             })
 
-            const currentItem = { ...item }
-            currentItem.photos.push(res.data.imageUrl)
-
-            setItem({ ...currentItem })
+            if (setItem) {
+                const currentItem = { ...item }
+                currentItem.photos.push(res.data.imageUrl)
+                setItem({ ...currentItem })
+            } else if (setPhotos) {
+                setPhotos((prevPhotos) => [...prevPhotos, res.data.imageUrl])
+            }
             setPhotoUrl(res.data.imageUrl)
             event.target.value = ""
         } catch (error) {
@@ -338,13 +342,20 @@ function PhotoUpload({ item, setItem }: PhotoUploadProps) {
     const handleFileRemove = () => {
         const url = photoUrl
 
-        const currentItem = { ...item }
-        const filteredPhotos = currentItem.photos.filter((currUrl) => currUrl != url)
+        if (setItem) {
+            const currentItem = { ...item }
+            const filteredPhotos = currentItem.photos.filter((currUrl) => currUrl != url)
+            currentItem.photos = filteredPhotos
+            setItem(currentItem)
+        } else if (setPhotos) {
+            setPhotos((prevPhotos) => {
+                return prevPhotos.filter((photo) => photo != url)
+            })
+        }
 
-        currentItem.photos = filteredPhotos
-        setItem(currentItem)
         setPhotoUrl('')
     }
+
     return <div className="flex flex-col items-center">
         {(photoUrl && photoUrl.length > 0) ?
             <div className="w-full h-full relative">
@@ -368,11 +379,11 @@ interface DisplayItemProps {
 function DisplayItem({ item }: DisplayItemProps) {
 
     const [modify, setModify] = useState(false)
-    return <div className={modify ? "flex flex-col h-120 justify-center items-center border-black border-2 pb-1" : "flex flex-col h-120 justify-center items-center border-black border-2 pb-1"}>
-        <div className={modify ? "flex flex-col w-[85%] h-full my-2 font-regular" : "flex flex-col w-[85%] h-full justify-center font-regular"}>
+    return <div className={modify ? "flex flex-col h-fit justify-center items-center border-black border-2 pb-1" : "flex flex-col h-fit justify-center items-center border-black border-2 pb-1 py-2"}>
+        <div className={modify ? "flex flex-col w-[70%]  my-2 font-regular" : "flex flex-col w-[70%] h-fit justify-center font-regular"}>
             {modify ?
                 <ModifyItem item={item} /> : <>
-                    <img src={item?.photos[0]} className="border-2 border-black w-full h-[60%]" ></img>
+                    <img src={item?.photos[0]} className="border-2 border-black" ></img>
                     <p>{item.name}</p>
                     <p>{item.price}</p>
                     <p>{item.quantity}</p>
@@ -385,6 +396,7 @@ function DisplayItem({ item }: DisplayItemProps) {
 }
 
 function ModifyItem({ item }: DisplayItemProps) {
+    const [photos, setPhotos] = useState<string[]>([])
     const [modifiedItem, setModifiedItem] = useState<Item>(item)
 
     const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
@@ -393,6 +405,10 @@ function ModifyItem({ item }: DisplayItemProps) {
             [property]: value
         })
     }
+
+    useEffect(() => {
+        handleItemChange('photos', photos)
+    }, [photos])
 
     const queryClient = useQueryClient()
 
@@ -430,6 +446,7 @@ function ModifyItem({ item }: DisplayItemProps) {
         <input type="text" className="border-black border-2" value={modifiedItem.category} onChange={(event) => handleItemChange('category', event.target.value)}></input>
         <p>Description</p>
         <textarea className="resize:none border-black border-2 w-full h-40" value={modifiedItem.description} onChange={(event) => handleItemChange('description', event.target.value)}></textarea>
+        <PhotoUpload item={item} setPhotos={setPhotos} />
         <button type="submit" className="w-full border-black border-1">Submit Changes</button>
     </form>
 }

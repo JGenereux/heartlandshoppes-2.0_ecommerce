@@ -29,17 +29,25 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const addToCart = (item: CartItem) => {
         setCart((prevCart) => {
-            if (!prevCart) return [item];
+            if (!prevCart || prevCart.length == 0) return [{ ...item, quantity: item.quantity || 1 }];
 
-            const itemIndex = prevCart.findIndex((currItem) => currItem.item.name === item.item.name);
+            //Check if item exists at all by name first
+            const itemIndex = prevCart.findIndex(
+                (currItem) =>
+                    currItem.item.name === item.item.name &&
+                    JSON.stringify(currItem.item.options) === JSON.stringify(item.item.options)
+            );
 
-            if (itemIndex === -1) {
-                return [...prevCart, { ...item, quantity: 1 }]; // Ensure new reference
+            console.log(`Item index is: ${itemIndex}`)
+            if (itemIndex !== -1) {
+                return prevCart.map((currItem, index) =>
+                    index === itemIndex
+                        ? { ...currItem, quantity: item.quantity }
+                        : currItem
+                );
             }
 
-            return prevCart.map((currItem, index) =>
-                index === itemIndex ? { ...currItem, quantity: currItem.quantity + 1 } : currItem
-            );
+            return [...prevCart, { ...item, quantity: item.quantity }];
         });
     }
 
@@ -52,7 +60,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newCart = [...cart]
 
         if (cart[itemIndex].quantity > 1) {
-            newCart[itemIndex] = { ...newCart[itemIndex], quantity: newCart[itemIndex].quantity - 1 }
+            newCart[itemIndex] = {
+                ...newCart[itemIndex], quantity: newCart[itemIndex].quantity - 1, item: {
+                    ...newCart[itemIndex].item,
+                    options: item.item.options
+                }
+            }
         } else {
             newCart.splice(itemIndex, 1)
         }
