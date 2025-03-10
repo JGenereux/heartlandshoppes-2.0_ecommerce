@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { useCart } from "../Contexts/cartContext"
+import { CartItem } from "../interfaces/userinterface"
 
 export default function Cart() {
     const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -31,25 +33,30 @@ export default function Cart() {
 }
 
 function Items() {
+    const { cart } = useCart()
+
     return <div className="flex flex-col w-full overflow-y-scroll space-y-2">
-        <Item />
-        <Item />
-        <Item />
-        <Item />
-        <Item />
+        {cart?.map((cartItem, index) => {
+            return <Item key={index} item={cartItem} />
+        })}
     </div>
 }
 
-function Item() {
+interface ItemProps {
+    item: CartItem
+}
+
+function Item({ item }: ItemProps) {
+    const { addToCart, removeFromCart } = useCart()
     return <div className="flex flex-row border-black border-1 h-22">
         <img className="h-full w-[30%] border-black border-2"></img>
         <div className="flex flex-col pl-2 py-0.5 w-[70%]">
-            <p>Item Name</p>
-            <p>Price</p>
+            <p>{item.item.name}</p>
+            <p>{item.item.price}</p>
             <div className="flex flex-row self-end space-x-2 border-black border-2 mr-4 pl-1 pr-1 rounded-lg">
-                <button>-</button>
-                <p>1</p>
-                <button>+</button>
+                <button onClick={() => addToCart(item)}>-</button>
+                <p>{item.quantity}</p>
+                <button onClick={() => removeFromCart(item)}>+</button>
             </div>
         </div>
     </div>

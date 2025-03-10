@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import Rating from '@mui/material/Rating';
 import { useParams } from "react-router-dom";
@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Item, Review } from "../interfaces/iteminterface";
 import axios from "axios";
 import uploadPhotoICON from '../assets/uploadPhotoICON.png'
+import { useCart } from "../Contexts/cartContext";
 
 export default function ItemPage() {
     const { name } = useParams()
@@ -80,6 +81,24 @@ function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
 }
 
 function ItemDescription({ item }: DisplayItemProps) {
+    const { cart, addToCart, removeFromCart } = useCart()
+
+    const retrieveItem = (): number => {
+        if (!cart) return 0
+        const itemIndex = cart.findIndex((currItem) => currItem.item.name === item.name)
+        if (itemIndex !== -1) {
+            return cart[itemIndex].quantity
+        } else {
+            return 0
+        }
+    }
+
+    const [quantity, setQuantity] = useState(() => retrieveItem())
+
+    useEffect(() => {
+        setQuantity(() => retrieveItem())
+    }, [cart])
+
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
         <div className="flex flex-col">
             <h3 className="text-3xl font-headerFont">{item.name}</h3>
@@ -94,9 +113,9 @@ function ItemDescription({ item }: DisplayItemProps) {
         <div className="flex flex-col pt-2">
             <p className="font-regular">Quantity</p>
             <div className="flex flex-row space-x-4 font-button bg-[#f8b4c4] text-white font-bold w-fit p-1 rounded-lg">
-                <button>+</button>
-                <p>0</p>
-                <button>-</button>
+                <button onClick={() => addToCart({ item: item, quantity: quantity })}>+</button>
+                <p>{quantity}</p>
+                <button onClick={() => removeFromCart({ item: item, quantity: quantity })}>-</button>
             </div>
         </div>
         <div className="flex flex-col pt-4 w-[95%]">

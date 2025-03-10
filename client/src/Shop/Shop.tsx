@@ -80,6 +80,7 @@ function DisplayItems({ items }: DisplayItemsProps) {
 interface ItemProps {
     item: Item
 }
+
 function DisplayItem({ item }: ItemProps) {
     const navigate = useNavigate()
 
