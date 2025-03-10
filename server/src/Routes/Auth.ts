@@ -100,7 +100,8 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
 
         const {email, orderHistory, billingInfo} = newUser
         const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo}
-     
+        
+        console.log('Sending account info')
         return res.status(200).json({user: currUser, accessToken: accessToken})
     } catch(error) {
         res.status(500).json(`Internal server error ${error}`)
@@ -108,7 +109,7 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
 })
 
 router.route('/token').post(async(req: Request, res: Response) : Promise<any> => {
-    const {refreshToken, email, userRole} = req.body
+    const {refreshToken} = req.body
     
     if(refreshToken == null) return res.status(403)
 
