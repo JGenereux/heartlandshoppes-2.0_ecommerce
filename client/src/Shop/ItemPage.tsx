@@ -96,7 +96,7 @@ function ItemDescription({ item }: DisplayItemProps) {
     const [quantity, setQuantity] = useState(() => retrieveItem())
 
     useEffect(() => {
-        setQuantity(() => retrieveItem())
+        setQuantity(retrieveItem())
     }, [cart])
 
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
@@ -113,9 +113,9 @@ function ItemDescription({ item }: DisplayItemProps) {
         <div className="flex flex-col pt-2">
             <p className="font-regular">Quantity</p>
             <div className="flex flex-row space-x-4 font-button bg-[#f8b4c4] text-white font-bold w-fit p-1 rounded-lg">
-                <button onClick={() => addToCart({ item: item, quantity: quantity })}>+</button>
+                <button onClick={() => removeFromCart({ item: item, quantity: 1 })}>-</button>
                 <p>{quantity}</p>
-                <button onClick={() => removeFromCart({ item: item, quantity: quantity })}>-</button>
+                <button onClick={() => addToCart({ item: item, quantity: 1 })}>+</button>
             </div>
         </div>
         <div className="flex flex-col pt-4 w-[95%]">

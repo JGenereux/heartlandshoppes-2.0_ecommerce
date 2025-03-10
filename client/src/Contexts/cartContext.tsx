@@ -28,17 +28,19 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [cart, setCart] = useState<CartItem[] | null>(user ? user.cart : [])
 
     const addToCart = (item: CartItem) => {
-        if (!cart) return
-        const itemIndex = cart.findIndex((currItem) => currItem.item.name === item.item.name)
+        setCart((prevCart) => {
+            if (!prevCart) return [item];
 
-        if (itemIndex === -1) {
-            setCart((prevCart) => [...prevCart ?? [], item])
-            return
-        }
+            const itemIndex = prevCart.findIndex((currItem) => currItem.item.name === item.item.name);
 
-        const newCart = cart
-        newCart[itemIndex].quantity += 1
-        setCart(newCart)
+            if (itemIndex === -1) {
+                return [...prevCart, { ...item, quantity: 1 }]; // Ensure new reference
+            }
+
+            return prevCart.map((currItem, index) =>
+                index === itemIndex ? { ...currItem, quantity: currItem.quantity + 1 } : currItem
+            );
+        });
     }
 
     const removeFromCart = (item: CartItem) => {

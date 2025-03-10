@@ -49,14 +49,14 @@ interface ItemProps {
 function Item({ item }: ItemProps) {
     const { addToCart, removeFromCart } = useCart()
     return <div className="flex flex-row border-black border-1 h-22">
-        <img className="h-full w-[30%] border-black border-2"></img>
+        <img src={item.item?.photos[0]} className="h-full w-[30%] border-black border-2"></img>
         <div className="flex flex-col pl-2 py-0.5 w-[70%]">
             <p>{item.item.name}</p>
             <p>{item.item.price}</p>
             <div className="flex flex-row self-end space-x-2 border-black border-2 mr-4 pl-1 pr-1 rounded-lg">
-                <button onClick={() => addToCart(item)}>-</button>
+                <button onClick={() => removeFromCart(item)}>-</button>
                 <p>{item.quantity}</p>
-                <button onClick={() => removeFromCart(item)}>+</button>
+                <button onClick={() => addToCart(item)}>+</button>
             </div>
         </div>
     </div>
