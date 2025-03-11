@@ -5,18 +5,52 @@ import { Item } from "../interfaces/iteminterface";
 import axios from 'axios'
 import FormData from "form-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Orders from "./Orders";
 
 export default function Inventory() {
     return (
         <div className="h-screen">
             <Drawer />
-            <DisplayInventory />
+            <Dashboard />
+            {/*<DisplayInventory />*/}
         </div>
     )
 }
 
-function DisplayInventory() {
+interface DashboardOptionProps {
+    option: string
+}
 
+function DashboardOption({ option }: DashboardOptionProps) {
+    if (option === 'inventory') {
+        return <DisplayInventory />
+    } else if (option === 'orders') {
+        return <Orders />
+    } return null
+}
+
+
+function Dashboard() {
+    const [dashboardOption, setDashboardOption] = useState('inventory')
+
+    return <div className="flex flex-col border-2 border-black my-4 w-[95%] mx-auto">
+        <DashboardNavbar setDashboardOption={setDashboardOption} />
+        <DashboardOption option={dashboardOption} />
+    </div>
+}
+
+interface DashboardNavbarProps {
+    setDashboardOption: React.Dispatch<React.SetStateAction<string>>
+}
+
+function DashboardNavbar({ setDashboardOption }: DashboardNavbarProps) {
+    return <div className="flex flex-row h-fit p-2 w-full border-black border-b-2 items-center pl-4 space-x-6">
+        <button className="cursor-pointer" onClick={() => setDashboardOption('inventory')}>Inventory</button>
+        <button className="cursor-pointer" onClick={() => setDashboardOption('orders')}>Orders</button>
+    </div>
+}
+
+function DisplayInventory() {
     const { isPending, error, data: inventoryData = [] } = useQuery<Item[], Error>({
         queryKey: ['inventory'],
         queryFn: async () => {
@@ -52,7 +86,7 @@ function DisplayInventory() {
     if (isPending) { return 'Loading...' }
     if (error) { return `error: ${error}` }
 
-    return <div className="flex flex-col w-[90%] h-fit mx-auto md:my-4">
+    return <div className="flex flex-col w-[90%] h-fit mx-auto md:my-2">
         <div className="flex flex-row flex-wrap w-full">
             <div>
                 <h3 className="text-2xl font-headerFont">Current Inventory</h3>

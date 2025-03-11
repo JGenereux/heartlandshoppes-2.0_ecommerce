@@ -132,7 +132,7 @@ async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | 
  * Retrieves all orders
  * @returns {Orders[]} An array containing all orders
  */
-router.route('/').get(authenticateToken, checkAdminRole,  async(req: Request,res: Response) : Promise<any> => {
+router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
     try{
         // if orders are cached returns Order[], else null
         const cachedOrders = await retrieveOrders()
