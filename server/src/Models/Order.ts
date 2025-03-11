@@ -2,6 +2,12 @@ import mongoose from 'mongoose'
 
 const Schema = mongoose.Schema
 
+const itemInvoiceSchema = new mongoose.Schema({
+    description: {type: String, required: true},
+    amount: { type: Number, required: true },
+    quantity: { type: Number, required: true },
+})
+
 const billingSchema = new mongoose.Schema({
     fullName: {type: String, required: true},
     address: {type: String, required: true},
@@ -15,10 +21,10 @@ const billingSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
     orderId: { type: Schema.Types.ObjectId, auto: true },
-    items: { type: [String], required: true },
+    items: { type: [itemInvoiceSchema], required: true },
     totalPrice: { type: Number, required: true },
     billingInfo: { type: billingSchema, required: true }, 
-    status: { type: Boolean, required: true },
+    status: { type: String, required: true },
     trackingNumber: {type: String, required: false},
     date: { type: Date, default: Date.now, required: true }
 });
