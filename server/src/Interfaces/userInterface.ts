@@ -15,4 +15,4 @@ interface User {
     role: string,
 }
 
-export {User}
+export {User, CartItem}

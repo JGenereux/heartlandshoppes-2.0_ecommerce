@@ -6,13 +6,13 @@ interface Review {
 }
 
 interface Item {
-    name: String,
-    price: Number,
-    category: String[],
+    name: string,
+    price: number,
+    category: string[],
     options: Record<string, string[]>,
-    quantity: Number,
-    description: String,
-    photos: String[],
+    quantity: number,
+    description: string,
+    photos: string[],
     reviews: Review[]
 }
 export {Item}

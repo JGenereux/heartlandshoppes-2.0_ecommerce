@@ -1,10 +1,27 @@
 import { useState } from "react"
 import { useCart } from "../Contexts/cartContext"
 import { CartItem } from "../interfaces/userinterface"
+import axios from "axios"
+
+interface checkoutResponse {
+    url: string
+}
 
 export default function Cart() {
     const [isOpen, setIsOpen] = useState<boolean>(false)
+    const { cart } = useCart()
 
+    const handleCheckout = async () => {
+        if (!cart || cart.length === 0) return
+        try {
+            const res = await axios.post<checkoutResponse>('http://localhost:5000/payment/checkout', { items: cart })
+            const { url } = res.data
+
+            window.location.href = url;
+        } catch (error) {
+            window.alert(error)
+        }
+    }
     return (
         <div className="w-full relative">
             {isOpen ? <div
@@ -21,7 +38,7 @@ export default function Cart() {
                         <button onClick={() => setIsOpen(false)} className="ml-auto">🛒</button>
                     </div>
                     <Items />
-                    <button className="self-center my-2 bg-[#f8b4c4] p-0.5 text-white font-bold text-lg rounded-lg">Checkout</button>
+                    <button className="self-center my-2 bg-[#f8b4c4] p-0.5 text-white font-bold text-lg rounded-lg cursor-pointer" onClick={handleCheckout}>Checkout</button>
                 </div>
             </div>
                 :

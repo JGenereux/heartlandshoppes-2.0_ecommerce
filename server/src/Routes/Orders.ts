@@ -5,10 +5,6 @@ import { Orders } from '../Models/Order'
 import { client } from "../../redis-client";
 import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
 
-/**
- * UPDATE ORDERS TO HAVE ID STORED IN CACHE!
- */
-
 const router = express.Router()
 
 async function retrieveOrders(): Promise<any | null> {
