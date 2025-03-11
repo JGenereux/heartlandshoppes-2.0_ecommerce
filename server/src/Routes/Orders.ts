@@ -142,7 +142,7 @@ router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
 
         const orders = await Orders.find();
         const formattedOrders: Order[] = orders.map(order => ({
-            orderId: order._id.toString(), // Convert ObjectId to string
+            _id: order._id?.toString(), // Convert ObjectId to string
             items: order.items,
             totalPrice: order.totalPrice,
             billingInfo: order.billingInfo,

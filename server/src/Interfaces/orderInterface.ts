@@ -1,7 +1,7 @@
 interface ItemInvoice {
     description: string,
     amount: number,
-    quantity: number
+    quantity: number,
 }
 
 interface Bill {

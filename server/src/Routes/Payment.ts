@@ -12,21 +12,7 @@ const stripe = new Stripe(STRIPE_KEY || '')
 
 const router = express.Router()
 
-const fulfillCheckout = async (sessionId: string) => {
-    // Retrieve the Checkout Session from the API with line_items expanded
-    const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
-        expand: ['line_items'],
-    })
-    console.log('Checkout info?: ', checkoutSession)
-// Check the Checkout Session's payment_status property
-  // to determine if fulfillment should be peformed
-  if (checkoutSession.payment_status !== 'unpaid') {
-    // TODO: Perform fulfillment of the line items
 
-    // TODO: Record/save fulfillment status for this
-    // Checkout Session
-  }
-}
 router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
     const {items} = req.body
     
@@ -34,18 +20,28 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
     
     try{
         const session = await stripe.checkout.sessions.create({
-            line_items: cartItems.map((currItem) => ({
-                price_data: {
-                    currency: 'cad',
-                    product_data: {
-                        name: currItem.item.name,
-                        description: currItem.item.description,
-                        images: currItem.item.photos?.length ? [currItem.item.photos[0]] : [],
+            line_items: cartItems.map((currItem) => {
+                // Process options for metadata
+                const optionsMetadata = Object.fromEntries(
+                    Object.entries(currItem.item.options).map(([key, values]) => [key, values.join(', ')])
+                );
+                
+                return {
+                    price_data: {
+                        currency: 'cad',
+                        product_data: {
+                            name: `${currItem.item.name} - ${Object.entries(currItem.item.options)
+                                .map(([key, values]) => `${key}: ${values.join(', ')}`)
+                                .join(' | ')}`,
+                            description: currItem.item.description,
+                            images: currItem.item.photos?.length ? [currItem.item.photos[0]] : [],
+                            metadata: optionsMetadata  // Still keep metadata for your backend use
+                        },
+                        unit_amount: currItem.item.price * 100,
                     },
-                    unit_amount: currItem.item.price * 100,
-                },
-                quantity: currItem.quantity
-            })),
+                    quantity: currItem.quantity,
+                };
+            }),
             customer_creation: "always",
             invoice_creation: { enabled: true },
             billing_address_collection: 'required',
@@ -63,11 +59,13 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
 
         return res.status(200).json({url: session.url})
     } catch(error) {
+        console.error('Stripe checkout error:', error);
         res.status(500).json(`Internal server error: ${error}`)
     }
 })
 
 router.post('/webhook',express.raw({type: 'application/json'}), async (request, response) : Promise<any> => {
+    console.log('running')
     const sig = request.headers['stripe-signature'];
     if(!sig) return response.status(404).json('Sig not provided')
 
@@ -75,6 +73,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
 
     try {
       event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+        console.log('event type: ', event.type)
     } catch (err) {
     console.error('error: ', err)
       return response.status(400).send(`Webhook Error: ${err}`);
@@ -83,7 +82,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
 
     if(event.type === 'invoice.finalized') {
         const invoice = event.data.object
-       
+        console.log(invoice)
         try {
             const detailedInvoice = await stripe.invoices.retrieve(invoice.id, {
                 expand: ['lines.data']
@@ -96,12 +95,15 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
             const invoiceID = detailedInvoice.id
             let invoiceItems: ItemInvoice[] = []
             detailedInvoice.lines.data.forEach((item) => {
-                const {description, price, quantity} = item
+                const {description, price, quantity, metadata} = item
                 const newItemInvoice: ItemInvoice = {
                     description: description || '',
                     amount: price?.unit_amount || 0,
-                    quantity: quantity || 0
+                    quantity: quantity || 0,
                 }
+                console.log(Object.fromEntries(
+                    Object.entries(metadata).map(([key, value]) => [key, value.split(', ')])
+                ))
                 invoiceItems.push(newItemInvoice)
             })
             

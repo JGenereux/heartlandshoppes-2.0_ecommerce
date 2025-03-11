@@ -17,10 +17,10 @@ const billingSchema = new mongoose.Schema({
     postalCode: {type: String, required: true},
     email: {type: String, required: true},
     phone: {type: String, required: false}
-})
+}, {_id: false})
 
 const orderSchema = new mongoose.Schema({
-    orderId: { type: Schema.Types.ObjectId, auto: true },
+    _id: { type: Schema.Types.ObjectId, auto: true },
     items: { type: [itemInvoiceSchema], required: true },
     totalPrice: { type: Number, required: true },
     billingInfo: { type: billingSchema, required: true }, 

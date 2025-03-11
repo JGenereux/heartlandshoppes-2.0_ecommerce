@@ -1,3 +1,9 @@
+interface ItemInvoice {
+    description: string,
+    amount: number,
+    quantity: number,
+}
+
 interface Bill {
     fullName:  string,
     address:  string,
@@ -10,13 +16,13 @@ interface Bill {
 }
 
 interface Order {
-    orderId: string,
-    items: string[],
+    _id?: string,
+    items: ItemInvoice[],
     totalPrice: number,
     billingInfo: Bill,
-    status: boolean,
+    status: string,
     trackingNumber?: string | null,
     date: Date
 }
 
-export type {Bill, Order}
+export type {Bill, Order, ItemInvoice}
