@@ -219,7 +219,7 @@ router.route('/').post(async(req: Request,res: Response) : Promise<any> => {
 /**
  * Updates the status of an order
  * @param {String} id The ID for the order
- * @param {Boolean} status If status true, order is still on-going else order is fulfilled
+ * @param {String} status added or processing or fulfilled 
  * @returns {Number} The status code indicating if the req was successful or not
  */
 router.route('/:id/status').put(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
