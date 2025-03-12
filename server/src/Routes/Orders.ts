@@ -66,7 +66,7 @@ async function updateOrder(
 
     try {
         const ordersExist = await client.exists('orders');
-
+     
         if (ordersExist === 1) {
             const cachedOrders = await client.sendCommand(['LRANGE', 'orders', '0', '-1']);
             const orders: Order[] = cachedOrders.map((order: string) => JSON.parse(order));
@@ -74,7 +74,7 @@ async function updateOrder(
             const orderIndex = orders.findIndex((order: Order) => (order as any)[queryProp] == queryVal);
 
             if (orderIndex === -1) return null;
-
+        
             // Use type assertion to safely access the property
             const order = orders[orderIndex];
 
@@ -85,6 +85,7 @@ async function updateOrder(
             await client.sendCommand(['RPUSH', 'orders', ...orders.map(order => JSON.stringify(order))]);
             await client.sendCommand(["EXPIRE", "orders", "1000"])
 
+            console.log('returning orders')
             return orders;
         }
 
@@ -222,12 +223,12 @@ router.route('/').post(async(req: Request,res: Response) : Promise<any> => {
  * @param {String} status added or processing or fulfilled 
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.route('/:id/status').put(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
+router.route('/:id/status').put(async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
     const {status} = req.body
 
     try{
-        const orderUpdated = await Orders.findOneAndUpdate({orderId: id}, {status: status}, {new: true})
+        const orderUpdated = await Orders.findOneAndUpdate({_id: id}, {status: status}, {new: true})
         
         if(!orderUpdated){
             return res.status(404).json("Error updating status for order")
@@ -251,25 +252,28 @@ router.route('/:id/status').put(authenticateToken, checkAdminRole, async(req: Re
  * @param {trackingNumber} trackingNum The tracking number for an order
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.route('/:id/trackingNumber').put(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
+router.route('/:id/trackingNumber').put(async(req: Request,res: Response) : Promise<any> => {
+
     const {id} = req.params
     const {trackingNumber} = req.body
 
     try{
-        const orderUpdated = await Orders.findOneAndUpdate({orderId: id}, {trackingNumber: trackingNumber}, {new: true})
-        
+        const orderUpdated = await Orders.findOneAndUpdate({_id: id}, {trackingNumber: trackingNumber}, {new: true})
+ 
         if(!orderUpdated){
             return res.status(404).json("Error updating tracking number for order")
         }
-
+  
         //update cache
         const orderCacheUpdated = await updateOrder('_id', id, 'trackingNumber', trackingNumber)
+    
         if(orderCacheUpdated === null) {
             return res.status(404).json("Error updating cache for order")
         }
-
+   
         return res.status(200).json("Tracking number for order successfully updated")
     } catch(error) {
+        console.error(error)
         res.status(500).json(`Internal Server Error: ${error}`)
     }
 })
