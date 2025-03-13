@@ -2,18 +2,20 @@
 
 @font-face {
     font-family: 'headerFont';
-    src: url('./assets/Fonts/Rubik-VariableFont_wght.ttf')
+    src: url('./assets/Fonts/Ubuntu-Bold.ttf')
 }
 
 @font-face {
     font-family: 'button';
-    src: url('./assets/Fonts/Montserrat-Regular.ttf')
+    src: url('./assets/Fonts/Ubuntu-Medium.ttf')
 }
 
 @font-face {
     font-family: 'regular';
     src: url('./assets/Fonts/Rubik-Regular.ttf')
 }
+
+
 
 @theme {
     --font-headerFont: 'headerFont';

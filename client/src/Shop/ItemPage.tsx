@@ -42,7 +42,7 @@ interface DisplayItemProps {
 function DisplayItem({ item }: DisplayItemProps) {
     const [photoUrl, setPhotoUrl] = useState(item?.photos[0] || "")
     return (
-        <div className="w-[90%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
+        <div className="w-[75%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
             <div className="flex flex-col md:flex-row w-full h-[90%] bg-white py-2">
                 <div className="flex flex-col w-[90%] md:w-[45%] h-full items-center mx-auto">
                     <img src={photoUrl} className="w-full h-[65vh] border-black border-2"></img>
@@ -124,19 +124,19 @@ function ItemDescription({ item }: DisplayItemProps) {
             <h3 className="text-3xl font-headerFont">{item.name}</h3>
             <p className="text-xl font-regular">${item.price}</p>
         </div>
-        <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-12">
+        <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-24">
             <DisplayOptions options={item.options} setItem={setTempItem} />
         </div>
 
-        <div className="flex flex-col pt-2">
-            <p className="font-regular">Quantity</p>
-            <div className="flex flex-row space-x-4 font-button bg-[#f8b4c4] text-white font-bold w-fit p-1 rounded-lg">
-                <button onClick={handleRemoveQuantity}>-</button>
+        <div className="flex flex-row pt-2 items-center space-x-2">
+            <p className="font-regular">Quantity: </p>
+            <div className="flex flex-row space-x-4 font-button font-bold w-fit p-2 rounded-lg">
+                <button onClick={handleRemoveQuantity} className="cursor-pointer">-</button>
                 <p>{quantity}</p>
-                <button onClick={handleAddQuantity}>+</button>
+                <button onClick={handleAddQuantity} className="cursor-pointer">+</button>
             </div>
         </div>
-        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="self-start my-4 text-xl border-black border-1 p-1">Add To Cart</button>
+        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="self-start my-4 text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button">Add To Cart</button>
         <div className="flex flex-col pt-4 w-[95%]">
             <p className="font-button font-bold">About this item: </p>
             <p className="font-regular text-md">{item.description}</p>
@@ -185,7 +185,7 @@ function DisplayOption({ option, optionValues, currOptions, setCurrOptions }: Di
         })
     }
 
-    return <select value={currOptions[option] || ' '} onChange={(e) => handleOptionChange(e)}>
+    return <select className="border-1 border-black ml-1 p-1 px-2 rounded-full shadow-gray-600 shadow-sm hover:border-actionColor cursor-pointer" value={currOptions[option] || ' '} onChange={(e) => handleOptionChange(e)}>
         {optionValues[option].map((currValue) => {
             return <option key={currValue} value={currValue}>{currValue}</option>
         })}
@@ -197,7 +197,7 @@ function Reviews({ item }: DisplayItemProps) {
     return <div className="flex flex-col self-center  w-[95%] h-fit">
         <div className="flex flex-col md:flex-row py-1">
             <h3 className="font-headerFont text-2xl">Reviews</h3>
-            <button className=" w-fit md:ml-auto text-xl md:mr-8 rounded-lg p-1 font-button bg-[#f8b4c4] text-white font-bold" onClick={() => setLeaveReview((review) => !review)}>{leaveReview ? 'Go Back' : 'Leave a review'}</button>
+            <button className=" w-fit md:ml-auto text-xl md:mr-8 rounded-lg p-1 font-button bg-[#f8b4c4] text-white font-bold cursor-pointer" onClick={() => setLeaveReview((review) => !review)}>{leaveReview ? 'Go Back' : 'Leave a review'}</button>
         </div>
         {leaveReview && <AddReview item={item} setLeaveReview={setLeaveReview} />}
         <div className="flex flex-col space-y-6 mb-2">

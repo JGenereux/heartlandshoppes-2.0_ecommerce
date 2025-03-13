@@ -3,10 +3,13 @@ import Drawer from "../Navbar/Drawer";
 import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Item } from "../interfaces/iteminterface";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
+
 
 export default function Home() {
     return (
@@ -25,13 +28,14 @@ function Header() {
         <div className="flex justify-center w-[100%] h-[30%] sm:h-[20%] md:h-[30%]">
             <div className="w-full h-full  relative border-b-2 border-black">
                 <div className="w-[100%] h-full">
+
                 </div>
-                <div className="flex flex-col w-full justify-between h-full absolute top-0 py-2 pl-2">
+                <div className="flex flex-col w-full justify-between h-full absolute top-0 py-2">
                     <div>
-                        <p className="text-2xl md:text-[2.8rem] font-headerFont ">Heartland Shoppes</p>
+                        <p className="text-2xl md:text-[3rem] font-headerFont pl-6">Heartland Shoppes</p>
                     </div>
-                    <p className="font-regular text-lg">Discover the heart of shopping at heartland shoppes where quality meets community</p>
-                    <Link to="/shop" className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit mx-auto p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white">Shop now</Link>
+                    <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] ml-12">Discover the heart of shopping at heartland shoppes where quality meets community</p>
+                    <Link to="/shop" className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit mx-auto p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 ">Shop now</Link>
                 </div>
             </div>
         </div>
@@ -50,8 +54,8 @@ function Featured() {
     })
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
     const [leftIndex, setLeftIndex] = useState(0)
-    const [rightIndex, setRightIndex] = useState(isDesktop ? 3 : 2)
-    const featuredItemsSlice = featuredItems.slice(leftIndex, rightIndex)
+    const [rightIndex, setRightIndex] = useState(isDesktop ? 2 : 1)
+    const featuredItemsSlice = featuredItems.slice(leftIndex, rightIndex + 1)
 
     const handleResize = () => {
         setIsDesktop(window.innerWidth >= 768)
@@ -65,12 +69,18 @@ function Featured() {
     const handleMoveLeft = () => {
         if (leftIndex > 0) {
             setLeftIndex(leftIndex - 1)
+            if ((rightIndex + 1) - leftIndex > 2) {
+                setRightIndex(rightIndex - 1)
+            }
         }
     }
 
     const handleMoveRight = () => {
-        if (leftIndex < featuredItems.length - 1) {
-            setRightIndex(leftIndex - 1)
+        if (rightIndex < featuredItems.length - 1) {
+            setRightIndex(rightIndex + 1)
+            if ((rightIndex + 1) - leftIndex > 2) {
+                setLeftIndex(leftIndex + 1)
+            }
         }
     }
 
@@ -79,15 +89,30 @@ function Featured() {
 
     return (
         <div className="flex flex-col w-full h-fit items-center justify-center pb-2 space-y-1.5 my-2">
-            <h3 className="text-lg md:text-xl">Featured Products</h3>
-            <div className="w-full flex flex-row space-x-2 items-center justify-center">
-                <button className="bg-[#f8b4c4] font-semibold rounded-lg p-0.5 pl-1 pr-1 text-white shadow-gray-400 shadow-md cursor-pointer" onClick={handleMoveLeft}>{'<-'}</button>
-                <div className="flex flex-row space-x-2">
-                    {featuredItemsSlice?.map((item, index) =>
+            <h3 className="text-lg md:text-2xl font-button">Featured Products</h3>
+            <div className="w-[80%] flex flex-row space-x-2 items-center justify-center">
+                <button
+                    className="bg-[#f8b4c4] font-semibold rounded-full p-2 pt-1 pb-1 text-white shadow-md shadow-gray-400 cursor-pointer transition-transform transform hover:scale-110 active:scale-95"
+                    onClick={handleMoveLeft}
+                >
+                    <FontAwesomeIcon icon={faAnglesLeft
+
+                    } />
+                </button>
+
+                <div className="flex flex-row space-x-4 items-center">
+                    {featuredItemsSlice?.map((item, index) => (
                         <DisplayItem key={index} item={item} />
-                    )}
+                    ))}
                 </div>
-                <button className="bg-[#f8b4c4] font-semibold rounded-lg p-0.5 pl-1 pr-1 text-white shadow-gray-400 shadow-md cursor-pointer" onClick={handleMoveRight}>{'->'}</button>
+
+                <button
+                    className="bg-[#f8b4c4] font-semibold rounded-full p-2 pt-1 pb-1 text-white shadow-md shadow-gray-400 cursor-pointer transition-transform transform hover:scale-110 active:scale-95"
+                    onClick={handleMoveRight}
+                >
+                    <FontAwesomeIcon icon={faAnglesRight} />
+                </button>
+
             </div>
         </div>
     )
@@ -98,12 +123,18 @@ interface DisplayItemProps {
 }
 
 function DisplayItem({ item }: DisplayItemProps) {
+
+    const navigate = useNavigate()
+    const navigateToItem = () => {
+        navigate(`/shop/item/${item.name}`)
+    }
     return (
-        <div className="flex flex-col w-full pl-2 pt-2 shadow-gray-400 shadow-md font-regular">
-            <img src={item.photos[0]} className="w-[90%] h-[160px] md:h-[200px] border-black border-2">
+        <div className="flex flex-col w-1/3 pl-2 pt-2  font-regular transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 items-center" onClick={navigateToItem}>
+            <img src={item.photos[0]} className="w-[100%] h-[190px] ">
             </img>
             <p>{item.name}</p>
             <p>${item.price}</p>
+            <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>
         </div>
     )
 }

@@ -12,7 +12,6 @@ export default function Inventory() {
         <div className="h-screen">
             <Drawer />
             <Dashboard />
-            {/*<DisplayInventory />*/}
         </div>
     )
 }
@@ -44,9 +43,9 @@ interface DashboardNavbarProps {
 }
 
 function DashboardNavbar({ setDashboardOption }: DashboardNavbarProps) {
-    return <div className="flex flex-row h-fit p-2 w-full border-black border-b-2 items-center pl-4 space-x-6">
-        <button className="cursor-pointer" onClick={() => setDashboardOption('inventory')}>Inventory</button>
-        <button className="cursor-pointer" onClick={() => setDashboardOption('orders')}>Orders</button>
+    return <div className="flex flex-row h-fit p-2 w-full border-black border-b-2 items-center pl-4 space-x-6 font-button">
+        <button className="cursor-pointer hover:text-blue-500 transition-colors duration-300" onClick={() => setDashboardOption('inventory')}>Inventory</button>
+        <button className="cursor-pointer hover:text-blue-500 transition-colors duration-300" onClick={() => setDashboardOption('orders')}>Orders</button>
     </div>
 }
 
@@ -90,7 +89,7 @@ function DisplayInventory() {
         <div className="flex flex-row flex-wrap w-full">
             <div>
                 <h3 className="text-2xl font-headerFont">Current Inventory</h3>
-                <button className="self-end border-black border-2 p-1 rounded-lg font-button" onClick={() => setAddItem((add) => !add)}>{addItem ? 'Go Back' : 'Add to inventory'}</button>
+                <button className="self-end border-black border-2 px-2 py-1 rounded-full font-button" onClick={() => setAddItem((add) => !add)}>{addItem ? 'Go Back' : 'Add to inventory'}</button>
             </div>
             <div className="flex flex-row items-center ml-auto space-x-1">
                 <p className="text-xl">Category: </p>
@@ -100,12 +99,237 @@ function DisplayInventory() {
             </div>
         </div>
         {addItem && <AddItem categories={currentCategories} />}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-fit border-black border-2 my-2 shadow-gray-400 shadow-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto max-h-116 border-black border-2 my-2 shadow-gray-400 shadow-lg">
             {inventoryData?.map((item: Item, index) => {
                 return <DisplayItem key={index} item={item} />
             })}
         </div>
     </div>
+}
+
+interface DeleteMutationProps {
+    itemName: string
+}
+
+interface DisplayItemProps {
+    item: Item
+}
+
+function DisplayItem({ item }: DisplayItemProps) {
+
+    const queryClient = useQueryClient()
+
+    const deleteMutation = useMutation({
+        mutationFn: async ({ itemName }: DeleteMutationProps) => {
+            await axios.delete(`http://localhost:5000/inventory/item/${itemName}`)
+            window.location.reload()
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['inventory'] })
+            queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
+            queryClient.invalidateQueries({ queryKey: [item.name] })
+        }
+    })
+
+    const handleItemDelete = () => {
+        deleteMutation.mutate({ itemName: item.name })
+    }
+
+
+    const [modify, setModify] = useState(false)
+    return <div className={modify ? "flex flex-col h-fit justify-center items-center border-black border-2 pb-1" : "flex flex-col h-fit items-center border-black border-2 pb-1 py-6"}>
+        <div className={modify ? "flex flex-col w-[80%]  my-2 font-regular" : "flex flex-col w-[70%] justify-center font-regular"}>
+            {modify ?
+                <ModifyItem item={item} /> : <>
+                    <img src={item?.photos[0]} className="border-2 border-black  w-full h-[250px] object-contain " ></img>
+                    <div>
+                        <p>{item.name}</p>
+                        <p>{item.price}</p>
+                        <p>{item.quantity}</p>
+                        <p>{item.category}</p>
+                        <p>{item.description}</p>
+                        <div className="grid grid-cols-2">
+                            {Object.keys(item.options).map((option) => {
+                                return <label key={option}>
+                                    {option}
+                                    {item.options[option].map((value) => {
+                                        return <p className="ml-2">{value}</p>
+                                    })}
+                                </label>
+                            })}
+                        </div>
+                    </div>
+                </>}
+            <div className="flex flex-row justify-between w-full">
+                <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer text-lg transition delay-100 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 my-2" onClick={() => setModify((modify) => !modify)}>{modify ? 'Return' : 'Modify'}</button>
+                <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer text-lg transition delay-100 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 my-2" onClick={handleItemDelete}>Remove</button>
+            </div>
+        </div>
+
+    </div>
+}
+
+function ModifyItem({ item }: DisplayItemProps) {
+    const [photos, setPhotos] = useState<string[]>([])
+    const [modifiedItem, setModifiedItem] = useState<Item>(item)
+    const [tempOptions, setTempOptions] = useState<Record<string, string[]>>({})
+
+    const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
+        setModifiedItem({
+            ...modifiedItem,
+            [property]: value
+        })
+    }
+
+    useEffect(() => {
+        handleItemChange('photos', photos)
+    }, [photos])
+
+    const queryClient = useQueryClient()
+
+    const updateMutation = useMutation(
+        {
+            mutationFn: async (updatedItem: Item) => {
+                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategory: item.category })
+                window.location.reload()
+                return response.data
+            },
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['inventory'] })
+                queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
+                queryClient.invalidateQueries({ queryKey: [item.name] })
+                window.alert('item updated')
+            }
+        }
+    )
+
+
+    const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
+        updateMutation.mutate(modifiedItem)
+    }
+
+    return <div className="my-4 bg-white rounded-lg">
+        <form className="space-y-6" onSubmit={onSubmit}>
+            <div>
+                <label htmlFor="name" className="block text-sm  text-gray-800 font-semibold">Item Name</label>
+                <input
+                    type="text"
+                    id="name"
+                    className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    value={modifiedItem.name}
+                    onChange={(event) => handleItemChange('name', event.target.value)}
+                />
+            </div>
+
+            <div>
+                <label htmlFor="price" className="block text-sm  text-gray-800 font-semibold ">Item Price</label>
+                <input
+                    type="text"
+                    id="price"
+                    className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    value={modifiedItem.price}
+                    onChange={(event) => handleItemChange('price', event.target.value)}
+                />
+            </div>
+
+            <div>
+                <label htmlFor="quantity" className="block text-sm  text-gray-800 font-semibold">Quantity</label>
+                <input
+                    type="text"
+                    id="quantity"
+                    className="w-32 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    value={modifiedItem.quantity}
+                    onChange={(event) => handleItemChange('quantity', event.target.value)}
+                />
+            </div>
+
+            <div>
+                <label htmlFor="category" className="block text-sm  text-gray-800 font-semibold">Category</label>
+                <input
+                    type="text"
+                    id="category"
+                    className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    value={modifiedItem.category}
+                    onChange={(event) => handleItemChange('category', event.target.value)}
+                />
+            </div>
+
+            <div>
+                <label htmlFor="options" className="block text-sm text-gray-800 font-semibold">Options</label>
+                {Object.keys(item.options).map((option) => {
+                    return <DisplayItemOptions options={item.options} value={option} setModifiedItem={setModifiedItem} />
+
+                })}
+            </div>
+
+            <div>
+                <label htmlFor="description" className="block text-sm  text-gray-800 font-semibold">Description</label>
+                <textarea
+                    id="description"
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors h-40 resize-none"
+                    value={modifiedItem.description}
+                    onChange={(event) => handleItemChange('description', event.target.value)}
+                />
+            </div>
+            <div className="flex items-center justify-center">
+                <PhotoUpload item={item} setPhotos={setPhotos} />
+            </div>
+            <button
+                type="submit"
+                className="w-full bg-actionColor text-white py-2 px-4 rounded-md hover:bg-pink-400 cursor-pointer focus:outline-none focus:ring-2 transition-colors font-medium"
+            >
+                Submit Changes
+            </button>
+        </form>
+    </div>
+}
+
+interface DisplayItemOptionsProps {
+    options: Record<string, string[]>,
+    value: string,
+    setModifiedItem: React.Dispatch<React.SetStateAction<Item>>
+}
+
+function DisplayItemOptions({ options, value, setModifiedItem }: DisplayItemOptionsProps) {
+    const [values, setValues] = useState<string[]>([])
+
+    useEffect(() => {
+        setModifiedItem((prevItem) => {
+            const item = { ...prevItem }
+            item.options[value] = values
+            return item
+        })
+    }, [values])
+
+
+    return <label>
+        {value}
+        <div className="flex flex-col space-y-2">
+            {options[value].map((item) => {
+                return <DisplayItemOption option={item} setValues={setValues} />
+            })}
+        </div>
+    </label>
+}
+
+interface DisplayItemOption {
+    option: string,
+    setValues: React.Dispatch<React.SetStateAction<string[]>>
+}
+
+function DisplayItemOption({ option, setValues }: DisplayItemOption) {
+    const [value, setValue] = useState(option)
+
+    const handleValueChange = (currValue: string) => {
+        setValues((tempValues) => {
+            const filteredVals = tempValues.filter((val) => val === value)
+            setValue(currValue)
+            return [...filteredVals, currValue]
+        })
+    }
+    return <input className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" value={value} onChange={(e) => handleValueChange(e.target.value)}></input>
 }
 
 interface AddItemProps {
@@ -127,8 +351,8 @@ function AddItem({ categories }: AddItemProps) {
         event.preventDefault()
 
         try {
-            const res = await axios.post('http://localhost:5000/inventory/item', { item: item })
-            console.log(res)
+            await axios.post('http://localhost:5000/inventory/item', { item: item })
+            window.location.reload()
         } catch (error) {
             console.log(error)
         }
@@ -142,21 +366,21 @@ function AddItem({ categories }: AddItemProps) {
         }));
     }
 
-    return <div className="w-full p-2 p-r-0 border-black border-2 my-2 font-regular">
+    return <div className="w-full p-2 p-r-0  my-2 font-regular">
         <form onSubmit={(event) => handleAddItem(event)}>
             <div className="flex flex-col w-full">
                 <div className="flex flex-col md:flex-row">
                     <div className="flex flex-col w-1/2">
                         <p>Item Name</p>
-                        <input type="text" className="border-black border-1 pl-1 ml-2" value={item.name} onChange={(event) => handleInputChange(event, "name")}></input>
+                        <input type="text" className=" border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.name} onChange={(event) => handleInputChange(event, "name")}></input>
                         <p>Item Price</p>
-                        <input type="text" className="border-black border-1 pl-1 ml-2" value={item.price} onChange={(event) => handleInputChange(event, "price")}></input>
+                        <input type="text" className="border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.price} onChange={(event) => handleInputChange(event, "price")}></input>
                         <p>Category</p>
-                        <input type="text" className="border-black border-1 pl-1 ml-2" value={item.category} onChange={(event) => handleInputChange(event, "category")}></input>
+                        <input type="text" className="border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.category} onChange={(event) => handleInputChange(event, "category")}></input>
                         <p>Quantity</p>
-                        <input type="text" className="border-black border-1 pl-1 ml-2" value={item.quantity} onChange={(event) => handleInputChange(event, "quantity")}></input>
+                        <input type="text" className="border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.quantity} onChange={(event) => handleInputChange(event, "quantity")}></input>
                         <p>Description</p>
-                        <textarea className="resize-none border-black border-1 h-fit ml-2" value={item.description} onChange={(event) => handleInputChange(event, "description")}></textarea>
+                        <textarea className="resize-none border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 h-fit ml-2" value={item.description} onChange={(event) => handleInputChange(event, "description")}></textarea>
                     </div>
                     <div className="flex flex-col my-4 md:my-auto ml-2 md:mx-auto space-y-4">
                         <DisplayCategories categories={categories} />
@@ -164,14 +388,14 @@ function AddItem({ categories }: AddItemProps) {
                     </div>
                 </div>
                 <div className="flex flex-col mx-auto w-fit my-2">
-                    <h3 className="text-xl">Photos</h3>
-                    <div className="grid grid-cols-3 border-black border-2 gap-4 p-1">
+                    <h3 className="text-2xl font-headerFont">Photos</h3>
+                    <div className="grid grid-cols-3 gap-8 p-4 py-2">
                         <PhotoUpload item={item} setItem={setItem} />
                         <PhotoUpload item={item} setItem={setItem} />
                         <PhotoUpload item={item} setItem={setItem} />
                     </div>
                 </div>
-                <button className="border-black border-1 w-fit self-center p-0.5" type="submit">Add Item to inventory</button>
+                <button className="border-black border-1 w-fit self-center px-4 py-2 rounded-full text-lg hover:border-blue-400 duration-300 transition-colors font-bold font-button" type="submit">Add Item to inventory</button>
             </div>
         </form>
     </div>
@@ -183,13 +407,13 @@ interface DisplayCategoriesProps {
 
 function DisplayCategories({ categories }: DisplayCategoriesProps) {
 
-    return <div className="flex flex-col border-black border-2 w-fit p-1">
-        <p>Categories</p>
-        <div className="grid grid-cols-3 gap-2">
+    return <div className="flex flex-col w-fit">
+        <p className="border-gray-800 border-3 border-b-0 shadow-gray-400 shadow-sm w-fit px-2 rounded-tr-2xl rounded-tl-2xl">Categories</p>
+        {(categories && categories.size > 0) ? <div className="border-gray-800 border-3 rounded-tr-lg rounded-bl-lg rounded-br-lg grid grid-cols-3 gap-2 pl-2 py-1.5">
             {Array.from(categories)?.map((category, index) => {
                 return <DisplayCategory key={index} category={category} />
             })}
-        </div>
+        </div> : <p className="border-gray-800 border-3 p-1">No items in inventory</p>}
     </div>
 }
 
@@ -198,7 +422,7 @@ interface DisplayCategoryProps {
 }
 
 function DisplayCategory({ category }: DisplayCategoryProps) {
-    return <div className="border-black border-1 p-0.5">
+    return <div className="border-gray-400 border-2 px-2 py-1 rounded-full">
         <p>{category}</p>
     </div>
 }
@@ -232,22 +456,24 @@ function DisplayOptions({ item, setItem }: DisplayOptionsProps) {
         setCurrOption("")
     }
 
-    return <div className="flex flex-col pl-2 w-fit border-black border-2 p-2">
-        <p>Options</p>
-        <p>Enter Option</p>
-        <div className="flex flex-row flex-wrap space-x-4">
-            <input type="text" className="border-black border-1  pl-1" value={currOption} onChange={(event) => setCurrOption(event.target.value)}></input>
-            <button className="border-black border-1 pl-0.5 pr-0.5" type="button" onClick={handleAddOption}>Add</button>
+    return <div className="flex flex-col w-fit">
+        <p className="w-fit border-gray-800 border-3 border-b-0 px-2 rounded-tr-2xl rounded-tl-2xl">Options</p>
+        <div className="border-gray-800 border-3 p-2 rounded-bl-lg rounded-br-lg rounded-tr-lg">
+            <p>Enter Option to add:</p>
+            <div className="flex flex-row flex-wrap space-x-2">
+                <input type="text" className="pl-1 border-2 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors" value={currOption} onChange={(event) => setCurrOption(event.target.value)}></input>
+                <button className="border-black border-1 px-3 rounded-full cursor-pointer" type="button" onClick={handleAddOption}>Add</button>
+            </div>
+            <div className="grid grid-cols-4 my-2 min-h-8 items-center p-1 gap-2">
+                {Object.keys(item?.options).map((key) => (
+                    <div key={key}>
+                        <Option option={key} setSelectedOption={setSelectedOption} item={item} setItem={setItem} />
+                    </div>
+                ))}
+            </div>
+            {selectedOption?.length > 0 && <p>Enter values for {selectedOption}</p>}
+            {Object.keys(item?.options).length > 0 && currentValues?.map((val, index) => (<Value key={index} val={val} item={item} setItem={setItem} selectedOption={selectedOption} />))}
         </div>
-        <div className="grid grid-cols-3 border-black border-2 my-2 min-h-8 items-center p-1 gap-2">
-            {Object.keys(item?.options).map((key) => (
-                <div key={key}>
-                    <Option option={key} setSelectedOption={setSelectedOption} item={item} setItem={setItem} />
-                </div>
-            ))}
-        </div>
-        {selectedOption?.length > 0 && <p>Enter values for option</p>}
-        {Object.keys(item?.options).length > 0 && currentValues?.map((val, index) => (<Value key={index} val={val} item={item} setItem={setItem} selectedOption={selectedOption} />))}
     </div>
 }
 
@@ -295,9 +521,9 @@ function Value({ val, item, selectedOption, setItem }: ValueProps) {
     }
 
     return <div className="flex flex-row items-center mb-2 space-x-2 h-8">
-        <input type="text" className="border-black border-1 pl-1 w-1/4" value={option} readOnly={added && true} onChange={(event) => setOption(event.target.value)}></input>
-        <button type="button" onClick={handleAddValue} className="border-1 border-black pl-0.5 pr-0.5">Add</button>
-        {(option?.length > 0 && added) && <button type="button" onClick={handleRemoveValue} className="border-1 border-black pl-0.5 pr-0.5">Remove</button>}
+        <input type="text" className="border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2 w-1/4" value={option} readOnly={added && true} onChange={(event) => setOption(event.target.value)}></input>
+        <button type="button" onClick={handleAddValue} className="border-black border-1 px-3 rounded-full cursor-pointer">Add</button>
+        {(option?.length > 0 && added) && <button type="button" onClick={handleRemoveValue} className="border-black border-1 px-3 rounded-full cursor-pointer">Remove</button>}
     </div>
 }
 
@@ -322,9 +548,9 @@ function Option({ option, setSelectedOption, item, setItem }: OptionProps) {
             setSelectedOption("")
         }
     }
-    return <div className="border-1 border-black text-center w-fit p-0.5 space-x-1">
-        <button className="self-end font-md" onClick={handleRemoveOption}>-</button>
-        <button type="button" onClick={() => setSelectedOption(option)}>{option}</button>
+    return <div className="cursor-pointer border-2 border-gray-400 text-center w-fit px-2 space-x-1 rounded-full transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110">
+        <button type="button" onClick={() => setSelectedOption(option)} className="cursor-pointer">{option}</button>
+        <button className="self-end font-md cursor-pointer" onClick={handleRemoveOption} >-</button>
     </div>
 }
 
@@ -390,97 +616,19 @@ function PhotoUpload({ item, setItem, setPhotos }: PhotoUploadProps) {
         setPhotoUrl('')
     }
 
-    return <div className="flex flex-col items-center">
+    return <div className="flex flex-col items-center justify-center transition-all duration-300 ease-in-out hover:-translate-y-1">
         {(photoUrl && photoUrl.length > 0) ?
             <div className="w-full h-full relative">
                 <img src={photoUrl} className="w-48 h-44"></img>
                 <button className="bg-red-500 p-0.5 pt-0 pb-0 rounded-lg absolute top-0 left-1 text-white" onClick={handleFileRemove}>-</button>
             </div>
             :
-            <div className="flex flex-col">
-                <div className="flex flex-col w-fit h-44 relative items-center justify-center pl-2">
-                    <p>Click to upload photo</p>
+            <div className="flex flex-col p-1">
+                <div style={setPhotos ? { height: 'fit' } : { width: 'fit', height: 'fit' }} className="flex flex-col relative items-center justify-center pl-2">
                     <img src={uploadPhotoICON} className="h-12 w-12"></img>
-                    <input type="file" className="text-transparent w-full h-full absolute top-0" onChange={(event) => handleFileUpload(event)}></input>
+                    <input type="file" className="text-transparent w-full h-full absolute top-0 cursor-pointer" onChange={(event) => handleFileUpload(event)}></input>
                 </div>
             </div>}
     </div>
 }
 
-interface DisplayItemProps {
-    item: Item
-}
-function DisplayItem({ item }: DisplayItemProps) {
-
-    const [modify, setModify] = useState(false)
-    return <div className={modify ? "flex flex-col h-fit justify-center items-center border-black border-2 pb-1" : "flex flex-col h-fit justify-center items-center border-black border-2 pb-1 py-2"}>
-        <div className={modify ? "flex flex-col w-[70%]  my-2 font-regular" : "flex flex-col w-[70%] h-fit justify-center font-regular"}>
-            {modify ?
-                <ModifyItem item={item} /> : <>
-                    <img src={item?.photos[0]} className="border-2 border-black" ></img>
-                    <p>{item.name}</p>
-                    <p>{item.price}</p>
-                    <p>{item.quantity}</p>
-                    <p>{item.category}</p>
-                    <p>{item.description}</p>
-                </>}
-        </div>
-        <button className="border-black border-2 p-0.5 rounded-sm font-button" onClick={() => setModify((modify) => !modify)}>Modify</button>
-    </div>
-}
-
-function ModifyItem({ item }: DisplayItemProps) {
-    const [photos, setPhotos] = useState<string[]>([])
-    const [modifiedItem, setModifiedItem] = useState<Item>(item)
-
-    const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
-        setModifiedItem({
-            ...modifiedItem,
-            [property]: value
-        })
-    }
-
-    useEffect(() => {
-        handleItemChange('photos', photos)
-    }, [photos])
-
-    const queryClient = useQueryClient()
-
-    const mutation = useMutation(
-        {
-            mutationFn: async (updatedItem: Item) => {
-                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategory: item.category })
-                console.log(response)
-                return response.data
-            },
-            onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['inventory'] })
-                queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
-                queryClient.invalidateQueries({ queryKey: [item.name] })
-                window.alert('item updated')
-            }
-        }
-    )
-
-    const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-
-        console.log('running')
-        mutation.mutate(modifiedItem)
-    }
-
-    return <form onSubmit={(event) => onSubmit(event)}>
-        <p>Item Name</p>
-        <input type="text" className="border-black border-2" value={modifiedItem.name} onChange={(event) => handleItemChange('name', event.target.value)}></input>
-        <p>Item Price</p>
-        <input type="text" className="border-black border-2" value={modifiedItem.price} onChange={(event) => handleItemChange('price', event.target.value)}></input>
-        <p>Quantity</p>
-        <input type="text" className="border-black border-2 w-10" value={modifiedItem.quantity} onChange={(event) => handleItemChange('quantity', event.target.value)}></input>
-        <p>Category</p>
-        <input type="text" className="border-black border-2" value={modifiedItem.category} onChange={(event) => handleItemChange('category', event.target.value)}></input>
-        <p>Description</p>
-        <textarea className="resize:none border-black border-2 w-full h-40" value={modifiedItem.description} onChange={(event) => handleItemChange('description', event.target.value)}></textarea>
-        <PhotoUpload item={item} setPhotos={setPhotos} />
-        <button type="submit" className="w-full border-black border-1">Submit Changes</button>
-    </form>
-}

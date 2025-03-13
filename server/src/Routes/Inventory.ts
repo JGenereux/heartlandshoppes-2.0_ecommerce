@@ -356,7 +356,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
  * @param {String} itemName The name of the item to remove
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.route('/item/:name').delete(authenticateToken, checkAdminRole, async(req,res) => {
+router.route('/item/:name').delete(async(req,res) => {
     const {name} = req.params
     try{
         const removed = await Items.findOneAndDelete({name: name}) 
