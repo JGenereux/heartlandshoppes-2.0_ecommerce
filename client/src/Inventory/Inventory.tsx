@@ -259,7 +259,7 @@ function ModifyItem({ item }: DisplayItemProps) {
             <div>
                 <label htmlFor="options" className="block text-sm text-gray-800 font-semibold">Options</label>
                 {Object.keys(item.options).map((option) => {
-                    return <DisplayItemOptions options={item.options} value={option} setModifiedItem={setModifiedItem} />
+                    return <DisplayItemOptions key={option} options={item.options} value={option} setModifiedItem={setModifiedItem} />
 
                 })}
             </div>
@@ -307,8 +307,8 @@ function DisplayItemOptions({ options, value, setModifiedItem }: DisplayItemOpti
     return <label>
         {value}
         <div className="flex flex-col space-y-2">
-            {options[value].map((item) => {
-                return <DisplayItemOption option={item} setValues={setValues} />
+            {options[value].map((item, index) => {
+                return <DisplayItemOption key={index} option={item} setValues={setValues} />
             })}
         </div>
     </label>
