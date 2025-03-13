@@ -35,14 +35,14 @@ export default function Drawer() {
                 {(isOpen && !isDesktop) && <SearchBar />}
             </div>
             {isOpen && <div className="flex flex-col md:flex-row md:items-center space-x-4 pr-2 md:pr-0 pb-2 md:pb-0 ml-2 md:ml-3 md:w-full font-button">
-                <Link to="/">Home</Link>
-                <Link to="/shop">Shop</Link>
-                <Link to="/about">About</Link>
-                <Link to="/contact">Contact</Link>
+                <Link to="/" className="hover:text-blue-500 transition-colors duration-300">Home</Link>
+                <Link to="/shop" className="hover:text-blue-500 transition-colors duration-300">Shop</Link>
+                <Link to="/about" className="hover:text-blue-500 transition-colors duration-300">About</Link>
+                <Link to="/contact" className="hover:text-blue-500 transition-colors duration-300">Contact</Link>
                 {isDesktop && <SearchBar />}
                 <div className="flex flex-col md:flex-row md:ml-auto mr-6 space-x-6">
-                    <Link to="/inventory">Inventory</Link>
-                    {user ? <Link to="/account">Account</Link> : <Link to="/login">Login</Link>}
+                    <Link to="/inventory" className="hover:text-blue-500 transition-colors duration-300">Inventory</Link>
+                    {user ? <Link to="/account" className="hover:text-blue-500 transition-colors duration-300">Account</Link> : <Link to="/login" className="hover:text-blue-500 transition-colors duration-300">Login</Link>}
                     <Cart />
                 </div>
             </div>}

@@ -89,7 +89,7 @@ function DisplayInventory() {
         <div className="flex flex-row flex-wrap w-full">
             <div>
                 <h3 className="text-2xl font-headerFont">Current Inventory</h3>
-                <button className="self-end border-black border-2 px-2 py-1 rounded-full font-button" onClick={() => setAddItem((add) => !add)}>{addItem ? 'Go Back' : 'Add to inventory'}</button>
+                <button className="self-end border-black border-2 px-2 py-1 rounded-full font-button cursor-pointer" onClick={() => setAddItem((add) => !add)}>{addItem ? 'Go Back' : 'Add to inventory'}</button>
             </div>
             <div className="flex flex-row items-center ml-auto space-x-1">
                 <p className="text-xl">Category: </p>
