@@ -3,12 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Bill, ItemInvoice, Order } from "../interfaces/orderInterface"
 import { useCallback, useEffect, useRef, useState } from "react"
 import axios from "axios"
+import Loading from "../Loading/Loading"
 
 export default function Orders() {
     const [statusFilter, setStatusFilter] = useState('All')
     const [orders, setOrders] = useState<Order[]>([])
 
-    const { isPending, error, data: ordersData = [] } = useQuery<Order[], Error>({
+    const { isPending, isFetching, error, data: ordersData = [] } = useQuery<Order[], Error>({
         queryKey: ['orders'],
         queryFn: async () => {
             const res = await axios.get<Order[]>('http://localhost:5000/orders/')
@@ -36,12 +37,14 @@ export default function Orders() {
         setOrders(currOrders)
     }, [statusFilter, ordersData])
 
-    if (isPending) return '...Loading'
     if (error) return 'Error'
 
     return <div className="mb-2">
         <StatusNavbar setStatus={setStatusFilter} />
-        <OrderMenu orders={orders} ordersData={ordersData} setOrders={setOrders} />
+        {(isFetching || isPending) ? <div className="flex flex-col w-full items-center justify-center p-12 space-y-1.5">
+            <p className="font-regular font-bold text-xl">Loading Orders</p>
+            <Loading />
+        </div> : <OrderMenu orders={orders} ordersData={ordersData} setOrders={setOrders} />}
     </div>
 }
 

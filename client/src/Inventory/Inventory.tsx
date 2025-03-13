@@ -6,6 +6,7 @@ import axios from 'axios'
 import FormData from "form-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Orders from "./Orders";
+import Loading from "../Loading/Loading";
 
 export default function Inventory() {
     return (
@@ -50,7 +51,7 @@ function DashboardNavbar({ setDashboardOption }: DashboardNavbarProps) {
 }
 
 function DisplayInventory() {
-    const { isPending, error, data: inventoryData = [] } = useQuery<Item[], Error>({
+    const { isPending, isFetching, error, data: inventoryData = [] } = useQuery<Item[], Error>({
         queryKey: ['inventory'],
         queryFn: async () => {
             const res = await axios.get<Item[]>('http://localhost:5000/inventory')
@@ -82,7 +83,6 @@ function DisplayInventory() {
         setCurrentCategories(newCategories)
     }, [inventoryData])
 
-    if (isPending) { return 'Loading...' }
     if (error) { return `error: ${error}` }
 
     return <div className="flex flex-col w-[90%] h-fit mx-auto md:my-2">
@@ -99,11 +99,16 @@ function DisplayInventory() {
             </div>
         </div>
         {addItem && <AddItem categories={currentCategories} />}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto max-h-116 border-black border-2 my-2 shadow-gray-400 shadow-lg">
-            {inventoryData?.map((item: Item, index) => {
-                return <DisplayItem key={index} item={item} />
-            })}
-        </div>
+        {isFetching || isPending ? <div className="flex flex-col w-full items-center justify-center p-12 space-y-1.5">
+            <p className="font-regular font-bold text-xl">Loading Shop Items</p>
+            <Loading />
+        </div> :
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto max-h-116 border-black border-2 my-2 shadow-gray-400 shadow-lg">
+                {inventoryData?.map((item: Item, index) => {
+                    return <DisplayItem key={index} item={item} />
+                })}
+            </div>
+        }
     </div>
 }
 

@@ -7,11 +7,12 @@ import { Item, Review } from "../interfaces/iteminterface";
 import axios from "axios";
 import uploadPhotoICON from '../assets/uploadPhotoICON.png'
 import { useCart } from "../Contexts/cartContext";
+import Loading from "../Loading/Loading";
 
 export default function ItemPage() {
     const { name } = useParams()
 
-    const { isPending, isError, data: item, error } = useQuery<Item, Error>({
+    const { isPending, isFetching, isError, data: item, error } = useQuery<Item, Error>({
         queryKey: [name],
         queryFn: async () => {
             const res = await axios.get<Item>(`http://localhost:5000/inventory/item/${name}`);
@@ -29,7 +30,12 @@ export default function ItemPage() {
         <div className="">
             <Drawer />
             <div className="w-full h-full py-6">
-                {item && <DisplayItem item={item} />}
+                {(isFetching || isPending) ? <div className="flex flex-col w-full items-center justify-center p-12 space-y-1.5">
+                    <p className="font-regular font-bold text-xl">Loading Shop Items</p>
+                    <Loading />
+                </div> :
+                    item && <DisplayItem item={item} />
+                }
             </div>
         </div>
     )

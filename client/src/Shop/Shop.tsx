@@ -3,6 +3,7 @@ import Drawer from "../Navbar/Drawer";
 import { Item } from "../interfaces/iteminterface";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import Loading from "../Loading/Loading";
 
 export default function Shop() {
     return <Routes>
@@ -21,7 +22,7 @@ interface ShopMenuProps {
 }
 function ShopMenu({ category }: ShopMenuProps) {
 
-    const { isPending, data: inventoryData = [] } = useQuery<Item[], Error>({
+    const { isPending, data: inventoryData = [], isFetching } = useQuery<Item[], Error>({
         queryKey: ['inventory', category],
         queryFn: async () => {
             const res = await axios.get<Item[]>(`http://localhost:5000/inventory/${category}`)
@@ -37,7 +38,10 @@ function ShopMenu({ category }: ShopMenuProps) {
     return <div>
         <Drawer />
         <CategoriesBar category={category} />
-        <DisplayItems items={inventoryData} />
+        {(isPending || isFetching) ? <div className="flex flex-col w-full items-center justify-center p-12 space-y-1.5">
+            <p className="font-regular font-bold text-xl">Loading Shop Items</p>
+            <Loading />
+        </div> : <DisplayItems items={inventoryData} />}
     </div>
 }
 

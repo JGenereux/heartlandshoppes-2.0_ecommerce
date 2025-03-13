@@ -9,6 +9,7 @@ import axios from "axios";
 import { Item } from "../interfaces/iteminterface";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
+import Loading from "../Loading/Loading";
 
 
 export default function Home() {
@@ -84,38 +85,59 @@ function Featured() {
         }
     }
 
-    if (isFetching) return "Loading"
+    if (isFetching) return (<div>
+        <div className="flex flex-col items-center justify-center w-full p-12 space-y-1.5">
+            <h3 className="text-lg md:text-2xl font-button">Loading Featured Products</h3>
+            <Loading />
+        </div>
+    </div>);
     if (isError) return `${error.message}`
 
     return (
         <div className="flex flex-col w-full h-fit items-center justify-center pb-2 space-y-1.5 my-2">
-            <h3 className="text-lg md:text-2xl font-button">Featured Products</h3>
-            <div className="w-[80%] flex flex-row space-x-2 items-center justify-center">
-                <button
-                    className="bg-[#f8b4c4] font-semibold rounded-full p-2 pt-1 pb-1 text-white shadow-md shadow-gray-400 cursor-pointer transition-transform transform hover:scale-110 active:scale-95"
-                    onClick={handleMoveLeft}
-                >
-                    <FontAwesomeIcon icon={faAnglesLeft
-
-                    } />
-                </button>
-
-                <div className="flex flex-row space-x-4 items-center">
-                    {featuredItemsSlice?.map((item, index) => (
-                        <DisplayItem key={index} item={item} />
-                    ))}
-                </div>
-
-                <button
-                    className="bg-[#f8b4c4] font-semibold rounded-full p-2 pt-1 pb-1 text-white shadow-md shadow-gray-400 cursor-pointer transition-transform transform hover:scale-110 active:scale-95"
-                    onClick={handleMoveRight}
-                >
-                    <FontAwesomeIcon icon={faAnglesRight} />
-                </button>
-
-            </div>
+            {featuredItemsSlice?.length > 0 ?
+                <>
+                    <h3 className="text-lg md:text-2xl font-button">Featured Products</h3>
+                    < FeaturedItemsDisplay featuredItemsSlice={featuredItemsSlice} handleMoveLeft={handleMoveLeft} handleMoveRight={handleMoveRight} />
+                </>
+                :
+                <p className="text-xl font-regular font-bold p-12">There are no featured products at this time</p>
+            }
         </div>
     )
+}
+
+interface FeaturedItemsProps {
+    featuredItemsSlice: Item[],
+    handleMoveRight: () => void,
+    handleMoveLeft: () => void
+}
+
+function FeaturedItemsDisplay({ featuredItemsSlice, handleMoveLeft, handleMoveRight }: FeaturedItemsProps) {
+
+    return <div className="w-[80%] flex flex-row space-x-2 items-center justify-center">
+        <button
+            className="bg-[#f8b4c4] font-semibold rounded-full p-2 pt-1 pb-1 text-white shadow-md shadow-gray-400 cursor-pointer transition-transform transform hover:scale-110 active:scale-95"
+            onClick={handleMoveLeft}
+        >
+            <FontAwesomeIcon icon={faAnglesLeft
+
+            } />
+        </button>
+
+        <div className="flex flex-row space-x-4 items-center">
+            {featuredItemsSlice?.map((item, index) => (
+                <DisplayItem key={index} item={item} />
+            ))}
+        </div>
+
+        <button
+            className="bg-[#f8b4c4] font-semibold rounded-full p-2 pt-1 pb-1 text-white shadow-md shadow-gray-400 cursor-pointer transition-transform transform hover:scale-110 active:scale-95"
+            onClick={handleMoveRight}
+        >
+            <FontAwesomeIcon icon={faAnglesRight} />
+        </button>
+    </div >
 }
 
 interface DisplayItemProps {
@@ -129,7 +151,7 @@ function DisplayItem({ item }: DisplayItemProps) {
         navigate(`/shop/item/${item.name}`)
     }
     return (
-        <div className="flex flex-col w-1/3 pl-2 pt-2  font-regular transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 items-center" onClick={navigateToItem}>
+        <div className="flex flex-col w-fit pl-2 pt-2  font-regular transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 items-center" onClick={navigateToItem}>
             <img src={item.photos[0]} className="w-[100%] h-[190px] ">
             </img>
             <p>{item.name}</p>

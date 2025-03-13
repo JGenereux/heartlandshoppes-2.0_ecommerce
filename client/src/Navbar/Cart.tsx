@@ -35,7 +35,7 @@ export default function Cart() {
                 <div className="flex flex-col w-80 max-h-80">
                     <div className="flex flex-row">
                         <h3 className="text-xl">Cart</h3>
-                        <button onClick={() => setIsOpen(false)} className="ml-auto">🛒</button>
+                        <button onClick={() => setIsOpen(false)} className="ml-auto cursor-pointer">🛒</button>
                     </div>
                     <Items />
                     <button className="self-center my-2 bg-[#f8b4c4] p-0.5 text-white font-bold text-lg rounded-lg cursor-pointer" onClick={handleCheckout}>Checkout</button>
@@ -43,7 +43,7 @@ export default function Cart() {
             </div>
                 :
                 <div className="flex md:justify-end">
-                    <button onClick={() => setIsOpen(!isOpen)}>🛒</button>
+                    <button onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">🛒</button>
                 </div>}
         </div>
     )

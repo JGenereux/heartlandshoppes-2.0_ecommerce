@@ -147,6 +147,7 @@ router.route('/item').post(async(req,res) : Promise<any> => {
    
         return res.status(200).json("Successfully added item")
     } catch(error) {
+        console.error(error)
         res.status(500).json(`Internal server error: ${error} `)
     }
 })
@@ -213,6 +214,7 @@ router.route('/item/:name').put(async(req: Request,res: Response) : Promise<any>
 
         return res.status(200).json("Item was successfully updated")
     } catch(error) {
+        console.error(error)
         res.status(500).json(`Internal server error ${error}`)
     }
 })
@@ -281,6 +283,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
 
         return res.status(200).json("Successfully added review")
     } catch(error) {
+        console.error(error)
         res.status(500).json(`Internal server error ${error}`)
     }
 })
@@ -347,6 +350,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
         }
         return res.status(200).json("Successfully deleted review")
     } catch(error) {
+        console.error(error)
         res.status(500).json(`Internal server error: ${error}`)
     }
 })
@@ -379,11 +383,18 @@ router.route('/item/:name').delete(async(req,res) => {
                 items.splice(index, 1)
 
                 await client.sendCommand(['DEL', `items`])
-                await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+                if(items.length != 0) {
+                    await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+                }
             }
         }
 
-        const itemCategory = removed.category
+        const itemCategory = removed.category[0]
+        if(!itemCategory) {
+            res.status(413).json("Error updating cache with item category")
+            return
+        }
+    
         const categoryExist = await client.exists(`${itemCategory}`)
         if(categoryExist === 1) {
             const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
@@ -391,15 +402,20 @@ router.route('/item/:name').delete(async(req,res) => {
             const index = categoryItems.findIndex((item: Item) => item.name === name)
             if (index !== -1) {
                 delete categoryItems[index]
-
+                const validItems = categoryItems.filter(item => item !== undefined && item !== null);
+                    
                 await client.sendCommand(['DEL', `${itemCategory}`])
-                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                
+                if(validItems.length != 0) {
+                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...validItems.map((item) => JSON.stringify(item))])
+                }   
             }
         }
 
         res.status(200).json("Item successfully deleted")
         return
     } catch(error) {
+        console.error(error)
         res.status(500).json("Internal server error")
     }
 })
