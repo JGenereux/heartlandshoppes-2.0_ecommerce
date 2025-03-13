@@ -160,7 +160,7 @@ function DisplayOptions({ options, setItem }: DisplayOptionsProps) {
         })
     }, [currOptions, setItem])
 
-    return <div>
+    return <div className="flex flex-col space-y-2">
         {Object.keys(options).map((option) => {
             return <label key={option}>
                 {option}:

@@ -122,12 +122,12 @@ function DisplayItem({ item }: DisplayItemProps) {
     const deleteMutation = useMutation({
         mutationFn: async ({ itemName }: DeleteMutationProps) => {
             await axios.delete(`http://localhost:5000/inventory/item/${itemName}`)
-            window.location.reload()
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inventory'] })
             queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
             queryClient.invalidateQueries({ queryKey: [item.name] })
+            window.location.reload()
         }
     })
 
@@ -172,7 +172,6 @@ function DisplayItem({ item }: DisplayItemProps) {
 function ModifyItem({ item }: DisplayItemProps) {
     const [photos, setPhotos] = useState<string[]>([])
     const [modifiedItem, setModifiedItem] = useState<Item>(item)
-    const [tempOptions, setTempOptions] = useState<Record<string, string[]>>({})
 
     const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
         setModifiedItem({

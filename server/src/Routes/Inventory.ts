@@ -389,7 +389,7 @@ router.route('/item/:name').delete(async(req,res) => {
             const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
             const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
             const index = categoryItems.findIndex((item: Item) => item.name === name)
-            if (index != -1) {
+            if (index !== -1) {
                 delete categoryItems[index]
 
                 await client.sendCommand(['DEL', `${itemCategory}`])

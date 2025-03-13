@@ -5,14 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import axios from "axios"
 
 export default function Orders() {
-
-    return <div className="mb-2">
-        <StatusNavbar />
-        <OrderMenu />
-    </div>
-}
-
-function OrderMenu() {
+    const [statusFilter, setStatusFilter] = useState('All')
     const [orders, setOrders] = useState<Order[]>([])
 
     const { isPending, error, data: ordersData = [] } = useQuery<Order[], Error>({
@@ -31,8 +24,33 @@ function OrderMenu() {
         setOrders(ordersData)
     }, [ordersData])
 
+    useEffect(() => {
+        if (!statusFilter || !ordersData) return
+
+        if (statusFilter === "All") {
+            setOrders(ordersData)
+            return
+        }
+
+        const currOrders = ordersData.filter((order) => order.status.toLowerCase().trim() === statusFilter.toLowerCase().trim())
+        setOrders(currOrders)
+    }, [statusFilter, ordersData])
+
     if (isPending) return '...Loading'
     if (error) return 'Error'
+
+    return <div className="mb-2">
+        <StatusNavbar setStatus={setStatusFilter} />
+        <OrderMenu orders={orders} ordersData={ordersData} setOrders={setOrders} />
+    </div>
+}
+
+interface OrderMenuProps {
+    orders: Order[],
+    ordersData: Order[],
+    setOrders: React.Dispatch<React.SetStateAction<Order[]>>
+}
+function OrderMenu({ orders, ordersData, setOrders }: OrderMenuProps) {
 
     return <div>
         <SearchBar ordersData={ordersData} setOrders={setOrders} />
@@ -40,11 +58,15 @@ function OrderMenu() {
     </div>
 }
 
-function StatusNavbar() {
-    return <div className="flex flex-row w-full border-black border-b-2 items-center justify-center space-x-6">
-        <p>New</p>
-        <p>In Progress</p>
-        <p>Fulfilled</p>
+interface StatusNavbarProps {
+    setStatus: React.Dispatch<React.SetStateAction<string>>
+}
+function StatusNavbar({ setStatus }: StatusNavbarProps) {
+    return <div className="flex flex-row w-full border-black border-b-2 items-center justify-center py-2 space-x-6 font-button">
+        <button onClick={() => setStatus('All')} className="hover:text-blue-500 transition-colors duration-300 cursor-pointer">All</button>
+        <button onClick={() => setStatus('Added')} className="hover:text-blue-500 transition-colors duration-300 cursor-pointer">Added</button>
+        <button onClick={() => setStatus('In_Progress')} className="hover:text-blue-500 transition-colors duration-300 cursor-pointer">In Progress</button>
+        <button onClick={() => setStatus('Fulfilled')} className="hover:text-blue-500 transition-colors duration-300 cursor-pointer">Fulfilled</button>
     </div>
 }
 
@@ -99,8 +121,21 @@ function SearchBar({ ordersData, setOrders }: SearchBarProps) {
 
 
     return <div className="flex flex-row items-center my-2 pl-2 space-x-2">
-        <input type="text" className="border-black border-2 w-fit pl-1" value={search} onChange={(e) => handleSearchChange(e.target.value, filter as keyof Order)}></input>
-        <label className="border-black border-1 pl-1">
+        <div className="flex flex-row w-fit items-center relative">
+            <input
+                type="text"
+                placeholder="Search"
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value, filter as keyof Order)}
+                className="px-2.5 py-1.5 w-fit rounded-full bg-white border shadow-black  border-gray-200  hover:border-pink-300 focus:outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-300 transition-all duration-200 shadow-sm text-gray-800 placeholder-gray-400"
+            />
+            <button className="absolute right-3 text-gray-400 hover:text-pink-500 ">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+        </div>
+        <label className="border-gray-600 border-2 px-2 py-1 rounded-full w-fit">
             Filter:
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
                 <option value='_id'>ID</option>
@@ -116,7 +151,7 @@ interface DisplayOrdersProps {
 }
 
 function DisplayOrders({ orders }: DisplayOrdersProps) {
-    return <div className="grid grid-cols-1 md:grid-cols-2 my-2 pl-2">
+    return <div className="grid grid-cols-1 md:grid-cols-2 my-4 pl-2">
         {orders?.map((order) => {
             return <DisplayOrder key={order._id} order={order} />
         })}
@@ -174,9 +209,11 @@ function DisplayOrder({ order }: DisplayOrderProps) {
         if (trackingNumber && trackingNumber !== order.trackingNumber) {
             trackingNumberMutation.mutate({ orderId: order._id, trackingNumber: trackingNumber })
         }
+
+        window.location.reload()
     }
 
-    return <div className="flex flex-col border-black border-2 w-fit p-2 font-headerFont">
+    return <div className="flex flex-col border-gray-800 border-1 rounded-xl w-fit p-2 font-headerFont">
         <div className="flex flex-row border-black border-b-1 w-full space-x-4 pb-2">
             <div className="flex flex-col">
                 <label className="flex flex-row">
@@ -185,12 +222,12 @@ function DisplayOrder({ order }: DisplayOrderProps) {
                 </label>
                 <label className="flex flex-row">
                     Tracking Number:
-                    {editOrder ? <input className="w-fit ml-1 border-black border-1 font-regular" onChange={(e) => setTrackingNumber(e.target.value)}></input>
+                    {editOrder ? <input className="w-fit ml-1 border-gray-700 border-2 rounded-lg font-regular hover:ring-blue-500 hover:ring-1 hover:border-blue-500" defaultValue={order.trackingNumber || ''} onChange={(e) => setTrackingNumber(e.target.value)}></input>
                         :
                         <p className="ml-1 font-regular">{order.trackingNumber || 'Not Available'}</p>}
                 </label>
             </div>
-            <label className="flex flex-row items-center self-start">
+            <label className="flex flex-row items-center self-start ml-auto">
                 <Status status={status} setStatus={setStatus} editOrder={editOrder} />
             </label>
         </div>
@@ -240,8 +277,10 @@ function DisplayOrder({ order }: DisplayOrderProps) {
                     </div>
                 </label>
             </div>
-            <button className="self-start bg-actionColor text-white p-1 rounded-lg font-bold font-button" onClick={() => setEditOrder((order) => !order)}>Edit</button>
-            <button className="self-start bg-actionColor text-white p-1 rounded-lg font-bold font-button" onClick={handleOrderUpdate}>Confirm</button>
+            <div className="flex flex-col self-start space-y-2 w-full">
+                <button className="self-end border-black border-1 shadow-gray-500 shadow-sm w-fit  px-3 py-1 rounded-full font-bold font-button cursor-pointer" onClick={() => setEditOrder((order) => !order)}>Edit</button>
+                {editOrder && <button className="self-end border-black border-1 shadow-gray-500 shadow-sm  w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer" onClick={handleOrderUpdate}>Confirm</button>}
+            </div>
         </div>
     </div>
 }
@@ -254,19 +293,19 @@ interface StatusProps {
 
 function Status({ status, setStatus, editOrder }: StatusProps) {
     const statusColor = status.toLowerCase() === 'added' ? '#FF0000' :
-        status.toLowerCase() === 'in_progress' ? '#FFFF00' :
+        status.toLowerCase() === 'in_progress' ? '#FFA500' :
             '#008000';
 
     return editOrder ? <div>
         <label>
             Select Status:
-            <div className="flex flex-col space-y-1 font-bold font-button">
-                <button className="bg-[#FF0000]" onClick={() => setStatus('added')}>Added</button>
-                <button className="bg-[#FFFF00]" onClick={() => setStatus('in_progress')}>In Progress</button>
-                <button className="bg-[#008000]" onClick={() => setStatus('fulfilled')}>Fulfilled</button>
+            <div className="flex flex-col space-y-1 font-bold font-button text-white">
+                <button className="bg-[#FF0000] cursor-pointer rounded-full px-2 py-1 transition ease-in-out duration-300 hover:translate-y-1 hover:scale-110" onClick={() => setStatus('added')}>Added</button>
+                <button className="bg-[#FFA500] cursor-pointer rounded-full px-2 py-1 transition ease-in-out duration-300 hover:translate-y-1 hover:scale-110" onClick={() => setStatus('in_progress')}>In Progress</button>
+                <button className="bg-[#008000] cursor-pointer rounded-full px-2 py-1 transition ease-in-out duration-300 hover:translate-y-1 hover:scale-110" onClick={() => setStatus('fulfilled')}>Fulfilled</button>
             </div>
         </label>
-    </div> : <div style={{ backgroundColor: `${statusColor}` }} className="rounded-lg text-white p-1 font-bold font-button">
+    </div> : <div style={{ backgroundColor: `${statusColor}` }} className="rounded-full px-2 py-1 text-white font-bold font-button border-black border-2 shadow-gray-500 shadow-sm">
         <p>{status.charAt(0).toUpperCase() + status.slice(1)}</p>
     </div>;
 }
