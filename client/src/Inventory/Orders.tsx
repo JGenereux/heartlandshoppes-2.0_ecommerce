@@ -17,7 +17,7 @@ export default function Orders() {
         },
         staleTime: 60 * 1000,
         gcTime: 2 * 60 * 1000,
-        refetchInterval: 15 * 1000
+        refetchInterval: 60 * 1000
     })
 
     useEffect(() => {
@@ -274,7 +274,7 @@ function DisplayOrder({ order }: DisplayOrderProps) {
 
                                 <p className="ml-2 font-regular">Quantity: {item.quantity}</p>
 
-                                <p className="ml-2 font-regular">Price: ${item.amount}</p>
+                                <p className="ml-2 font-regular">Price: ${item.amount / 100}</p>
                             </label>
                         })}
                     </div>

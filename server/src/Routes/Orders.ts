@@ -134,12 +134,15 @@ async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | 
  * @returns {Orders[]} An array containing all orders
  */
 router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
+    console.log('pinging orders')
     try{
         // if orders are cached returns Order[], else null
         const cachedOrders = await retrieveOrders()
         if(cachedOrders != null) {
             return res.status(200).json(cachedOrders)
         }
+
+        console.log('pinging orders')
 
         const orders = await Orders.find();
         const formattedOrders: Order[] = orders.map(order => ({
@@ -152,19 +155,19 @@ router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
             date: order.date
         }));
         
-        
+        console.log('pinging orders')
         if(!orders) {
             return res.status(404).json("Error fetching all orders from db")
         } else if(orders.length == 0) {
             return res.status(200).json([])
         }
-        
+        console.log('pinging orders')
         // Set orders list to fetched orders
         await client.sendCommand(["DEL", "orders"])
         await client.sendCommand(["LPUSH", "orders", ...formattedOrders.map((order: Order) => JSON.stringify(order))])
 
         await client.sendCommand(["EXPIRE", "orders", "1000"])
-
+        console.log('pinging orders')
         return res.status(200).json(orders)
     } catch(error) {
         res.status(500).json(`Internal Server Error: ${error}`)
@@ -242,6 +245,7 @@ router.route('/:id/status').put(async(req: Request,res: Response) : Promise<any>
 
         return res.status(200).json("Order status successfully updated")
     } catch(error) {
+        console.error(error)
         res.status(500).json(`Internal Server Error: ${error}`)
     }
 })

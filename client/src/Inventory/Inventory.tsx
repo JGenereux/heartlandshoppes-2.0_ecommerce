@@ -59,7 +59,7 @@ function DisplayInventory() {
         },
         staleTime: 60 * 1000,
         gcTime: 2 * 60 * 1000,
-        refetchInterval: 15 * 1000
+        refetchInterval: 45 * 1000
     })
 
     const [addItem, setAddItem] = useState(false)
@@ -179,6 +179,14 @@ function ModifyItem({ item }: DisplayItemProps) {
     const [modifiedItem, setModifiedItem] = useState<Item>(item)
 
     const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
+        if (property === 'category' && typeof value === 'string') {
+            const categories = value.split(',')
+            setModifiedItem({
+                ...modifiedItem,
+                [property]: categories
+            })
+            return
+        }
         setModifiedItem({
             ...modifiedItem,
             [property]: value
@@ -363,6 +371,14 @@ function AddItem({ categories }: AddItemProps) {
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>, field: keyof Item) => {
+        if (field === 'category' && typeof e.target.value === 'string') {
+            const categories = e.target.value.split(',')
+            setItem((prevItem) => ({
+                ...prevItem,
+                [field]: categories
+            }))
+            return
+        }
         const value = e.target.value;
         setItem((prevItem) => ({
             ...prevItem,

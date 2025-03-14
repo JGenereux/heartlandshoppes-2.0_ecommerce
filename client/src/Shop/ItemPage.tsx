@@ -51,7 +51,7 @@ function DisplayItem({ item }: DisplayItemProps) {
         <div className="w-[75%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
             <div className="flex flex-col md:flex-row w-full h-[90%] bg-white py-2">
                 <div className="flex flex-col w-[90%] md:w-[45%] h-full items-center mx-auto">
-                    <img src={photoUrl} className="w-full h-[65vh] border-black border-2"></img>
+                    <img src={photoUrl} className="w-auto h-[65vh] border-black border-2"></img>
                     <ImageSlider item={item} setPhotoUrl={setPhotoUrl} />
                 </div>
                 <div className="md:w-1/2 h-full flex flex-col pl-2 md:pl-0">

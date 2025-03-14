@@ -72,7 +72,7 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
             return res.status(200).json(items)
         }
 
-        // else query db and set in cache
+        // else query db and set in both caches
         const items: Item[] = await Items.find()
 
         if(!items) {
@@ -85,7 +85,7 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
             await client.sendCommand(["DEL", `items`])
             await client.sendCommand(["RPUSH", `items`, ...items.map(item => JSON.stringify(item))])
         }
-        // ensure category and items dont exist before writing values to those keys
+        
         if(filteredItems.length > 0) {
             await client.sendCommand(["DEL", `${category}`])
             await client.sendCommand(["RPUSH", `${category}`, ...filteredItems.map(item => JSON.stringify(item))])
@@ -140,11 +140,13 @@ router.route('/item').post(async(req,res) : Promise<any> => {
         const newItem = new Items(item)
         await newItem.save()
 
-        //add new item to items cache and category cache that item belongs too
+        //add new item to items cache and category caches that the item belongs too
         await client.sendCommand(['LPUSH','items', JSON.stringify(newItem)])
-        //FIX NEWITEM.CATEGORY
-        await client.sendCommand(['LPUSH', `${newItem.category}`, JSON.stringify(newItem)])
-   
+     
+        for(const category of newItem.category) {
+            await client.sendCommand(['LPUSH', `${category}`, JSON.stringify(newItem)])
+        }
+      
         return res.status(200).json("Successfully added item")
     } catch(error) {
         console.error(error)
@@ -160,8 +162,8 @@ router.route('/item').post(async(req,res) : Promise<any> => {
  */
 router.route('/item/:name').put(async(req: Request,res: Response) : Promise<any> => {
     const {name} = req.params
-    const {item, oldCategory} = req.body
-
+    const {item, oldCategories} = req.body
+    
     try{
         const updated = await Items.findOneAndUpdate(
             { name: name }, 
@@ -194,22 +196,27 @@ router.route('/item/:name').put(async(req: Request,res: Response) : Promise<any>
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
         
             // update item in category list cache
-            const itemCategory = items[index].category
-            const categoryExist = await client.exists(`${itemCategory}`)
-            if(categoryExist === 1) {
-                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
-                const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
-                const index = categoryItems.findIndex((item: Item) => item.name === name)
-                if (index != -1) {
-                    categoryItems[index] = {...categoryItems[index], ...item}
-                }
+            for(const category of items[index].category) {
+                const itemCategory = category
+                const categoryExist = await client.exists(`${itemCategory}`)
+                if(categoryExist === 1) {
+                    const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                    const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+                    const index = categoryItems.findIndex((item: Item) => item.name === name)
+                    if (index != -1) {
+                        categoryItems[index] = {...categoryItems[index], ...item}
+                    }
 
-                await client.sendCommand(['DEL', `${itemCategory}`])
-                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
-                console.log(`Removed item from ${itemCategory} cache`)
+                    await client.sendCommand(['DEL', `${itemCategory}`])
+                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                    console.log(`Removed item from ${itemCategory} cache`)
+                }
             }
-            // HANDLE DELETE CATEGORY HERE
-            await client.sendCommand(['DEL', `${oldCategory}`]) // delete old category. 
+            
+            //delete old categories
+            for(const category of oldCategories) {
+                await client.sendCommand(['DEL', `${category}`])
+            }
         }
 
         return res.status(200).json("Item was successfully updated")
@@ -260,24 +267,26 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
          
             // update item in category list cache
-            const itemCategory = items[index].category
-            const categoryExist = await client.exists(`${itemCategory}`)
-            if(categoryExist === 1) {
-                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
-                const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
-                const index = categoryItems.findIndex((item: Item) => item.name === name)
-                if (index === -1) {
-                    return res.status(413).json("Item not found in category cache")
-                }
+            for(const category of items[index].category) {
+                const itemCategory = category
+                const categoryExist = await client.exists(`${itemCategory}`)
+                if(categoryExist === 1) {
+                    const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                    const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+                    const index = categoryItems.findIndex((item: Item) => item.name === name)
+                    if (index === -1) {
+                        return res.status(413).json("Item not found in category cache")
+                    }
 
-                if(categoryItems[index].reviews.length === 0) {
-                    categoryItems[index].reviews = [review]
-                } else{
-                    categoryItems[index].reviews.push(review)
+                    if(categoryItems[index].reviews.length === 0) {
+                        categoryItems[index].reviews = [review]
+                    } else{
+                        categoryItems[index].reviews.push(review)
+                    }
+                
+                    await client.sendCommand(['DEL', `${itemCategory}`])
+                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
                 }
-            
-                await client.sendCommand(['DEL', `${itemCategory}`])
-                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
             }
         }
 
@@ -330,22 +339,24 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
             
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
-        
-            // update item in category list cache
-            const itemCategory = items[index].category
-            const categoryExist = await client.exists(`${itemCategory}`)
-            if(categoryExist === 1) {
-                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
-                const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
-                const index = categoryItems.findIndex((item: Item) => item.name === name)
-                if (index === -1) {
-                    return res.status(413).json("Item not found in category cache")
-                }
-
-                categoryItems[index].reviews = items[index].reviews.filter((currReview) => currReview.fullName === review.fullName)
             
-                await client.sendCommand(['DEL', `${itemCategory}`])
-                await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+            // update item in category list cache
+            for(const category of items[index].category){
+                const itemCategory = category
+                const categoryExist = await client.exists(`${itemCategory}`)
+                if(categoryExist === 1) {
+                    const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                    const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+                    const index = categoryItems.findIndex((item: Item) => item.name === name)
+                    if (index === -1) {
+                        return res.status(413).json("Item not found in category cache")
+                    }
+    
+                    categoryItems[index].reviews = items[index].reviews.filter((currReview) => currReview.fullName === review.fullName)
+                
+                    await client.sendCommand(['DEL', `${itemCategory}`])
+                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                }
             }
         }
         return res.status(200).json("Successfully deleted review")
@@ -389,26 +400,28 @@ router.route('/item/:name').delete(async(req,res) => {
             }
         }
 
-        const itemCategory = removed.category[0]
-        if(!itemCategory) {
-            res.status(413).json("Error updating cache with item category")
+        if(!removed.category || removed.category.length === 0) {
+            res.status(201).json("Item successfully deleted")
             return
         }
-    
-        const categoryExist = await client.exists(`${itemCategory}`)
-        if(categoryExist === 1) {
-            const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
-            const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
-            const index = categoryItems.findIndex((item: Item) => item.name === name)
-            if (index !== -1) {
-                delete categoryItems[index]
-                const validItems = categoryItems.filter(item => item !== undefined && item !== null);
+       
+        for(const category of removed.category) {
+            const itemCategory = category
+            const categoryExist = await client.exists(`${itemCategory}`)
+            if(categoryExist === 1) {
+                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
+                const index = categoryItems.findIndex((item: Item) => item.name === name)
+                if (index !== -1) {
+                    delete categoryItems[index]
+                    const validItems = categoryItems.filter(item => item !== undefined && item !== null);
+                        
+                    await client.sendCommand(['DEL', `${itemCategory}`])
                     
-                await client.sendCommand(['DEL', `${itemCategory}`])
-                
-                if(validItems.length != 0) {
-                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...validItems.map((item) => JSON.stringify(item))])
-                }   
+                    if(validItems.length != 0) {
+                        await client.sendCommand(['RPUSH', `${itemCategory}`, ...validItems.map((item) => JSON.stringify(item))])
+                    }   
+                }
             }
         }
 

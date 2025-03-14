@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "../Contexts/authContext";
 import { User } from "../interfaces/userinterface";
 import axios from "axios";
+import logo from '../assets/LOGO.png'
 
 export default function Signup() {
     return <div className="h-[90vh]">
@@ -56,7 +57,7 @@ function SignupForm() {
     }
 
     return <div className="flex flex-col w-fit md:w-[35%] h-fit rounded-sm justify-center items-center py-6 shadow-gray-600 shadow-md">
-        <img className="w-18 h-18 border-black border-2 rounded-[2.2rem] mb-2"></img>
+        <img src={logo} className="w-40 h-40 rounded-full mb-2"></img>
         <h3 className="font-headerFont text-2xl">Heartland Shoppes</h3>
         <form className="flex flex-col my-6 w-full space-y-1 items-center" onSubmit={(event) => handleSignUp(event)}>
             <div className="flex flex-col w-[70%] mx-auto">

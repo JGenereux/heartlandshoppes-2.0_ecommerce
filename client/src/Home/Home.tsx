@@ -152,7 +152,7 @@ function DisplayItem({ item }: DisplayItemProps) {
     }
     return (
         <div className="flex flex-col w-fit pl-2 pt-2  font-regular transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 items-center" onClick={navigateToItem}>
-            <img src={item.photos[0]} className="w-[100%] h-[190px] ">
+            <img src={item.photos[0]} className="w-auto h-[190px] ">
             </img>
             <p>{item.name}</p>
             <p>${item.price}</p>
