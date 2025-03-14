@@ -35,7 +35,7 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
 
     try{
         const user = await Users.findOne({email: userEmail})
-        
+        console.log(`User: `, user)
         if(!user) {
             return res.status(400).json("User with this email doesn't exist")
         }

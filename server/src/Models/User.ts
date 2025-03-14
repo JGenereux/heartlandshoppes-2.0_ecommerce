@@ -17,7 +17,7 @@ const userSchema = new Schema(
         billingInfo: {type: billingSchema, required: false},
         orderHistory: {type: [orderSchema], required: true, default: []},
         role: {type: String, required: true, default: 'user'},
-        cart: {type: [cartSchema], default: []}
+        cart: {type: [cartSchema],required: true, default: []}
     },
     {
         timestamps: true,

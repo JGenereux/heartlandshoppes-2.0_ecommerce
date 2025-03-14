@@ -57,7 +57,9 @@ function OrderMenu({ orders, ordersData, setOrders }: OrderMenuProps) {
 
     return <div>
         <SearchBar ordersData={ordersData} setOrders={setOrders} />
-        <DisplayOrders orders={orders} />
+        <div className="flex items-center justify-center">
+            <DisplayOrders orders={orders} />
+        </div>
     </div>
 }
 
@@ -95,7 +97,7 @@ function SearchBar({ ordersData, setOrders }: SearchBarProps) {
         }, [fn, delay]);
     };
 
-    // Inside your component:
+
     const handleSearch = useCallback((searchTerm: string, property: keyof Order) => {
         setOrders(
             ordersData.filter((order) => {
@@ -154,7 +156,7 @@ interface DisplayOrdersProps {
 }
 
 function DisplayOrders({ orders }: DisplayOrdersProps) {
-    return <div className="grid grid-cols-1 md:grid-cols-2 my-4 pl-2">
+    return <div className="grid grid-cols-1 md:grid-cols-3 my-4 pl-2 overflow-y-auto">
         {orders?.map((order) => {
             return <DisplayOrder key={order._id} order={order} />
         })}

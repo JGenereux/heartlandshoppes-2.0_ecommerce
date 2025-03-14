@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import express from 'express';
-import { User } from '../Interfaces/userInterface';
+import { CartItem, User } from '../Interfaces/userInterface';
 import { Bill, Order } from '../Interfaces/orderInterface';
 import { Users } from "../Models/User";
+import { client } from "../../redis-client";
 
 const router = express.Router();
 
@@ -136,6 +137,25 @@ router.put('/:email/orders', async(req: Request,res: Response): Promise<any> => 
     }
 })
 
+
+router.put('/cart/:email', async(req: Request,res: Response): Promise<any> => {
+    
+    const {email} = req.params
+    const {cart} = req.body
+
+    try{
+        const user = await Users.findOneAndUpdate({email: email}, {cart: cart}, {new: true})
+        
+        if(!user) {
+            return res.status(404).json("Error updating user. Check values sent")
+        }
+
+        return res.status(200).json("Successfully updated cart")
+    } catch(error) {
+        console.error(error)
+        res.status(500).json(`Internal server error: ${error}`)
+    }
+})
 
 
 

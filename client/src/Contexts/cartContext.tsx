@@ -1,6 +1,7 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { CartItem } from "../interfaces/userinterface";
 import { useAuth } from "./authContext";
+import axios from "axios";
 
 interface CartContextType {
     cart: CartItem[] | null;
@@ -27,6 +28,39 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const [cart, setCart] = useState<CartItem[] | null>(user ? user.cart : [])
 
+    const saveCartOnUnload = useCallback(async () => {
+        if (!user?.email) return
+        let userCart: CartItem[]
+
+        if (!cart) {
+            userCart = []
+        } else {
+            userCart = cart
+        }
+
+        try {
+            await axios.put(`http://localhost:5000/users/cart/${user.email}`, { cart: userCart })
+        } catch (error) {
+            console.error(error)
+        }
+    }, [cart, user?.email])
+
+    useEffect(() => {
+        window.addEventListener('beforeunload', saveCartOnUnload)
+
+        return () => {
+            window.removeEventListener('beforeunload', saveCartOnUnload)
+        }
+    }, [saveCartOnUnload])
+
+    useEffect(() => {
+        if (!user) {
+            setCart([])
+            return
+        }
+        console.log('Users cart: ', user.cart)
+        setCart(user.cart)
+    }, [user])
     const addToCart = (item: CartItem) => {
         setCart((prevCart) => {
             if (!prevCart || prevCart.length == 0) return [{ ...item, quantity: item.quantity || 1 }];
@@ -38,7 +72,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     JSON.stringify(currItem.item.options) === JSON.stringify(item.item.options)
             );
 
-            console.log(`Item index is: ${itemIndex}`)
             if (itemIndex !== -1) {
                 return prevCart.map((currItem, index) =>
                     index === itemIndex

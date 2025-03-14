@@ -42,7 +42,7 @@ function LoginForm() {
                 userEmail: email,
                 password: password
             })
-
+            console.log("User logged in as", res.data)
             const { user, accessToken } = res.data
             login(user, accessToken)
 
