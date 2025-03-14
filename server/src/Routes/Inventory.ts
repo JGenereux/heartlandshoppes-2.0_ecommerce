@@ -5,15 +5,15 @@ import {Item} from '../Interfaces/itemInterface';
 import { client } from "../../redis-client";
 import { Orders } from "../Models/Order";
 import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
+import { rateLimiter } from "../Utils/rateLimiter";
 
 const router = express.Router();
-
 
 /**
  * Retrieves all items 
  * @returns {Item[]} An array of all the items 
  */
-router.route('/').get(async(req: Request,res: Response) => {
+router.route('/').get(rateLimiter, async(req: Request,res: Response) => {
     try{
         const exists = await client.exists('items')
         
