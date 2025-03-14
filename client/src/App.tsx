@@ -8,6 +8,7 @@ import Login from "./Login/Login"
 import ItemPage from "./Shop/ItemPage"
 import Signup from "./Login/Signup"
 import Settings from "./Settings"
+import Account from "./Login/Account"
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/account" element={<Account />} />
     </Routes>
   )
 }

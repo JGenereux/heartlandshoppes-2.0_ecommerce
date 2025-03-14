@@ -6,6 +6,7 @@ import { useAuth } from '../Contexts/authContext'
 
 export default function Drawer() {
     const { user } = useAuth()
+    const [viewAccount, setViewAccount] = useState(false)
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
 
     const [isOpen, setIsOpen] = useState(false)
@@ -42,10 +43,38 @@ export default function Drawer() {
                 {isDesktop && <SearchBar />}
                 <div className="flex flex-col md:flex-row md:ml-auto mr-6 space-x-6">
                     <Link to="/inventory" className="hover:text-blue-500 transition-colors duration-300">Inventory</Link>
-                    {user ? <Link to="/account" className="hover:text-blue-500 transition-colors duration-300">Account</Link> : <Link to="/login" className="hover:text-blue-500 transition-colors duration-300">Login</Link>}
+                    {user ?
+                        viewAccount ? <Account setViewAccount={setViewAccount} /> :
+                            <button onClick={() => setViewAccount((view) => !view)} className="cursor-pointer hover:text-blue-500 transition-colors duration-300">Account</button>
+                        :
+                        <Link to="/login" className="hover:text-blue-500 transition-colors duration-300">Login</Link>}
                     <Cart />
                 </div>
             </div>}
+        </div>
+    </div>
+}
+
+interface AccountProps {
+    setViewAccount: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+function Account({ setViewAccount }: AccountProps) {
+    const { logout } = useAuth()
+
+    const handleLogout = () => {
+        logout()
+    }
+
+    return <div className="relative w-full">
+        <div className="absolute top-0 left-0 md:left-auto md:right-0 z-10 bg-white shadow-gray-500 shadow-sm rounded-lg">
+            <div className="flex flex-col p-2">
+                <button onClick={() => setViewAccount((view) => !view)} className="self-end mr-2 cursor-pointer hover:text-blue-500 transition-colors duration-300">Account</button>
+                <div className="flex flex-row space-x-6">
+                    <Link to="/account" className="hover:text-blue-500 transition-colors duration-300">Settings</Link>
+                    <button onClick={handleLogout} className="cursor-pointer hover:text-blue-500 transition-colors duration-300">Logout</button>
+                </div>
+            </div>
         </div>
     </div>
 }
