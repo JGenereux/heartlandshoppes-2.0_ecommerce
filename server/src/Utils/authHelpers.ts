@@ -43,12 +43,13 @@ function authenticateToken(req: AuthRequest, res: Response, next: NextFunction):
 
     jwt.verify(token, secret, (err, user) => {
         if (err) {
+            console.error('error with token')
             res.status(403).json({ message: "Access token invalid" });
             return
         }
 
         req.user = user; // Attach user data to request
-
+      
         next();
     });
 }
@@ -67,8 +68,9 @@ function checkAdminRole(req: AuthRoleRequest, res: Response, next: NextFunction)
         return    
     }
 
-    if (user.role !== 'admin') {
-        res.status(403).json({ message: "You do not have permission to access this resource" });
+    if (user.role.toLowerCase().trim() !== 'admin') {
+        
+        res.status(403).json("You do not have permission to access this resource");
         return
     }
 

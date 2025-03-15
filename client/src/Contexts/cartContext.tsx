@@ -7,12 +7,14 @@ interface CartContextType {
     cart: CartItem[] | null;
     addToCart: (item: CartItem) => void;
     removeFromCart: (item: CartItem) => void;
+    resetCart: () => void;
 }
 
 const CartContext = createContext<CartContextType>({
     cart: null,
     addToCart: () => { },
-    removeFromCart: () => { }
+    removeFromCart: () => { },
+    resetCart: () => { }
 })
 
 export const useCart = () => {
@@ -24,7 +26,7 @@ export const useCart = () => {
 }
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { user } = useAuth()
+    const { user, accessToken } = useAuth()
 
     const [cart, setCart] = useState<CartItem[] | null>(user ? user.cart : [])
 
@@ -39,11 +41,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         try {
-            await axios.put(`http://localhost:5000/users/cart/${user.email}`, { cart: userCart })
+            await axios.put(`http://localhost:5000/users/cart/${user.email}`, { cart: userCart }, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })
         } catch (error) {
             console.error(error)
         }
-    }, [cart, user?.email])
+    }, [cart, user?.email, accessToken])
 
     useEffect(() => {
         window.addEventListener('beforeunload', saveCartOnUnload)
@@ -61,6 +67,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         setCart(user.cart)
     }, [user])
+
     const addToCart = (item: CartItem) => {
         setCart((prevCart) => {
             if (!prevCart || prevCart.length == 0) return [{ ...item, quantity: item.quantity || 1 }];
@@ -105,7 +112,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCart(newCart)
     }
 
-    return <CartContext.Provider value={{ cart, addToCart, removeFromCart }}>
+    const resetCart = () => {
+        setCart([])
+    }
+
+    return <CartContext.Provider value={{ cart, addToCart, removeFromCart, resetCart }}>
         {children}
     </CartContext.Provider>
 }

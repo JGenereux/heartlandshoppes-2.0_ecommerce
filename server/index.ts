@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import cookieParser from "cookie-parser";
 
 dotenv.config()
 
@@ -10,9 +11,14 @@ const PORT = process.env.PORT || 5000
 
 const app = express()
 
-app.use(cors())
+app.use(cors({
+    origin: "http://localhost:3000", // ✅ Explicitly allow frontend origin
+    credentials: true, // ✅ Allow sending cookies
+}));
+
 app.use('/payment/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json())
+app.use(cookieParser())
 
 const URI = process.env.ATLAS_URI || ''
 mongoose.connect(URI)

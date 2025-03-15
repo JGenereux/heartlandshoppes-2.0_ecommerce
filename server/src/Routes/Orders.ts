@@ -84,7 +84,7 @@ async function updateOrder(
 
             await client.sendCommand(['DEL', 'orders']);
             await client.sendCommand(['RPUSH', 'orders', ...orders.map(order => JSON.stringify(order))]);
-            await client.sendCommand(["EXPIRE", "orders", "1000"])
+            await client.sendCommand(["EXPIRE", "orders", "300"])
 
             console.log('returning orders')
             return orders;
@@ -118,7 +118,7 @@ async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | 
             // Clear the cached orders in Redis and re-push the updated array
             await client.sendCommand(['DEL', 'orders']);
             await client.sendCommand(['RPUSH', 'orders', ...orders.map((order) => JSON.stringify(order))]);
-            await client.sendCommand(["EXPIRE", "orders", "1000"])
+            await client.sendCommand(["EXPIRE", "orders", "300"])
 
             return true;
         }
@@ -134,7 +134,7 @@ async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | 
  * Retrieves all orders
  * @returns {Orders[]} An array containing all orders
  */
-router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
+router.route('/').get(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
 
     try{
         // if orders are cached returns Order[], else null
@@ -168,7 +168,7 @@ router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
         await client.sendCommand(["DEL", "orders"])
         await client.sendCommand(["LPUSH", "orders", ...formattedOrders.map((order: Order) => JSON.stringify(order))])
 
-        await client.sendCommand(["EXPIRE", "orders", "1000"])
+        await client.sendCommand(["EXPIRE", "orders", "300"])
         console.log('pinging orders')
         return res.status(200).json(orders)
     } catch(error) {
@@ -201,7 +201,7 @@ router.route('/id/:id').get(authenticateToken, checkAdminRole, async(req: Reques
  * @param {Order} order The information for the order
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.route('/').post(async(req: Request,res: Response) : Promise<any> => {
+router.route('/').post(authenticateToken, checkAdminRole, async(req: Request,res: Response) : Promise<any> => {
     const {order} = req.body
     
     try{
@@ -210,7 +210,7 @@ router.route('/').post(async(req: Request,res: Response) : Promise<any> => {
 
         try {
             await client.sendCommand(["RPUSH", "orders", JSON.stringify(newOrder.toObject())]);
-            await client.sendCommand(["EXPIRE", "orders", "1000"]);
+            await client.sendCommand(["EXPIRE", "orders", "300"]);
         } catch (redisError) {
             console.error("Redis error:", redisError)
             return res.status(404).json(`Redis Error: ${redisError}`)
@@ -228,7 +228,7 @@ router.route('/').post(async(req: Request,res: Response) : Promise<any> => {
  * @param {String} status added or processing or fulfilled 
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.route('/:id/status').put(async(req: Request,res: Response) : Promise<any> => {
+router.route('/:id/status').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
     const {id} = req.params
     const {status} = req.body
 
@@ -265,7 +265,7 @@ interface MessageInfo {
  * @param {trackingNumber} trackingNum The tracking number for an order
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.route('/:id/trackingNumber').put(async(req: Request,res: Response) : Promise<any> => {
+router.route('/:id/trackingNumber').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
 
     const {id} = req.params
     const {trackingNumber} = req.body

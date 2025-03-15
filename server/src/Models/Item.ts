@@ -11,7 +11,7 @@ const reviewSchema = new Schema({
 
 const itemSchema = new Schema(
     {
-        name: {type: String, required: true, unique: true},
+        name: {type: String, required: true},
         price: {type: Number, required: true},
         category: {type: [String], required: true},
         options: { type: Map, of: [String], required: false },

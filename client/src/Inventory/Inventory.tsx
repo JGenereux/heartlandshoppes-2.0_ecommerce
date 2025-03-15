@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Orders from "./Orders";
 import Loading from "../Loading/Loading";
 import Error from "../Loading/Error";
+import { useAuth } from "../Contexts/authContext";
 
 export default function Inventory() {
     return (
@@ -122,12 +123,16 @@ interface DisplayItemProps {
 }
 
 function DisplayItem({ item }: DisplayItemProps) {
-
+    const { accessToken } = useAuth()
     const queryClient = useQueryClient()
 
     const deleteMutation = useMutation({
         mutationFn: async ({ itemName }: DeleteMutationProps) => {
-            await axios.delete(`http://localhost:5000/inventory/item/${itemName}`)
+            await axios.delete(`http://localhost:5000/inventory/item/${itemName}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inventory'] })
@@ -178,6 +183,7 @@ function DisplayItem({ item }: DisplayItemProps) {
 }
 
 function ModifyItem({ item }: DisplayItemProps) {
+    const { accessToken } = useAuth()
     const [photos, setPhotos] = useState<string[]>(item.photos)
     const [modifiedItem, setModifiedItem] = useState<Item>(item)
 
@@ -207,7 +213,11 @@ function ModifyItem({ item }: DisplayItemProps) {
         {
             mutationFn: async (updatedItem: Item) => {
                 updatedItem.photos = updatedItem.photos.filter((photo) => photo.length !== 0)
-                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategories: item.category })
+                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategories: item.category }, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                })
                 window.location.reload()
                 return response.data
             },
@@ -306,6 +316,7 @@ interface AddItemProps {
     categories: Set<string>
 }
 function AddItem({ categories }: AddItemProps) {
+    const { accessToken } = useAuth()
     const [item, setItem] = useState<Item>({
         name: "",
         price: 0,
@@ -321,7 +332,11 @@ function AddItem({ categories }: AddItemProps) {
         event.preventDefault()
 
         try {
-            await axios.post('http://localhost:5000/inventory/item', { item: item })
+            await axios.post('http://localhost:5000/inventory/item', { item: item }, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })
             window.location.reload()
         } catch (error) {
             console.log(error)

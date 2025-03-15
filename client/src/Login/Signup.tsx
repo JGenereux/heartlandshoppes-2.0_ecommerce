@@ -53,6 +53,8 @@ function SignupForm() {
             const res = await axios.post<LoginResponse>('http://localhost:5000/auth/signup', {
                 userEmail: email,
                 password: password
+            }, {
+                withCredentials: true
             })
 
             const { user, accessToken } = res.data

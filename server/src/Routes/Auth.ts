@@ -35,7 +35,7 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
 
     try{
         const user = await Users.findOne({email: userEmail})
-        console.log(`User: `, user)
+     
         if(!user) {
             return res.status(400).json("No account with this email exists")
         }
@@ -51,15 +51,16 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
         const {accessToken, refreshToken} = await getTokens(user.email, user.role)
 
         // store refreshToken as httpOnly to prevent JS access
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true, // Prevents access via JavaScript
-            secure: process.env.NODE_ENV === 'production', // Only send cookie over HTTPS in production
-            maxAge: 72 * 60 * 60 * 1000, // Cookie expires after 72 hours
-            sameSite: 'strict', // Helps mitigate CSRF attacks
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true, // Prevents JavaScript access
+            secure: process.env.NODE_ENV === "production" ? true : false, // Secure in production
+            maxAge: 72 * 60 * 60 * 1000, // 72 hours expiration
+            sameSite: "lax", // Allows cross-site requests (fixes missing cookie issue)
+            path: "/" // Ensure it's available across all routes
         });
 
-        const {email, orderHistory, billingInfo, cart} = user
-        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart}
+        const {email, orderHistory, billingInfo, cart, role} = user
+        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart, role: role}
      
         return res.status(200).json({user: currUser, accessToken: accessToken})
     } catch(error) {
@@ -91,15 +92,16 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
         const {accessToken, refreshToken} = await getTokens(userEmail, newUser.role)
 
         // store refreshToken as httpOnly to prevent JS access
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true, // Prevents access via JavaScript
-            secure: process.env.NODE_ENV === 'production', // Only send cookie over HTTPS in production
-            maxAge: 72 * 60 * 60 * 1000, // Cookie expires after 72 hours
-            sameSite: 'strict', // Helps mitigate CSRF attacks
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true, // Prevents JavaScript access
+            secure: process.env.NODE_ENV === "production" ? true : false, // Secure in production
+            maxAge: 72 * 60 * 60 * 1000, // 72 hours expiration
+            sameSite: "lax", // Allows cross-site requests (fixes missing cookie issue)
+            path: "/" // Ensure it's available across all routes
         });
 
-        const {email, orderHistory, billingInfo, cart} = newUser
-        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart}
+        const {email, orderHistory, billingInfo, cart, role} = newUser
+        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart, role: role}
         
         return res.status(200).json({user: currUser, accessToken: accessToken})
     } catch(error) {
@@ -107,21 +109,41 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
     }
 })
 
+router.post("/logout", (req: Request, res: Response) => {
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Only in production
+        sameSite: "lax",
+        path: "/" // Ensure the cookie is cleared for all routes
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
+});
+
 router.route('/token').post(async(req: Request, res: Response) : Promise<any> => {
-    const {refreshToken} = req.body
-    
+   
+    const refreshToken = req.cookies.refreshToken;
+   
     if(refreshToken == null) return res.status(403)
-
+   
     const secret = process.env.REFRESH_TOKEN_SECRET;
-
+    
     if (!secret) {
         console.error("REFRESH_TOKEN_SECRET is not defined");
         return res.status(500).json("Internal Server Error");
     }
-    jwt.verify(refreshToken, secret, (err: any, user: any) => {
+ 
+    jwt.verify(refreshToken, secret, async (err: any, user: any) => {
         if(err) return res.status(403).json("Error verifying credentials")
         const accessToken = generateAccessToken(user.email, user.role)
-        res.status(200).json({accessToken: accessToken})
+       
+        const userExist = await Users.findOne({email: user.email})
+        
+        if(!userExist) return res.status(404).json("Server couldn't find user")
+        const {email, orderHistory, billingInfo, cart, role} = userExist
+        const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart, role: role}
+       
+        res.status(200).json({currUser: currUser, accessToken: accessToken})
     })
 })
 

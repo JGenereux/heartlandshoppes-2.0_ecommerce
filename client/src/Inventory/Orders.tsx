@@ -5,15 +5,21 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import axios from "axios"
 import Loading from "../Loading/Loading"
 import Error from "../Loading/Error"
+import { useAuth } from "../Contexts/authContext"
 
 export default function Orders() {
+    const { accessToken } = useAuth()
     const [statusFilter, setStatusFilter] = useState('All')
     const [orders, setOrders] = useState<Order[]>([])
 
     const { isFetching, error, data: ordersData = [] } = useQuery<Order[], Error>({
         queryKey: ['orders'],
         queryFn: async () => {
-            const res = await axios.get<Order[]>('http://localhost:5000/orders/')
+            const res = await axios.get<Order[]>('http://localhost:5000/orders/', {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })
             return res.data
         },
         staleTime: 60 * 1000,
@@ -175,6 +181,7 @@ interface MutationProps {
 }
 
 function DisplayOrder({ order }: DisplayOrderProps) {
+    const { accessToken } = useAuth()
     const [editOrder, setEditOrder] = useState(false)
     const [status, setStatus] = useState(order.status || ' ')
     const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber || ' ')
@@ -184,7 +191,11 @@ function DisplayOrder({ order }: DisplayOrderProps) {
     const statusMutation = useMutation(
         {
             mutationFn: async ({ orderId, status }: MutationProps) => {
-                await axios.put(`http://localhost:5000/orders/${orderId}/status`, { status: status })
+                await axios.put(`http://localhost:5000/orders/${orderId}/status`, { status: status }, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                })
             },
             onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ['orders'] })
@@ -195,7 +206,11 @@ function DisplayOrder({ order }: DisplayOrderProps) {
     const trackingNumberMutation = useMutation(
         {
             mutationFn: async ({ orderId, trackingNumber }: MutationProps) => {
-                await axios.put(`http://localhost:5000/orders/${orderId}/trackingNumber`, { trackingNumber: trackingNumber })
+                await axios.put(`http://localhost:5000/orders/${orderId}/trackingNumber`, { trackingNumber: trackingNumber }, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                })
             },
             onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ['orders'] })

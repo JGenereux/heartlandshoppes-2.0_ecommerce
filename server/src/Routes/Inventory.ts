@@ -132,8 +132,7 @@ router.route('/item/:name').get(async(req: Request,res: Response): Promise<any> 
  * @param {Item} item The information of the item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-// add authenticateToken, checkAdminRole when auth ui is implemented
-router.route('/item').post(async(req,res) : Promise<any> => {
+router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : Promise<any> => {
     const {item} = req.body
 
     try{
@@ -160,7 +159,7 @@ router.route('/item').post(async(req,res) : Promise<any> => {
  * @param {Item} newItem The updated information for the requested item
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.route('/item/:name').put(async(req: Request,res: Response) : Promise<any> => {
+router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
     const {name} = req.params
     const {item, oldCategories} = req.body
     
@@ -372,7 +371,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
  * @param {String} itemName The name of the item to remove
  * @returns {Number} The status code indicating whether request was successful or not
  */
-router.route('/item/:name').delete(async(req,res) => {
+router.route('/item/:name').delete(authenticateToken, checkAdminRole,async(req,res) => {
     const {name} = req.params
     try{
         const removed = await Items.findOneAndDelete({name: name}) 

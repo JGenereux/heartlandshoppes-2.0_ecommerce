@@ -5,6 +5,9 @@ import { Item } from "../Interfaces/itemInterface";
 import { CartItem } from "../Interfaces/userInterface";
 import { ItemInvoice, Order } from "../Interfaces/orderInterface";
 import axios from "axios";
+import { Orders } from "../Models/Order";
+import { Users } from "../Models/User";
+import { client } from "../../redis-client";
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 const STRIPE_KEY = process.env.STRIPE_SECRET
@@ -108,7 +111,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
                 return response.status(403).json('Error retrieving full details for order')
             }
            
-            const newOrder: Order = {items: invoiceItems, totalPrice: invoice.amount_paid || 0, billingInfo: {
+            const newOrder = new Orders({items: invoiceItems, totalPrice: invoice.amount_paid || 0, billingInfo: {
                 fullName: detailedInvoice.customer_name || '',
                 address: detailedInvoice.customer_shipping?.address?.line1 || detailedInvoice.customer_shipping?.address?.line2 || '',
                 country: detailedInvoice.customer_shipping?.address?.country || '',
@@ -117,14 +120,21 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
                 postalCode: detailedInvoice.customer_shipping?.address?.postal_code || "",
                 email: detailedInvoice.customer_email || '',
                 phone: detailedInvoice.customer_shipping?.phone || null,
-            }, status: "added", trackingNumber: null, date: new Date(Date.now()), invoiceUrl: detailedInvoice.hosted_invoice_url || ''}
+            }, status: "added", trackingNumber: null, date: new Date(Date.now()), invoiceUrl: detailedInvoice.hosted_invoice_url || ''})
             
-            const res = await axios.post('http://localhost:5000/orders', {order: newOrder})
-            if(!res) {
-                return response.status(417).json("Error adding order to orders database")
+            await newOrder.save()
+
+            //reset users cart
+            const user = await Users.findOneAndUpdate({email: newOrder.billingInfo.email}, { $set: { cart: [] } }, {new: true})
+            if(!user) {
+                return response.status(417).json("Error resetting user's cart")
             }
 
-            return response.status(200).json(res.data)
+            // push newOrder onto orders cache
+            await client.sendCommand(["LPUSH", "orders", JSON.stringify(newOrder)])
+            await client.sendCommand(["EXPIRE", "orders", "1000"])
+
+            return response.status(200).json(newOrder)
         } catch (error) {
             console.error('Error adding invoice details:', error);
         }

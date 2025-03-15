@@ -50,6 +50,8 @@ function LoginForm() {
             const res = await axios.post<LoginResponse>('http://localhost:5000/auth/login', {
                 userEmail: email,
                 password: password
+            }, {
+                withCredentials: true
             })
 
             const { user, accessToken } = res.data

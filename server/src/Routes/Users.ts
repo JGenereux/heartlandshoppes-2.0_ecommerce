@@ -4,6 +4,7 @@ import { CartItem, User } from '../Interfaces/userInterface';
 import { Bill, Order } from '../Interfaces/orderInterface';
 import { Users } from "../Models/User";
 import { client } from "../../redis-client";
+import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const router = express.Router();
  * @param {User} user The user's information
  * @returns {Number} The status code indicating if the response was successful or not 
  */
-router.post('/', async(req: Request,res: Response) : Promise<any> => {
+router.post('/', authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
     const {user} = req.body
 
     try{
@@ -31,7 +32,7 @@ router.post('/', async(req: Request,res: Response) : Promise<any> => {
  * @param {Bill} billingInfo The user's new billingInfo
  * @returns {Number} The status code indicating if the response was successful or not
  */
-router.put('/:email/billing', async(req: Request,res: Response): Promise<any> => {
+router.put('/:email/billing',authenticateToken, checkAdminRole, async(req: Request,res: Response): Promise<any> => {
     const {email} = req.params
     const {bill} = req.body
     
@@ -53,7 +54,7 @@ router.put('/:email/billing', async(req: Request,res: Response): Promise<any> =>
  * @param {String} email The user's email
  * @returns {User} The user's information 
  */
-router.get('/:email', async(req: Request,res: Response): Promise<any> => {
+router.get('/:email',authenticateToken, checkAdminRole, async(req: Request,res: Response): Promise<any> => {
     const {email} = req.params
 
     try{
@@ -74,7 +75,7 @@ router.get('/:email', async(req: Request,res: Response): Promise<any> => {
  * @param {String} email The user's email
  * @returns {Number} The status code indicating success or error
  */
-router.delete('/:email', async(req: Request,res: Response): Promise<any> => {
+router.delete('/:email',authenticateToken, checkAdminRole, async(req: Request,res: Response): Promise<any> => {
     const {email} = req.params
 
     try{
@@ -95,7 +96,7 @@ router.delete('/:email', async(req: Request,res: Response): Promise<any> => {
  * @param {String} email The user's email
  * @returns {Order[]} An array of orders containg the orderHistory of the user
  */
-router.get('/:email/orders', async(req: Request, res: Response): Promise<any> => {
+router.get('/:email/orders',authenticateToken, checkAdminRole, async(req: Request, res: Response): Promise<any> => {
     const {email} = req.params
 
     try{
@@ -116,7 +117,7 @@ router.get('/:email/orders', async(req: Request, res: Response): Promise<any> =>
  * @param {String} email The user's email
  * @param {Order} order The order information 
  */
-router.put('/:email/orders', async(req: Request,res: Response): Promise<any> => {
+router.put('/:email/orders', authenticateToken, checkAdminRole,async(req: Request,res: Response): Promise<any> => {
     const {email} = req.params
     const {order} = req.body
 
@@ -138,7 +139,7 @@ router.put('/:email/orders', async(req: Request,res: Response): Promise<any> => 
 })
 
 
-router.put('/cart/:email', async(req: Request,res: Response): Promise<any> => {
+router.put('/cart/:email',authenticateToken, async(req: Request,res: Response): Promise<any> => {
     
     const {email} = req.params
     const {cart} = req.body

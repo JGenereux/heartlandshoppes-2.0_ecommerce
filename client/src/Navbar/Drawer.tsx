@@ -75,7 +75,7 @@ export default function Drawer() {
                 <Link to="/contact" className="hover:text-blue-500 transition-colors duration-300">Contact</Link>
                 {isDesktop && <SearchBar search={search} setSearch={setSearch} reference={searchRef} />}
                 <div className="flex flex-col md:flex-row md:ml-auto mr-6 space-x-6">
-                    <Link to="/inventory" className="hover:text-blue-500 transition-colors duration-300">Inventory</Link>
+                    {user?.role === 'admin' && <Link to="/inventory" className="hover:text-blue-500 transition-colors duration-300">Inventory</Link>}
                     {user ?
                         viewAccount ? <Account setViewAccount={setViewAccount} /> :
                             <button onClick={() => setViewAccount((view) => !view)} className="cursor-pointer hover:text-blue-500 transition-colors duration-300">Account</button>

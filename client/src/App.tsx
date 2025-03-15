@@ -9,6 +9,24 @@ import ItemPage from "./Shop/ItemPage"
 import Signup from "./Login/Signup"
 import Settings from "./Settings"
 import Account from "./Login/Account"
+import React from "react"
+import { useAuth } from "./Contexts/authContext"
+
+interface ProtectedComponentProps {
+  children: React.ReactNode,
+  allowedRoles: string[]
+}
+
+function ProtectedComponent({ children, allowedRoles }: ProtectedComponentProps) {
+  const { user } = useAuth()
+
+  for (const role of allowedRoles) {
+    if (role.toLowerCase().trim() === user?.role.toLowerCase().trim()) {
+      return children
+    }
+  }
+  return null
+}
 
 function App() {
 
@@ -19,7 +37,7 @@ function App() {
       <Route path="/shop/item/:name" element={<ItemPage />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
-      <Route path="/inventory" element={<Inventory />} />
+      <Route path="/inventory" element={<ProtectedComponent children={<Inventory />} allowedRoles={['admin']} />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/settings" element={<Settings />} />
