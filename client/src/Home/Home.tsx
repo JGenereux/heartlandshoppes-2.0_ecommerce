@@ -11,7 +11,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
 import Loading from "../Loading/Loading";
 
-
 export default function Home() {
     return (
         <div className="h-screen">

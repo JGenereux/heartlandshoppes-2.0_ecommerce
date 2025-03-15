@@ -64,8 +64,7 @@ interface ItemProps {
 }
 
 function Item({ item }: ItemProps) {
-    const firstKey = Object.keys(item.item.options)[0]
-    console.log(firstKey)
+
     const { addToCart, removeFromCart } = useCart()
     return <div className="flex flex-row border-black border-1">
         <img src={item.item?.photos[0]} className="w-[35%] border-black border-2"></img>
@@ -74,7 +73,7 @@ function Item({ item }: ItemProps) {
             <p>{item.item.price}</p>
             <p>Options</p>
             {Object.keys(item.item.options).map((option) => {
-                return <div>
+                return <div key={option}>
                     <p>{item.item.options[option]}</p>
                 </div>
             })}

@@ -37,7 +37,7 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
         const user = await Users.findOne({email: userEmail})
         console.log(`User: `, user)
         if(!user) {
-            return res.status(400).json("User with this email doesn't exist")
+            return res.status(400).json("No account with this email exists")
         }
 
         //check if given password is the same as hashed password
@@ -81,7 +81,7 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
         // create hashedPassword
         const hashedPassword = await bcrypt.hash(password, 10)
         if (!hashedPassword) {
-            return res.status(500).json("Server error while hashing the password.");
+            return res.status(500).json("Server error while registering account");
         }
 
         const newUser = new Users({email: userEmail, password: hashedPassword, role: userRole})
@@ -101,7 +101,6 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
         const {email, orderHistory, billingInfo, cart} = newUser
         const currUser = {email: email, orderHistory: orderHistory, billingInfo: billingInfo, cart: cart}
         
-        console.log('Sending account info')
         return res.status(200).json({user: currUser, accessToken: accessToken})
     } catch(error) {
         res.status(500).json(`Internal server error ${error}`)
@@ -117,10 +116,10 @@ router.route('/token').post(async(req: Request, res: Response) : Promise<any> =>
 
     if (!secret) {
         console.error("REFRESH_TOKEN_SECRET is not defined");
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json("Internal Server Error");
     }
     jwt.verify(refreshToken, secret, (err: any, user: any) => {
-        if(err) return res.status(403)
+        if(err) return res.status(403).json("Error verifying credentials")
         const accessToken = generateAccessToken(user.email, user.role)
         res.status(200).json({accessToken: accessToken})
     })

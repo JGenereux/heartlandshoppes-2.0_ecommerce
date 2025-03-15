@@ -57,7 +57,7 @@ router.route("/").post(upload.single("image"), async (req: Request, res: Respons
     res.json({ imageUrl });
   } catch (error) {
     console.error("Failed to upload image:", error);
-    res.status(500).json({ error: "Failed to upload image" });
+    res.status(500).json("Failed to upload image");
   }
 });
 

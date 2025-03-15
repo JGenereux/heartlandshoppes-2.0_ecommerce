@@ -10,7 +10,6 @@ import Signup from "./Login/Signup"
 import Settings from "./Settings"
 import Account from "./Login/Account"
 
-
 function App() {
 
   return (

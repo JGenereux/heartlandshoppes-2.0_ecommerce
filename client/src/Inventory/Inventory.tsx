@@ -146,20 +146,22 @@ function DisplayItem({ item }: DisplayItemProps) {
         <div className={modify ? "flex flex-col w-fit px-4  my-2 font-regular" : "px-4 flex flex-col w-fit justify-center font-regular"}>
             {modify ?
                 <ModifyItem item={item} /> : <>
-                    <img src={item?.photos[0]} className="border-2 border-black  w-full h-[250px] object-contain " ></img>
+                    <img src={item?.photos[0]} className="w-full h-[250px] object-contain"></img>
                     <div>
-                        <p>{item.name}</p>
-                        <p>{item.price}</p>
-                        <p>{item.quantity}</p>
-                        <p>{item.category}</p>
-                        <p>{item.description}</p>
+                        <p>Name: {item.name}</p>
+                        <p>Price: {item.price}</p>
+                        <p>Quantity: {item.quantity}</p>
+                        <p>Categories: {item.category.length > 1 ? `${item.category.join(", ").slice(0, 10)}...` : `${item.category[0]}`}</p>
+                        <p>Description: {item.description.slice(0, 10)}...</p>
                         <div className="grid grid-cols-2">
                             {Object.keys(item.options).map((option) => {
                                 return <label key={option}>
                                     {option}
-                                    {item.options[option].map((value) => {
-                                        return <p key={value} className="ml-2">{value}</p>
-                                    })}
+                                    <div className="grid grid-cols-2">
+                                        {item.options[option].map((value) => {
+                                            return <p key={value} className="ml-2">{value}</p>
+                                        })}
+                                    </div>
                                 </label>
                             })}
                         </div>
