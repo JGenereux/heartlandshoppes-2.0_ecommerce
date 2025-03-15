@@ -103,7 +103,7 @@ function DisplayInventory() {
             <p className="font-regular font-bold text-xl">Loading Shop Items</p>
             <Loading />
         </div> :
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto max-h-116 border-black border-2 my-2 shadow-gray-400 shadow-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto max-h-120 border-black border-2 my-2 shadow-gray-400 shadow-lg">
                 {inventoryData?.map((item: Item, index) => {
                     return <DisplayItem key={index} item={item} />
                 })}
@@ -142,7 +142,7 @@ function DisplayItem({ item }: DisplayItemProps) {
 
 
     const [modify, setModify] = useState(false)
-    return <div className={modify ? "flex flex-col h-fit justify-center items-center border-black border-2 pb-1" : "flex flex-col h-fit items-center border-black border-2 pb-1 py-6"}>
+    return <div className={modify ? "flex flex-col h-120 overflow-y-auto  items-center border-black border-2 pb-1" : "flex flex-col h-120 overflow-y-auto items-center border-black border-2 pb-1 py-6"}>
         <div className={modify ? "flex flex-col w-fit px-4  my-2 font-regular" : "px-4 flex flex-col w-fit justify-center font-regular"}>
             {modify ?
                 <ModifyItem item={item} /> : <>
