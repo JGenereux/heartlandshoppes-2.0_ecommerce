@@ -68,7 +68,7 @@ router.route('/login').post(async(req: Request, res: Response) : Promise<any> =>
 })
 
 router.route('/signup').post(async(req: Request, res: Response) : Promise<any> => {
-    const {userEmail, password, userRole} = req.body
+    const {userEmail, password} = req.body
 
     try{
         //check if user already exists
@@ -84,11 +84,11 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
             return res.status(500).json("Server error while registering account");
         }
 
-        const newUser = new Users({email: userEmail, password: hashedPassword, role: userRole})
+        const newUser = new Users({email: userEmail, password: hashedPassword})
         await newUser.save()
 
         // create access and refresh token
-        const {accessToken, refreshToken} = await getTokens(userEmail, userRole)
+        const {accessToken, refreshToken} = await getTokens(userEmail, newUser.role)
 
         // store refreshToken as httpOnly to prevent JS access
         res.cookie('refreshToken', refreshToken, {

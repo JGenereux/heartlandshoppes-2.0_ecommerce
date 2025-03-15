@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import Drawer from "../Navbar/Drawer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../Contexts/authContext";
 import { User } from "../interfaces/userinterface";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import logo from '../assets/LOGO.png'
+import Error from "../Loading/Error";
 
 export default function Signup() {
     return <div className="h-[90vh]">
@@ -25,26 +26,33 @@ function SignupForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [reEnteredPass, setReEnteredPass] = useState("")
-
+    const [error, setError] = useState("")
     const navigate = useNavigate()
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setError("")
+        }, 5000)
+
+        return () => clearTimeout(timer)
+    }, [error])
 
     const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (!email || !password || !reEnteredPass) {
-            window.alert("All credentials must be entered")
+            setError("All credentials must be entered")
             return
         }
 
         if (password !== reEnteredPass) {
-            window.alert("Passwords must be the same")
+            setError("Passwords must be the same")
             return
         }
 
         try {
             const res = await axios.post<LoginResponse>('http://localhost:5000/auth/signup', {
                 userEmail: email,
-                password: password,
-                userRole: "data"
+                password: password
             })
 
             const { user, accessToken } = res.data
@@ -52,11 +60,16 @@ function SignupForm() {
 
             navigate("/", { replace: true })
         } catch (error) {
-            window.alert(`Error logging in: ${error}`)
+            if (isAxiosError(error) && error.response) {
+                setError(JSON.stringify(error.response.data))
+            } else {
+                window.alert(error)
+            }
         }
     }
 
     return <div className="flex flex-col w-fit md:w-[35%] h-fit rounded-sm justify-center items-center py-6 shadow-gray-600 shadow-md">
+        {error && <Error message={error} />}
         <img src={logo} className="w-40 h-40 rounded-full mb-2"></img>
         <h3 className="font-headerFont text-2xl">Heartland Shoppes</h3>
         <form className="flex flex-col my-6 w-full space-y-1 items-center" onSubmit={(event) => handleSignUp(event)}>

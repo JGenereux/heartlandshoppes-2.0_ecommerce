@@ -8,6 +8,7 @@ import axios from "axios";
 import uploadPhotoICON from '../assets/uploadPhotoICON.png'
 import { useCart } from "../Contexts/cartContext";
 import Loading from "../Loading/Loading";
+import Error from "../Loading/Error";
 
 export default function ItemPage() {
     const { name } = useParams()
@@ -23,8 +24,12 @@ export default function ItemPage() {
         gcTime: 10 * 60 * 1000
     });
 
-    if (isPending) { return <span>'Loading...'</span> }
-    if (isError) { return <span>Error: {error.message}</span> }
+    if (isPending) {
+        return <div className="h-screen flex w-full items-center justify-center">
+            <Loading />
+        </div>
+    }
+    if (isError) { return <Error message={error.message} /> }
 
     return (
         <div className="">
@@ -128,7 +133,7 @@ function ItemDescription({ item }: DisplayItemProps) {
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
         <div className="flex flex-col">
             <h3 className="text-3xl font-headerFont">{item.name}</h3>
-            <p className="text-xl font-regular">${item.price}</p>
+            <p className="text-xl font-regular">${item.price.toFixed(2)}</p>
         </div>
         <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-24">
             <DisplayOptions options={item.options} setItem={setTempItem} />

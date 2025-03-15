@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import Drawer from "../Navbar/Drawer";
 import { useAuth } from "../Contexts/authContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User } from "../interfaces/userinterface";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import logo from '../assets/LOGO.png'
+import Error from "../Loading/Error";
 
 export default function Login() {
     return (
@@ -26,9 +27,17 @@ function LoginForm() {
     const { login } = useAuth()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [error, setError] = useState("")
 
     const navigate = useNavigate()
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setError("")
+        }, 5000)
+
+        return () => clearTimeout(timer)
+    }, [error])
     const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
@@ -42,17 +51,24 @@ function LoginForm() {
                 userEmail: email,
                 password: password
             })
-            console.log("User logged in as", res.data)
+
             const { user, accessToken } = res.data
             login(user, accessToken)
 
             navigate("/", { replace: true })
         } catch (error) {
-            window.alert(`Error logging in: ${error}`)
+            if (isAxiosError(error) && error.response) {
+                setError(JSON.stringify(error.response.data))
+            } else {
+                window.alert(error)
+            }
         }
     }
 
+
+
     return <div className="flex flex-col w-fit md:w-[35%] h-fit rounded-sm justify-center items-center py-6 shadow-gray-600 shadow-md">
+        {error && <Error message={error} />}
         <img src={logo} className="w-40 h-40 rounded-full mb-2"></img>
         <h3 className="font-headerFont text-2xl">Heartland Shoppes</h3>
         <form className="flex flex-col my-6 w-full space-y-1 items-center" onSubmit={(event) => handleLogin(event)}>

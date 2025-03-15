@@ -10,6 +10,7 @@ import { Item } from "../interfaces/iteminterface";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
 import Loading from "../Loading/Loading";
+import Error from "../Loading/Error";
 
 export default function Home() {
     return (
@@ -90,7 +91,7 @@ function Featured() {
             <Loading />
         </div>
     </div>);
-    if (isError) return `${error.message}`
+    if (isError) return <Error message={error ? `${error}` : 'Error loading featured items'} />
 
     return (
         <div className="flex flex-col w-full h-fit items-center justify-center pb-2 space-y-1.5 my-2">
@@ -154,7 +155,7 @@ function DisplayItem({ item }: DisplayItemProps) {
             <img src={item.photos[0]} className="w-auto h-[190px] ">
             </img>
             <p>{item.name}</p>
-            <p>${item.price}</p>
+            <p>${item.price.toFixed(2)}</p>
             <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>
         </div>
     )

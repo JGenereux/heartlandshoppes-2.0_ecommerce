@@ -7,6 +7,7 @@ import { useAuth } from '../Contexts/authContext'
 import { Item } from '../interfaces/iteminterface'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
+import Error from '../Loading/Error'
 
 export default function Drawer() {
     const { user } = useAuth()
@@ -124,7 +125,7 @@ function SearchBar({ search, setSearch, reference }: SearchBarProps) {
     const [opacity, setOpacity] = useState(search ? 100 : 0)
     const [overflow, setOverflow] = useState('hidden')
 
-    const { isFetching, isError, data: inventoryData = [] } = useQuery<Item[], Error>({
+    const { isFetching, error, isError, data: inventoryData = [] } = useQuery<Item[], Error>({
         queryKey: ['inventory'],
         queryFn: async () => {
             const res = await axios.get<Item[]>('http://localhost:5000/inventory')
@@ -200,8 +201,6 @@ function SearchBar({ search, setSearch, reference }: SearchBarProps) {
         debounceSearch(searchTerm)
     };
 
-    if (isFetching) return '...'
-    if (isError) return 'Error...'
 
     return <div className="flex w-full justify-center">
         <div className="flex flex-col items-center" ref={reference}>
@@ -221,21 +220,21 @@ function SearchBar({ search, setSearch, reference }: SearchBarProps) {
                 </button>
             </div>
 
-            <div
+            {isError ? <Error message={error ? `${error}` : 'Error loading items'} /> : <div
                 className={`w-[140%] relative z-10 transform-gpu overflow-${overflow} transition-all duration-400 ease-in-out`}
                 style={{
                     height: height,
                     opacity: opacity / 100
                 }}
             >
+
                 {(search && items.length > 0) &&
                     <div className="flex flex-col w-full border-black border-1 rounded-lg absolute h-fit right-0 my-2">
                         {items.map((item, index) => {
                             return <DisplayItem key={item.name} item={item} isFirst={index === 0} isLast={index === items.length - 1} />
                         })}
-                    </div>
-                }
-            </div>
+                    </div>}
+            </div>}
         </div>
     </div>
 }

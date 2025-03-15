@@ -96,7 +96,7 @@ function DisplayItem({ item }: ItemProps) {
         </img>
         <div className="flex flex-col font-regular items-center">
             <p>{item.name}</p>
-            <p>${item.price}</p>
+            <p>${item.price.toFixed(2)}</p>
             <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>
         </div>
     </div>

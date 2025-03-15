@@ -7,6 +7,7 @@ import FormData from "form-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Orders from "./Orders";
 import Loading from "../Loading/Loading";
+import Error from "../Loading/Error";
 
 export default function Inventory() {
     return (
@@ -51,7 +52,7 @@ function DashboardNavbar({ setDashboardOption }: DashboardNavbarProps) {
 }
 
 function DisplayInventory() {
-    const { isPending, isFetching, error, data: inventoryData = [] } = useQuery<Item[], Error>({
+    const { isFetching, error, data: inventoryData = [] } = useQuery<Item[], Error>({
         queryKey: ['inventory'],
         queryFn: async () => {
             const res = await axios.get<Item[]>('http://localhost:5000/inventory')
@@ -83,7 +84,7 @@ function DisplayInventory() {
         setCurrentCategories(newCategories)
     }, [inventoryData])
 
-    if (error) { return `error: ${error}` }
+    if (error) { return <Error message={error.message} /> }
 
     return <div className="flex flex-col w-[90%] h-fit mx-auto md:my-2">
         <div className="flex flex-row flex-wrap w-full">
@@ -99,7 +100,7 @@ function DisplayInventory() {
             </div>
         </div>
         {addItem && <AddItem categories={currentCategories} />}
-        {isFetching || isPending ? <div className="flex flex-col w-full items-center justify-center p-12 space-y-1.5">
+        {isFetching ? <div className="flex flex-col w-full items-center justify-center p-12 space-y-1.5">
             <p className="font-regular font-bold text-xl">Loading Shop Items</p>
             <Loading />
         </div> :
@@ -149,7 +150,7 @@ function DisplayItem({ item }: DisplayItemProps) {
                     <img src={item?.photos[0]} className="w-full h-[250px] object-contain"></img>
                     <div>
                         <p>Name: {item.name}</p>
-                        <p>Price: {item.price}</p>
+                        <p>Price: ${item.price.toFixed(2)}</p>
                         <p>Quantity: {item.quantity}</p>
                         <p>Categories: {item.category.length > 1 ? `${item.category.join(", ").slice(0, 10)}...` : `${item.category[0]}`}</p>
                         <p>Description: {item.description.slice(0, 10)}...</p>
