@@ -136,7 +136,8 @@ function SearchBar({ search, setSearch, reference }: SearchBarProps) {
     })
 
     useEffect(() => {
-        setItems(inventoryData.slice(0, 3))
+        if (isFetching) return
+        setItems(inventoryData.slice(0, 4))
     }, [inventoryData])
 
     useEffect(() => {
@@ -227,7 +228,7 @@ function SearchBar({ search, setSearch, reference }: SearchBarProps) {
                     opacity: opacity / 100
                 }}
             >
-                {search &&
+                {(search && items.length > 0) &&
                     <div className="flex flex-col w-full border-black border-1 rounded-lg absolute h-fit right-0 my-2">
                         {items.map((item, index) => {
                             return <DisplayItem key={item.name} item={item} isFirst={index === 0} isLast={index === items.length - 1} />

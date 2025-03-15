@@ -143,7 +143,7 @@ function DisplayItem({ item }: DisplayItemProps) {
 
     const [modify, setModify] = useState(false)
     return <div className={modify ? "flex flex-col h-fit justify-center items-center border-black border-2 pb-1" : "flex flex-col h-fit items-center border-black border-2 pb-1 py-6"}>
-        <div className={modify ? "flex flex-col w-[80%]  my-2 font-regular" : "flex flex-col w-[70%] justify-center font-regular"}>
+        <div className={modify ? "flex flex-col w-fit px-4  my-2 font-regular" : "px-4 flex flex-col w-fit justify-center font-regular"}>
             {modify ?
                 <ModifyItem item={item} /> : <>
                     <img src={item?.photos[0]} className="border-2 border-black  w-full h-[250px] object-contain " ></img>
@@ -158,7 +158,7 @@ function DisplayItem({ item }: DisplayItemProps) {
                                 return <label key={option}>
                                     {option}
                                     {item.options[option].map((value) => {
-                                        return <p className="ml-2">{value}</p>
+                                        return <p key={value} className="ml-2">{value}</p>
                                     })}
                                 </label>
                             })}
@@ -175,8 +175,9 @@ function DisplayItem({ item }: DisplayItemProps) {
 }
 
 function ModifyItem({ item }: DisplayItemProps) {
-    const [photos, setPhotos] = useState<string[]>([])
+    const [photos, setPhotos] = useState<string[]>(item.photos)
     const [modifiedItem, setModifiedItem] = useState<Item>(item)
+
 
     const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
         if (property === 'category' && typeof value === 'string') {
@@ -202,7 +203,8 @@ function ModifyItem({ item }: DisplayItemProps) {
     const updateMutation = useMutation(
         {
             mutationFn: async (updatedItem: Item) => {
-                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategory: item.category })
+                updatedItem.photos = updatedItem.photos.filter((photo) => photo.length !== 0)
+                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategories: item.category })
                 window.location.reload()
                 return response.data
             },
@@ -210,7 +212,6 @@ function ModifyItem({ item }: DisplayItemProps) {
                 queryClient.invalidateQueries({ queryKey: ['inventory'] })
                 queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
                 queryClient.invalidateQueries({ queryKey: [item.name] })
-                window.alert('item updated')
             }
         }
     )
@@ -270,10 +271,7 @@ function ModifyItem({ item }: DisplayItemProps) {
 
             <div>
                 <label htmlFor="options" className="block text-sm text-gray-800 font-semibold">Options</label>
-                {Object.keys(item.options).map((option) => {
-                    return <DisplayItemOptions key={option} options={item.options} value={option} setModifiedItem={setModifiedItem} />
-
-                })}
+                <DisplayOptions item={modifiedItem} setItem={setModifiedItem} />
             </div>
 
             <div>
@@ -285,7 +283,10 @@ function ModifyItem({ item }: DisplayItemProps) {
                     onChange={(event) => handleItemChange('description', event.target.value)}
                 />
             </div>
-            <div className="flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center gap-4">
+                {photos?.map((photo) => {
+                    return <PhotoUpload key={photo} item={item} photo={photo} setPhotos={setPhotos} />
+                })}
                 <PhotoUpload item={item} setPhotos={setPhotos} />
             </div>
             <button
@@ -296,52 +297,6 @@ function ModifyItem({ item }: DisplayItemProps) {
             </button>
         </form>
     </div>
-}
-
-interface DisplayItemOptionsProps {
-    options: Record<string, string[]>,
-    value: string,
-    setModifiedItem: React.Dispatch<React.SetStateAction<Item>>
-}
-
-function DisplayItemOptions({ options, value, setModifiedItem }: DisplayItemOptionsProps) {
-    const [values, setValues] = useState<string[]>([])
-
-    useEffect(() => {
-        setModifiedItem((prevItem) => {
-            const item = { ...prevItem }
-            item.options[value] = values
-            return item
-        })
-    }, [values])
-
-
-    return <label>
-        {value}
-        <div className="flex flex-col space-y-2">
-            {options[value].map((item, index) => {
-                return <DisplayItemOption key={index} option={item} setValues={setValues} />
-            })}
-        </div>
-    </label>
-}
-
-interface DisplayItemOption {
-    option: string,
-    setValues: React.Dispatch<React.SetStateAction<string[]>>
-}
-
-function DisplayItemOption({ option, setValues }: DisplayItemOption) {
-    const [value, setValue] = useState(option)
-
-    const handleValueChange = (currValue: string) => {
-        setValues((tempValues) => {
-            const filteredVals = tempValues.filter((val) => val === value)
-            setValue(currValue)
-            return [...filteredVals, currValue]
-        })
-    }
-    return <input className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" value={value} onChange={(e) => handleValueChange(e.target.value)}></input>
 }
 
 interface AddItemProps {
@@ -455,7 +410,7 @@ interface DisplayOptionsProps {
 function DisplayOptions({ item, setItem }: DisplayOptionsProps) {
 
     const [currOption, setCurrOption] = useState<string>("")
-    const [selectedOption, setSelectedOption] = useState<string>("")
+    const [selectedOption, setSelectedOption] = useState<string>(Object.keys(item.options)[0] || '')
 
     const [currentValues, setCurrentValues] = useState<string[]>([]);
 
@@ -480,11 +435,11 @@ function DisplayOptions({ item, setItem }: DisplayOptionsProps) {
         <p className="w-fit border-gray-800 border-3 border-b-0 px-2 rounded-tr-2xl rounded-tl-2xl">Options</p>
         <div className="border-gray-800 border-3 p-2 rounded-bl-lg rounded-br-lg rounded-tr-lg">
             <p>Enter Option to add:</p>
-            <div className="flex flex-row flex-wrap space-x-2">
+            <div className="flex flex-row flex-wrap gap-2">
                 <input type="text" className="pl-1 border-2 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors" value={currOption} onChange={(event) => setCurrOption(event.target.value)}></input>
                 <button className="border-black border-1 px-3 rounded-full cursor-pointer" type="button" onClick={handleAddOption}>Add</button>
             </div>
-            <div className="grid grid-cols-4 my-2 min-h-8 items-center p-1 gap-2">
+            <div className="grid grid-cols-2 my-2 min-h-8 items-center p-1 gap-1">
                 {Object.keys(item?.options).map((key) => (
                     <div key={key}>
                         <Option option={key} setSelectedOption={setSelectedOption} item={item} setItem={setItem} />
@@ -580,12 +535,13 @@ interface ImageResponse {
 
 interface PhotoUploadProps {
     item: Item,
+    photo?: string,
     setItem?: (item: Item) => void,
     setPhotos?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-function PhotoUpload({ item, setItem, setPhotos }: PhotoUploadProps) {
-    const [photoUrl, setPhotoUrl] = useState<string>('')
+function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
+    const [photoUrl, setPhotoUrl] = useState<string>(photo ? photo : '')
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -639,7 +595,7 @@ function PhotoUpload({ item, setItem, setPhotos }: PhotoUploadProps) {
     return <div className="flex flex-col items-center justify-center transition-all duration-300 ease-in-out hover:-translate-y-1">
         {(photoUrl && photoUrl.length > 0) ?
             <div className="w-full h-full relative">
-                <img src={photoUrl} className="w-48 h-44"></img>
+                <img src={photoUrl} className="w-auto h-44"></img>
                 <button className="bg-red-500 p-0.5 pt-0 pb-0 rounded-lg absolute top-0 left-1 text-white" onClick={handleFileRemove}>-</button>
             </div>
             :

@@ -194,7 +194,12 @@ router.route('/item/:name').put(async(req: Request,res: Response) : Promise<any>
             
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
-        
+            
+            //delete old categories before updating new ones
+            for(const category of oldCategories) {
+                await client.sendCommand(['DEL', `${category}`])
+            }
+
             // update item in category list cache
             for(const category of items[index].category) {
                 const itemCategory = category
@@ -213,10 +218,6 @@ router.route('/item/:name').put(async(req: Request,res: Response) : Promise<any>
                 }
             }
             
-            //delete old categories
-            for(const category of oldCategories) {
-                await client.sendCommand(['DEL', `${category}`])
-            }
         }
 
         return res.status(200).json("Item was successfully updated")
