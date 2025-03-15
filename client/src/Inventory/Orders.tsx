@@ -64,7 +64,7 @@ function OrderMenu({ orders, ordersData, setOrders }: OrderMenuProps) {
 
     return <div>
         <SearchBar ordersData={ordersData} setOrders={setOrders} />
-        <div className="flex items-center justify-center">
+        <div className="w-full overflow-x-auto">
             <DisplayOrders orders={orders} />
         </div>
     </div>
@@ -163,7 +163,7 @@ interface DisplayOrdersProps {
 }
 
 function DisplayOrders({ orders }: DisplayOrdersProps) {
-    return <div className="grid grid-cols-1 md:grid-cols-3 my-4 pl-2 overflow-y-auto">
+    return <div className="w-[1650px] flex flex-row flex-wrap my-4 overflow-x-auto space-x-2 space-y-2 ml-2 overflow-y-auto">
         {orders?.map((order) => {
             return <DisplayOrder key={order._id} order={order} />
         })}
@@ -234,7 +234,7 @@ function DisplayOrder({ order }: DisplayOrderProps) {
         window.location.reload()
     }
 
-    return <div className="flex flex-col border-gray-800 border-1 rounded-xl w-fit p-2 font-headerFont">
+    return <div className="flex flex-col border-gray-800 border-1 rounded-xl w-fit p-2 font-headerFont ">
         <div className="flex flex-row border-black border-b-1 w-full space-x-4 pb-2">
             <div className="flex flex-col">
                 <label className="flex flex-row">
