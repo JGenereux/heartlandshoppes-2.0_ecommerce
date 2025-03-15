@@ -58,7 +58,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setCart([])
             return
         }
-        console.log('Users cart: ', user.cart)
+
         setCart(user.cart)
     }, [user])
     const addToCart = (item: CartItem) => {

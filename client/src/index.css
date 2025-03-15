@@ -15,8 +15,6 @@
     src: url('./assets/Fonts/Rubik-Regular.ttf')
 }
 
-
-
 @theme {
     --font-headerFont: 'headerFont';
     --font-button: 'button';
@@ -24,4 +22,24 @@
     --color-textColor: #000000;
     --color-backgroundColor: #FFFFFF;
     --color-actionColor: #f8b4c4; 
+}
+
+.blur-background::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    background-color: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+    pointer-events: none; /* allows clicks to pass through */
+}
+
+/* Make sure your navbar has a higher z-index and background */
+.z-50 {
+    position: relative;
+    z-index: 50;
+    background-color: var(--background-color); /* or whatever color you're using */
 }

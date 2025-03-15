@@ -4,6 +4,7 @@ import { Order } from '../Interfaces/orderInterface'
 import { Orders } from '../Models/Order'
 import { client } from "../../redis-client";
 import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
+import sendTrackingNumberMessage from "../Utils/Emails";
 
 const router = express.Router()
 
@@ -134,7 +135,7 @@ async function removeOrder(queryProp: string, queryVal: any): Promise<boolean | 
  * @returns {Orders[]} An array containing all orders
  */
 router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
-    console.log('pinging orders')
+
     try{
         // if orders are cached returns Order[], else null
         const cachedOrders = await retrieveOrders()
@@ -152,7 +153,8 @@ router.route('/').get(async(req: Request,res: Response) : Promise<any> => {
             billingInfo: order.billingInfo,
             status: order.status,
             trackingNumber: order.trackingNumber,
-            date: order.date
+            date: order.date,
+            invoiceUrl: order.invoiceUrl
         }));
         
         console.log('pinging orders')
@@ -250,6 +252,13 @@ router.route('/:id/status').put(async(req: Request,res: Response) : Promise<any>
     }
 })
 
+interface MessageInfo {
+    name: string,
+    email: string,
+    id: string,
+    trackingNumber: string,
+    invoice: string 
+}
 /**
  * Updates the tracking number of an order
  * @param {String} id The ID for the order
@@ -274,7 +283,11 @@ router.route('/:id/trackingNumber').put(async(req: Request,res: Response) : Prom
         if(orderCacheUpdated === null) {
             return res.status(404).json("Error updating cache for order")
         }
-   
+        
+        const orderInfo: MessageInfo = {name: orderUpdated.billingInfo.fullName, email: orderUpdated.billingInfo.email, id: orderUpdated.id, trackingNumber: orderUpdated.trackingNumber || '', invoice: orderUpdated.invoiceUrl }
+        const message = `Hello, your order from HeartlandShoppes with order Id #${orderInfo.id} with the following invoice ${orderInfo.invoice} has been shipped the tracking number is ${orderInfo.trackingNumber}`
+
+        sendTrackingNumberMessage({to: `${orderInfo.name} <${orderInfo.email}>`, orderId: orderInfo.id, text: message })
         return res.status(200).json("Tracking number for order successfully updated")
     } catch(error) {
         console.error(error)

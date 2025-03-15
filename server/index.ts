@@ -28,6 +28,7 @@ import orderRouter from './src/Routes/Orders'
 import authRouter from './src/Routes/Auth'
 import imageRouter from './src/Routes/Images'
 import paymentRouter from './src/Routes/Payment'
+
 app.use('/inventory', inventoryRouter)
 app.use('/users', userRouter)
 app.use('/orders', orderRouter)

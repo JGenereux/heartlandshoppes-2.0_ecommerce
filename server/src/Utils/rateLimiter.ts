@@ -5,7 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import { client } from '../../redis-client';
 
 const TIME_LIMIT = 60 * 1000
-const MAX_TOKENS = 10
+const MAX_TOKENS = 30
 
 interface Bucket {
     tokens: number,
@@ -14,7 +14,7 @@ interface Bucket {
 
 function createBucket() : Bucket {
     return {
-        tokens: 10,
+        tokens: 30,
         lastRefill: Date.now()
     }
 }

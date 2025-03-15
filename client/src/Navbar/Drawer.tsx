@@ -15,7 +15,7 @@ export default function Drawer() {
 
     const [isOpen, setIsOpen] = useState(false)
     const [search, setSearch] = useState(false)
-
+    const searchRef = useRef<HTMLDivElement>(null);
 
     const handleResize = () => {
         setIsDesktop(window.innerWidth >= 768)
@@ -25,6 +25,28 @@ export default function Drawer() {
         setIsOpen((open) => !open)
     }
 
+    const handleClickOutsideSearch = (event: MouseEvent) => {
+        if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+            setSearch(false);
+        }
+    }
+
+    useEffect(() => {
+        if (search) {
+            // Save the current overflow style to restore it later
+            const originalStyle = document.body.style.overflow;
+
+            // Apply blur to everything except the navbar
+            document.body.classList.add('blur-background');
+
+            return () => {
+                // Clean up when component unmounts or search becomes false
+                document.body.classList.remove('blur-background');
+                document.body.style.overflow = originalStyle;
+            };
+        }
+    }, [search]);
+
     useEffect(() => {
         // on desktop set navbar open on mount
         if (window.innerWidth >= 768) {
@@ -32,21 +54,25 @@ export default function Drawer() {
         }
 
         window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
+        window.addEventListener('mousedown', handleClickOutsideSearch)
+        return () => {
+            window.removeEventListener("resize", handleResize);
+            window.removeEventListener("mousedown", handleClickOutsideSearch);
+        };
     }, [])
 
     return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit  bg-backgroundColor shadow-gray-500 shadow-sm items-center fixed md:static z-50" : "flex flex-row w-full h-fit items-center md:static z-50"}>
         <div className="flex flex-col md:flex-row w-full h-full my-1">
             <div className={isOpen ? "flex flex-row cursor-pointer w-fit items-center pr-2 md:pr-0" : "cursor-pointer w-8 h-full border-black border-2"}>
                 {(!isDesktop) && <img src={menuIcon} onClick={handleDrawer} className="w-8 h-8"></img>}
-                {(isOpen && !isDesktop) && <SearchBar search={search} setSearch={setSearch} />}
+                {(isOpen && !isDesktop) && <SearchBar search={search} setSearch={setSearch} reference={searchRef} />}
             </div>
             {isOpen && <div className="flex flex-col md:flex-row md:items-center space-x-4 pr-2 md:pr-0 pb-2 md:pb-0 ml-2 md:ml-3 md:w-full font-button">
                 <Link to="/" className="hover:text-blue-500 transition-colors duration-300">Home</Link>
                 <Link to="/shop" className="hover:text-blue-500 transition-colors duration-300">Shop</Link>
                 <Link to="/about" className="hover:text-blue-500 transition-colors duration-300">About</Link>
                 <Link to="/contact" className="hover:text-blue-500 transition-colors duration-300">Contact</Link>
-                {isDesktop && <SearchBar search={search} setSearch={setSearch} />}
+                {isDesktop && <SearchBar search={search} setSearch={setSearch} reference={searchRef} />}
                 <div className="flex flex-col md:flex-row md:ml-auto mr-6 space-x-6">
                     <Link to="/inventory" className="hover:text-blue-500 transition-colors duration-300">Inventory</Link>
                     {user ?
@@ -88,11 +114,15 @@ function Account({ setViewAccount }: AccountProps) {
 interface SearchBarProps {
     search: boolean,
     setSearch: React.Dispatch<React.SetStateAction<boolean>>
+    reference: React.RefObject<HTMLDivElement | null>
 }
 
-function SearchBar({ search, setSearch }: SearchBarProps) {
+function SearchBar({ search, setSearch, reference }: SearchBarProps) {
     const [query, setQuery] = useState('')
     const [items, setItems] = useState<Item[]>([])
+    const [height, setHeight] = useState(search ? 'auto' : '0')
+    const [opacity, setOpacity] = useState(search ? 100 : 0)
+    const [overflow, setOverflow] = useState('hidden')
 
     const { isFetching, isError, data: inventoryData = [] } = useQuery<Item[], Error>({
         queryKey: ['inventory'],
@@ -102,16 +132,29 @@ function SearchBar({ search, setSearch }: SearchBarProps) {
         },
         staleTime: 60 * 1000,
         gcTime: 2 * 60 * 1000,
-        refetchInterval: 45 * 1000
+        refetchOnWindowFocus: false,
     })
 
     useEffect(() => {
-        setItems(inventoryData.slice(0, 2))
+        setItems(inventoryData.slice(0, 3))
     }, [inventoryData])
 
     useEffect(() => {
-        console.log('items: ', items)
-    }, [items])
+        if (search) {
+            setHeight('auto')
+            setOpacity(100)
+
+            const timer = setTimeout(() => {
+                setOverflow('visible')
+            }, 400)
+
+            return () => clearTimeout(timer)
+        } else {
+            setHeight('0')
+            setOpacity(0)
+            setOverflow('hidden')
+        }
+    }, [search])
 
     const useDebounce = (fn: any, delay: number) => {
         const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -127,13 +170,25 @@ function SearchBar({ search, setSearch }: SearchBarProps) {
     };
 
     const handleSearch = useCallback((searchTerm: string) => {
-        setItems(
-            searchTerm.length === 0
-                ? inventoryData.slice(0, 5)
-                : inventoryData.filter((item) =>
-                    item.name.toLowerCase().trim().includes(searchTerm.toLowerCase().trim())
-                )
-        );
+        setItems(() => {
+            if (searchTerm.length === 0) return inventoryData.slice(0, 4);
+
+            const lowerQuery = searchTerm.toLowerCase();
+
+            // Prioritize items that start with the query
+            const startsWithResults = inventoryData.filter((item) =>
+                item.name.toLowerCase().startsWith(lowerQuery)
+            );
+
+            // If no results, fall back to includes()
+            if (startsWithResults.length > 0) {
+                return startsWithResults.slice(0, 4);
+            }
+
+            return inventoryData
+                .filter((item) => item.name.toLowerCase().includes(lowerQuery))
+                .slice(0, 4);
+        });
     }, [inventoryData])
 
     const debounceSearch = useDebounce(handleSearch, 600)
@@ -148,7 +203,7 @@ function SearchBar({ search, setSearch }: SearchBarProps) {
     if (isError) return 'Error...'
 
     return <div className="flex w-full justify-center">
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center" ref={reference}>
             <div className="flex flex-row items-center relative">
                 <input
                     type="text"
@@ -165,32 +220,45 @@ function SearchBar({ search, setSearch }: SearchBarProps) {
                 </button>
             </div>
 
-            {search && <div className="w-[120%] relative z-10">
-                <div className="flex flex-col w-full shadow-gray-800 shadow-sm absolute h-fit right-0 rounded-tl-xl rounded-tr-xl">
-                    {items.map((item) => {
-                        return <DisplayItem key={item.name} item={item} />
-                    })}
-                </div>
-            </div>}
+            <div
+                className={`w-[140%] relative z-10 transform-gpu overflow-${overflow} transition-all duration-400 ease-in-out`}
+                style={{
+                    height: height,
+                    opacity: opacity / 100
+                }}
+            >
+                {search &&
+                    <div className="flex flex-col w-full border-black border-1 rounded-lg absolute h-fit right-0 my-2">
+                        {items.map((item, index) => {
+                            return <DisplayItem key={item.name} item={item} isFirst={index === 0} isLast={index === items.length - 1} />
+                        })}
+                    </div>
+                }
+            </div>
         </div>
     </div>
 }
 
 interface DisplayItemProps {
-    item: Item
+    item: Item,
+    isFirst: boolean,
+    isLast: boolean
 }
 
-function DisplayItem({ item }: DisplayItemProps) {
+function DisplayItem({ item, isFirst, isLast }: DisplayItemProps) {
 
     const handleNav = () => {
         window.location.href = `/shop/item/${item.name}`
     }
 
-    return <div className="flex flex-row h-18 bg-white p-1.5 cursor-pointer" onClick={handleNav}>
-        <img src={item.photos[0]} className="w-[25%] h-full"></img>
-        <div className="flex flex-col h-full">
+    return <div className={`relative flex flex-row h-18 bg-white p-1.5 cursor-pointer
+        ${isFirst ? 'rounded-t-lg' : ''}
+        ${isLast ? 'rounded-b-lg' : ''}
+    `} onClick={handleNav}>
+        <img src={item.photos[0]} className="w-[20%] h-full"></img>
+        <div className="flex flex-col h-full ml-2">
             <p>{item.name}</p>
-            <p>{item.price}</p>
+            <p>${item.price}</p>
         </div>
     </div>
 }

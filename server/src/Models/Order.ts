@@ -26,7 +26,8 @@ const orderSchema = new mongoose.Schema({
     billingInfo: { type: billingSchema, required: true }, 
     status: { type: String, required: true },
     trackingNumber: {type: String, required: false},
-    date: { type: Date, default: Date.now, required: true }
+    date: { type: Date, default: Date.now, required: true },
+    invoiceUrl: {type: String, required: true}
 });
 const Orders = mongoose.model('Orders', orderSchema)
 

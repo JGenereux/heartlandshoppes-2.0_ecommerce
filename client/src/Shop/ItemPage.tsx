@@ -50,8 +50,8 @@ function DisplayItem({ item }: DisplayItemProps) {
     return (
         <div className="w-[75%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
             <div className="flex flex-col md:flex-row w-full h-[90%] bg-white py-2">
-                <div className="flex flex-col w-[90%] md:w-[45%] h-full items-center mx-auto">
-                    <img src={photoUrl} className="w-auto h-[65vh] border-black border-2"></img>
+                <div className="flex flex-col w-[90%] md:w-[35%] h-full items-center mx-auto">
+                    <img src={photoUrl} className="w-full h-[65vh] border-black border-2"></img>
                     <ImageSlider item={item} setPhotoUrl={setPhotoUrl} />
                 </div>
                 <div className="md:w-1/2 h-full flex flex-col pl-2 md:pl-0">
@@ -69,7 +69,7 @@ interface ImageSliderProps {
 }
 
 function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
-    const photosSliced = item.photos.slice(0, 2)
+    const photosSliced = item.photos.slice(0, 3)
     return < div className="w-full flex flex-col border-black border-2 items-center" >
         <div className="flex flex-row w-full p-2 justify-center space-x-3">
             <div className="w-3/6 flex flex-row space-x-2 justify-center">
@@ -79,9 +79,9 @@ function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
             </div>
         </div>
         <div className="flex flex-row space-x-2 pb-1">
-            <button className="w-4 h-4 rounded-lg border-black border-2"></button>
-            <button className="w-4 h-4 rounded-lg border-black border-2"></button>
-            <button className="w-4 h-4 rounded-lg border-black border-2"></button>
+            <button className="w-4 h-4 rounded-lg border-black border-2 cursor-pointer" onClick={() => setPhotoUrl(photosSliced[0])}></button>
+            <button className="w-4 h-4 rounded-lg border-black border-2 cursor-pointer" onClick={() => setPhotoUrl(photosSliced[1])}></button>
+            <button className="w-4 h-4 rounded-lg border-black border-2 cursor-pointer" onClick={() => setPhotoUrl(photosSliced[2])}></button>
         </div>
     </div >
 }

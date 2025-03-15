@@ -20,12 +20,7 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
     
     try{
         const session = await stripe.checkout.sessions.create({
-            line_items: cartItems.map((currItem) => {
-                // Process options for metadata
-                const optionsMetadata = Object.fromEntries(
-                    Object.entries(currItem.item.options).map(([key, values]) => [key, values.join(', ')])
-                );
-                
+            line_items: cartItems.map((currItem) => {                
                 return {
                     price_data: {
                         currency: 'cad',
@@ -35,7 +30,6 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
                                 .join(' | ')}`,
                             description: currItem.item.description,
                             images: currItem.item.photos?.length ? [currItem.item.photos[0]] : [],
-                            metadata: optionsMetadata  // Still keep metadata for your backend use
                         },
                         unit_amount: currItem.item.price * 100,
                     },
@@ -65,7 +59,7 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
 })
 
 router.post('/webhook',express.raw({type: 'application/json'}), async (request, response) : Promise<any> => {
-    console.log('running')
+   
     const sig = request.headers['stripe-signature'];
     if(!sig) return response.status(404).json('Sig not provided')
 
@@ -73,7 +67,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
 
     try {
       event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-        console.log('event type: ', event.type)
+        
     } catch (err) {
     console.error('error: ', err)
       return response.status(400).send(`Webhook Error: ${err}`);
@@ -82,7 +76,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
 
     if(event.type === 'invoice.finalized') {
         const invoice = event.data.object
-        console.log(invoice)
+     
         try {
             const detailedInvoice = await stripe.invoices.retrieve(invoice.id, {
                 expand: ['lines.data']
@@ -101,9 +95,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
                     amount: price?.unit_amount || 0,
                     quantity: quantity || 0,
                 }
-                console.log(Object.fromEntries(
-                    Object.entries(metadata).map(([key, value]) => [key, value.split(', ')])
-                ))
+              
                 invoiceItems.push(newItemInvoice)
             })
             
@@ -115,7 +107,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
             if(!detailedInvoice.customer_shipping || !detailedInvoice.customer_email || !detailedInvoice.customer_name) {
                 return response.status(403).json('Error retrieving full details for order')
             }
-
+           
             const newOrder: Order = {items: invoiceItems, totalPrice: invoice.amount_paid || 0, billingInfo: {
                 fullName: detailedInvoice.customer_name || '',
                 address: detailedInvoice.customer_shipping?.address?.line1 || detailedInvoice.customer_shipping?.address?.line2 || '',
@@ -124,13 +116,14 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
                 city: detailedInvoice.customer_shipping?.address?.city || "",
                 postalCode: detailedInvoice.customer_shipping?.address?.postal_code || "",
                 email: detailedInvoice.customer_email || '',
-                phone: detailedInvoice.customer_shipping?.phone || null
-            }, status: "added", trackingNumber: null, date: new Date(Date.now())}
+                phone: detailedInvoice.customer_shipping?.phone || null,
+            }, status: "added", trackingNumber: null, date: new Date(Date.now()), invoiceUrl: detailedInvoice.hosted_invoice_url || ''}
             
             const res = await axios.post('http://localhost:5000/orders', {order: newOrder})
             if(!res) {
                 return response.status(417).json("Error adding order to orders database")
             }
+
             return response.status(200).json(res.data)
         } catch (error) {
             console.error('Error adding invoice details:', error);

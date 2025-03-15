@@ -91,8 +91,8 @@ function DisplayItem({ item }: ItemProps) {
     const handleItemRedirect = () => {
         navigate(`/shop/item/${item.name}`)
     }
-    return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
-        <img src={item?.photos[0]} className="w-auto h-[160px] ">
+    return <div className="flex flex-col h-58 pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
+        <img src={item?.photos[0]} className="w-[55%] h-full aspect-auto">
         </img>
         <div className="flex flex-col font-regular items-center">
             <p>{item.name}</p>
