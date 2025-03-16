@@ -30,6 +30,7 @@ export default function Orders() {
     useEffect(() => {
         if (!ordersData || ordersData.length === 0) return
         setOrders(ordersData)
+        console.log('updated orders')
     }, [ordersData])
 
     useEffect(() => {
@@ -181,129 +182,134 @@ interface MutationProps {
 }
 
 function DisplayOrder({ order }: DisplayOrderProps) {
-    const { accessToken } = useAuth()
-    const [editOrder, setEditOrder] = useState(false)
-    const [status, setStatus] = useState(order.status || ' ')
-    const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber || ' ')
+    const { accessToken } = useAuth();
+    const [editOrder, setEditOrder] = useState(false);
+    const [status, setStatus] = useState(order.status || " ");
+    const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber || " ");
 
-    const queryClient = useQueryClient()
+    const queryClient = useQueryClient();
 
-    const statusMutation = useMutation(
-        {
-            mutationFn: async ({ orderId, status }: MutationProps) => {
-                await axios.put(`http://localhost:5000/orders/${orderId}/status`, { status: status }, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`
-                    }
-                })
-            },
-            onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['orders'] })
-            }
+    const orderMutation = useMutation<void, Error, MutationProps>({
+        mutationFn: async ({ orderId, status, trackingNumber }: MutationProps) => {
+            await axios.put(`http://localhost:5000/orders/${orderId}/`, { status: status, trackingNumber: trackingNumber }, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["orders"] });
+            await queryClient.refetchQueries({ queryKey: ["orders"] });
         }
-    )
+    });
 
-    const trackingNumberMutation = useMutation(
-        {
-            mutationFn: async ({ orderId, trackingNumber }: MutationProps) => {
-                await axios.put(`http://localhost:5000/orders/${orderId}/trackingNumber`, { trackingNumber: trackingNumber }, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`
-                    }
-                })
-            },
-            onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['orders'] })
-            }
-        }
-    )
+
 
     async function handleOrderUpdate() {
-        if (!order._id) return
+        if (!order._id) return;
 
-        const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1)
+        const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1);
+        const statusChanged = formattedStatus !== order.status.charAt(0).toUpperCase() + order.status.slice(1);
+        const trackingNumberChanged = trackingNumber !== order.trackingNumber;
 
-        if (formattedStatus && formattedStatus !== order.status.charAt(0).toUpperCase() + status.slice(1)) {
-            statusMutation.mutate({ orderId: order._id, status: status })
+        if (statusChanged || trackingNumberChanged) {
+            orderMutation.mutate({ orderId: order._id, status: status, trackingNumber: trackingNumber })
         }
-
-        if (trackingNumber && trackingNumber !== order.trackingNumber) {
-            trackingNumberMutation.mutate({ orderId: order._id, trackingNumber: trackingNumber })
-        }
-
-        window.location.reload()
     }
 
-    return <div className="flex flex-col border-gray-800 border-1 rounded-xl w-fit p-2 font-headerFont ">
-        <div className="flex flex-row border-black border-b-1 w-full space-x-4 pb-2">
-            <div className="flex flex-col">
-                <label className="flex flex-row">
-                    Order ID:
-                    <p className="ml-1 font-regular">{order._id}</p>
-                </label>
-                <label className="flex flex-row">
-                    Tracking Number:
-                    {editOrder ? <input className="w-fit ml-1 border-gray-700 border-2 rounded-lg font-regular hover:ring-blue-500 hover:ring-1 hover:border-blue-500" defaultValue={order.trackingNumber || ''} onChange={(e) => setTrackingNumber(e.target.value)}></input>
-                        :
-                        <p className="ml-1 font-regular">{order.trackingNumber || 'Not Available'}</p>}
+    return (
+        <div className="flex flex-col border-gray-800 border-1 rounded-xl w-fit p-2 font-headerFont">
+            <div className="flex flex-row border-black border-b-1 w-full space-x-4 pb-2">
+                <div className="flex flex-col">
+                    <label className="flex flex-row">
+                        Order ID:
+                        <p className="ml-1 font-regular">{order._id}</p>
+                    </label>
+                    <label className="flex flex-row">
+                        Tracking Number:
+                        {editOrder ? (
+                            <input
+                                className="w-fit ml-1 border-gray-700 border-2 rounded-lg font-regular hover:ring-blue-500 hover:ring-1 hover:border-blue-500"
+                                defaultValue={order.trackingNumber || ""}
+                                onChange={(e) => setTrackingNumber(e.target.value)}
+                            />
+                        ) : (
+                            <p className="ml-1 font-regular">{order.trackingNumber || "Not Available"}</p>
+                        )}
+                    </label>
+                </div>
+                <label className="flex flex-row items-center self-start ml-auto">
+                    <Status status={status} setStatus={setStatus} editOrder={editOrder} />
                 </label>
             </div>
-            <label className="flex flex-row items-center self-start ml-auto">
-                <Status status={status} setStatus={setStatus} editOrder={editOrder} />
-            </label>
+            <div className="flex flex-row space-x-12 my-2">
+                <div className="flex flex-col">
+                    <label className="flex flex-row">
+                        Order placed on:
+                        <p className="ml-1 font-regular">{new Date(order.date).toLocaleDateString()}</p>
+                    </label>
+                    <label className="flex flex-row">
+                        Total Price:
+                        <p className="ml-1 font-regular">${(order.totalPrice / 100).toFixed(2)}</p>
+                    </label>
+                    <label className="flex flex-col">
+                        Billing Info:
+                        <div className="flex flex-col ml-2">
+                            {(Object.keys(order.billingInfo) as Array<keyof Bill>).map((billingInfoKey) => {
+                                return (
+                                    order.billingInfo[billingInfoKey] && (
+                                        <label key={billingInfoKey} className="flex flex-row">
+                                            {billingInfoKey
+                                                .replace(/([A-Z])/g, " $1")
+                                                .replace(/_/g, " ")
+                                                .trim()
+                                                .split(" ")
+                                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                                .join(" ")}
+                                            :
+                                            <p className="ml-2 font-regular">{order.billingInfo[billingInfoKey]}</p>
+                                        </label>
+                                    )
+                                );
+                            })}
+                        </div>
+                    </label>
+                    <label className="flex flex-col">
+                        Items:
+                        <div className="flex flex-col ml-2">
+                            {order.items.map((item: ItemInvoice, index) => (
+                                <label key={`${item.description}-${index}`}>
+                                    {item.description
+                                        .replace(/([A-Z])/g, " $1")
+                                        .replace(/_/g, " ")
+                                        .trim()
+                                        .split(" ")
+                                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                        .join(" ")}
+                                    <p className="ml-2 font-regular">Quantity: {item.quantity}</p>
+                                    <p className="ml-2 font-regular">Price: ${(item.amount / 100).toFixed(2)}</p>
+                                </label>
+                            ))}
+                        </div>
+                    </label>
+                </div>
+                <div className="flex flex-col self-start space-y-2 w-full">
+                    <button
+                        className="self-end border-black border-1 shadow-gray-500 shadow-sm w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer"
+                        onClick={() => setEditOrder((prev) => !prev)}
+                    >
+                        Edit
+                    </button>
+                    {editOrder && (
+                        <button
+                            className="self-end border-black border-1 shadow-gray-500 shadow-sm w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer"
+                            onClick={handleOrderUpdate}
+                        >
+                            Confirm
+                        </button>
+                    )}
+                </div>
+            </div>
         </div>
-        <div className="flex flex-row space-x-12 my-2">
-            <div className="flex flex-col">
-                <label className="flex flex-row ">
-                    Order placed on:
-                    <p className="ml-1 font-regular">{new Date(order.date).toLocaleDateString()}</p>
-                </label>
-                <label className="flex flex-row ">
-                    Total Price:
-                    <p className="ml-1 font-regular">${(order.totalPrice / 100).toFixed(2)}</p>
-                </label>
-                <label className="flex flex-col">
-                    Billing Info:
-                    <div className="flex flex-col ml-2">
-                        {(Object.keys(order.billingInfo) as Array<keyof Bill>).map((billingInfoKey: keyof Bill) => {
-                            return order.billingInfo[billingInfoKey] && <label key={billingInfoKey} className="flex flex-row">
-                                {billingInfoKey.replace(/([A-Z])/g, ' $1')
-                                    .replace(/_/g, ' ')
-                                    .trim()
-                                    .split(' ')
-                                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                    .join(' ')}:
-                                <p className="ml-2 font-regular">{order.billingInfo[billingInfoKey]}</p>
-                            </label>
-                        })}
-                    </div>
-                </label>
-                <label className="flex flex-col">
-                    Items:
-                    <div className="flex flex-col ml-2">
-                        {order.items.map((item: ItemInvoice, index) => {
-                            return <label key={`${item.description}-${index}`}>
-                                {item.description.replace(/([A-Z])/g, ' $1')
-                                    .replace(/_/g, ' ')
-                                    .trim()
-                                    .split(' ')
-                                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                    .join(' ')}
-
-                                <p className="ml-2 font-regular">Quantity: {item.quantity}</p>
-
-                                <p className="ml-2 font-regular">Price: ${(item.amount / 100).toFixed(2)}</p>
-                            </label>
-                        })}
-                    </div>
-                </label>
-            </div>
-            <div className="flex flex-col self-start space-y-2 w-full">
-                <button className="self-end border-black border-1 shadow-gray-500 shadow-sm w-fit  px-3 py-1 rounded-full font-bold font-button cursor-pointer" onClick={() => setEditOrder((order) => !order)}>Edit</button>
-                {editOrder && <button className="self-end border-black border-1 shadow-gray-500 shadow-sm  w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer" onClick={handleOrderUpdate}>Confirm</button>}
-            </div>
-        </div>
-    </div>
+    );
 }
 
 interface StatusProps {

@@ -46,7 +46,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   useEffect(() => {
-    console.log('running like a hyena')
     refreshToken()
   }, [])
 

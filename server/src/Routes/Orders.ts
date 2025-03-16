@@ -4,7 +4,7 @@ import { Order } from '../Interfaces/orderInterface'
 import { Orders } from '../Models/Order'
 import { client } from "../../redis-client";
 import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
-import sendTrackingNumberMessage from "../Utils/Emails";
+import {sendTrackingNumberMessage} from "../Utils/Emails";
 
 const router = express.Router()
 
@@ -57,12 +57,16 @@ async function retrieveOrder(property: string, value: any): Promise<any | null> 
     }
 }
 
+interface KeyPair {
+    updatedProp: keyof Order, 
+    updatedValue: Order[keyof Order]
+}
+
 //queryProp is a string currently cause its only used for 'id
 async function updateOrder(
     queryProp: keyof Order, 
     queryVal: any, 
-    updatedProp: keyof Order, 
-    updatedVal: Order[keyof Order] // Ensure correct type for updated value
+    updatedProps: KeyPair[] // Ensure correct type for updated value
 ): Promise<Order[] | null> {
 
     try {
@@ -76,14 +80,13 @@ async function updateOrder(
 
             if (orderIndex === -1) return null;
         
-            // Use type assertion to safely access the property
             const order = orders[orderIndex];
 
-            // Type assertion to ensure that `updatedProp` is valid for this order
-            (order as any)[updatedProp] = updatedVal;
-
-            await client.sendCommand(['DEL', 'orders']);
-            await client.sendCommand(['RPUSH', 'orders', ...orders.map(order => JSON.stringify(order))]);
+            for(const value of updatedProps) {
+                (order as any)[value.updatedProp] = value.updatedValue
+            }
+    
+            await client.sendCommand(["LSET", "orders", orderIndex.toString(), JSON.stringify(order)]);
             await client.sendCommand(["EXPIRE", "orders", "300"])
 
             console.log('returning orders')
@@ -222,36 +225,6 @@ router.route('/').post(authenticateToken, checkAdminRole, async(req: Request,res
     }
 })
 
-/**
- * Updates the status of an order
- * @param {String} id The ID for the order
- * @param {String} status added or processing or fulfilled 
- * @returns {Number} The status code indicating if the req was successful or not
- */
-router.route('/:id/status').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
-    const {id} = req.params
-    const {status} = req.body
-
-    try{
-        const orderUpdated = await Orders.findOneAndUpdate({_id: id}, {status: status}, {new: true})
-        
-        if(!orderUpdated){
-            return res.status(404).json("Error updating status for order")
-        }
-
-        //update cache
-        const orderCacheUpdated = await updateOrder('_id', id, 'status', status)
-        if(orderCacheUpdated === null) {
-            return res.status(404).json("Error updating cache for order")
-        }
-
-        return res.status(200).json("Order status successfully updated")
-    } catch(error) {
-        console.error(error)
-        res.status(500).json(`Internal Server Error: ${error}`)
-    }
-})
-
 interface MessageInfo {
     name: string,
     email: string,
@@ -259,36 +232,62 @@ interface MessageInfo {
     trackingNumber: string,
     invoice: string 
 }
+
 /**
- * Updates the tracking number of an order
+ * Updates the status of an order
  * @param {String} id The ID for the order
- * @param {trackingNumber} trackingNum The tracking number for an order
  * @returns {Number} The status code indicating if the req was successful or not
  */
-router.route('/:id/trackingNumber').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
-
+router.route('/:id').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
+    console.log('u called?')
     const {id} = req.params
-    const {trackingNumber} = req.body
+    const {status, trackingNumber} = req.body
+    console.log(`id: ${id}`)
 
     try{
-        const orderUpdated = await Orders.findOneAndUpdate({_id: id}, {trackingNumber: trackingNumber}, {new: true})
- 
+
+        const order = await Orders.findOne({_id: id})
+        const oldTrackingNumber = order?.trackingNumber
+
+
+      
+        const orderUpdated = await Orders.findOneAndUpdate(
+            {
+                _id: id,
+                $or: [
+                    { $expr: { $ne: ["$status", status] } }, 
+                    { $expr: { $ne: ["$trackingNumber", trackingNumber] } }
+                ]
+            },
+            {
+                $set: {
+                    status: status, 
+                    trackingNumber: trackingNumber
+                }
+            },
+            { new: true }
+        );
+        
+            
         if(!orderUpdated){
-            return res.status(404).json("Error updating tracking number for order")
+            return res.status(404).json("Error updating status for order")
         }
-  
+       
+        const keys: KeyPair[] = [{updatedProp: 'status', updatedValue: status}, {updatedProp: 'trackingNumber', updatedValue: trackingNumber}]
         //update cache
-        const orderCacheUpdated = await updateOrder('_id', id, 'trackingNumber', trackingNumber)
-    
+        const orderCacheUpdated = await updateOrder('_id', id, keys)
         if(orderCacheUpdated === null) {
             return res.status(404).json("Error updating cache for order")
         }
-        
-        const orderInfo: MessageInfo = {name: orderUpdated.billingInfo.fullName, email: orderUpdated.billingInfo.email, id: orderUpdated.id, trackingNumber: orderUpdated.trackingNumber || '', invoice: orderUpdated.invoiceUrl }
-        const message = `Hello, your order from HeartlandShoppes with order Id #${orderInfo.id} with the following invoice ${orderInfo.invoice} has been shipped the tracking number is ${orderInfo.trackingNumber}`
+  
+        if((!oldTrackingNumber && trackingNumber) || (typeof oldTrackingNumber === "string" && typeof trackingNumber === "string" && (oldTrackingNumber !== trackingNumber))) {
+            const orderInfo: MessageInfo = {name: orderUpdated.billingInfo.fullName, email: orderUpdated.billingInfo.email, id: orderUpdated.id, trackingNumber: orderUpdated.trackingNumber || '', invoice: orderUpdated.invoiceUrl }
+            const message = `Hello, your order from HeartlandShoppes with order Id #${orderInfo.id} with the following invoice ${orderInfo.invoice} has been shipped the tracking number is ${orderInfo.trackingNumber}`
+    
+            sendTrackingNumberMessage({fullName: orderInfo.name, email: orderInfo.email, orderId: orderInfo.id, text: message })
+        }
 
-        sendTrackingNumberMessage({to: `${orderInfo.name} <${orderInfo.email}>`, orderId: orderInfo.id, text: message })
-        return res.status(200).json("Tracking number for order successfully updated")
+        return res.status(200).json("Order status successfully updated")
     } catch(error) {
         console.error(error)
         res.status(500).json(`Internal Server Error: ${error}`)

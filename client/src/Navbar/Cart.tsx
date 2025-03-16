@@ -53,9 +53,11 @@ function Items() {
     const { cart } = useCart()
 
     return <div className="flex flex-col w-full overflow-y-scroll space-y-2">
-        {cart?.map((cartItem, index) => {
+        {(cart && cart.length > 0) ? cart?.map((cartItem, index) => {
             return <Item key={index} item={cartItem} />
-        })}
+        }) : <div className="mx-auto font-regular font-bold">
+            <p>No items in cart</p>
+        </div>}
     </div>
 }
 

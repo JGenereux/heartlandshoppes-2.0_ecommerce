@@ -38,6 +38,7 @@ function LoginForm() {
 
         return () => clearTimeout(timer)
     }, [error])
+
     const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
@@ -67,7 +68,18 @@ function LoginForm() {
         }
     }
 
-
+    const handleForgotPassword = async () => {
+        try {
+            await axios.post("http://localhost:5000/auth/reset", { userEmail: email }, { withCredentials: true })
+            window.alert('Check email for reset link')
+        } catch (error) {
+            if (isAxiosError(error) && error.response) {
+                setError(JSON.stringify(error.response.data))
+            } else {
+                window.alert(error)
+            }
+        }
+    }
 
     return <div className="flex flex-col w-fit md:w-[35%] h-fit rounded-sm justify-center items-center py-6 shadow-gray-600 shadow-md">
         {error && <Error message={error} />}
@@ -83,6 +95,7 @@ function LoginForm() {
                 <input type="password" id="username" className="border-black border-2 w-full pl-1 h-8 rounded-sm" value={password} onChange={(event) => setPassword(event.target.value)}></input>
                 <Link to="/signup" className="underline underline-offset-[1.5px]">Don't have an account yet? Sign up</Link>
             </div>
+            <button onClick={handleForgotPassword} type="button">Forgot Password</button>
             <button className="my-4 bg-[#f8b4c4] font-button font-semibold w-fit p-1.5 rounded-lg text-lg text-white" type="submit">LOGIN</button>
         </form >
     </div >

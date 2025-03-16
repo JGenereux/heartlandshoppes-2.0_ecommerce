@@ -11,6 +11,7 @@ import Settings from "./Settings"
 import Account from "./Login/Account"
 import React from "react"
 import { useAuth } from "./Contexts/authContext"
+import Reset from "./Login/Reset"
 
 interface ProtectedComponentProps {
   children: React.ReactNode,
@@ -39,6 +40,7 @@ function App() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/inventory" element={<ProtectedComponent children={<Inventory />} allowedRoles={['admin']} />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/reset/:token" element={<Reset />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/account" element={<Account />} />

@@ -5,6 +5,8 @@ import { generateAccessToken } from '../Utils/authHelpers';
 import { Users } from '../Models/User';
 import { Token } from '../Models/RefreshToken';
 import * as bcrypt from 'bcryptjs';
+import { client } from '../../redis-client';
+import { sendForgotPasswordMessage } from '../Utils/Emails';
 
 const router = express.Router()
 
@@ -81,10 +83,7 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
 
         // create hashedPassword
         const hashedPassword = await bcrypt.hash(password, 10)
-        if (!hashedPassword) {
-            return res.status(500).json("Server error while registering account");
-        }
-
+      
         const newUser = new Users({email: userEmail, password: hashedPassword})
         await newUser.save()
 
@@ -109,6 +108,103 @@ router.route('/signup').post(async(req: Request, res: Response) : Promise<any> =
     }
 })
 
+
+router.post("/reset", async(req: Request, res: Response): Promise<any> => {
+    const {userEmail} = req.body
+
+    try{
+        const userExists = await Users.findOne({email: userEmail})
+
+        if(!userExists) {
+            return res.status(404).json("User with this email doesn't exist")
+        }
+
+        if(!process.env.ACCESS_TOKEN_SECRET) {
+            return res.status(500).json('Error with creating unique identifier for user')
+        }
+        
+        const token = jwt.sign(
+            { email: userEmail }, 
+            process.env.ACCESS_TOKEN_SECRET, 
+            { expiresIn: "7m" } 
+        );
+
+        sendForgotPasswordMessage({
+            email: userEmail,
+            text: `Click the link to reset your password. http://localhost:5000/auth/reset?token=${token}`
+        })
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/"
+        });
+
+        return res.status(200).json("Emailed link to reset password")
+    } catch(error) {
+        console.error(error)
+        return res.status(500).json(`Internal server error ${error}`)
+    }
+})
+
+router.get("/reset",async(req: Request, res: Response): Promise<any> => {
+    const {token} = req.query
+
+    try{
+        if(!process.env.ACCESS_TOKEN_SECRET) {
+            return res.status(500).json('Error with creating unique identifier for user')
+        }
+
+        if (!token || typeof token !== "string") {
+            return res.status(400).json({ error: "Invalid or missing token" });
+        }
+
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+            if(err) return res.status(403).json("Token has expired")
+
+            return res.redirect(`${process.env.FRONTEND_URL}/reset/${token}`)
+        })
+    } catch(error) {
+        res.status(500).json(`Internal server error ${error}`)
+    }
+})
+
+router.post('/reset/credentials',async(req: Request, res: Response): Promise<any> => {
+    const {token, password} = req.body
+    
+    try{
+        if(!process.env.ACCESS_TOKEN_SECRET) {
+            return res.status(500).json('Error with creating unique identifier for user')
+        }
+
+        if (!token || typeof token !== "string") {
+            return res.status(400).json({ error: "Invalid or missing token" });
+        }
+
+        
+        const user = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) as any
+        const email = user.email
+        
+        if(!email || email.length === 0) {
+            return res.status(404).json("Couldn't validate user's email")
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10)
+     
+
+        const updatedUser = await Users.findOneAndUpdate({email: email}, {password: hashedPassword}, {new: true})
+
+        if(!updatedUser) {
+            return res.status(500).json("Server error while resetting account credentials in database")
+        }
+
+        return res.status(200).json("Successfully updated password")
+    } catch(error) {
+        return res.status(500).json(`Internal server error ${error}`)
+    }
+} )
+
 router.post("/logout", (req: Request, res: Response) => {
     res.clearCookie("refreshToken", {
         httpOnly: true,
@@ -119,6 +215,29 @@ router.post("/logout", (req: Request, res: Response) => {
 
     res.status(200).json({ message: "Logged out successfully" });
 });
+
+router.get('/reset/verify', async(req: Request, res: Response) : Promise<any> => {
+    const {token} = req.query
+
+    try{
+        if(!process.env.ACCESS_TOKEN_SECRET) {
+            return res.status(500).json('Error with creating unique identifier for user')
+        }
+
+        if (!token || typeof token !== "string") {
+            return res.status(400).json({ error: "Invalid or missing token" });
+        }
+
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err) => {
+            if (err) return res.status(404).json('Couldn`t validate user')
+            
+            return res.status(200).json('User validated')
+        })
+        
+    } catch(error) {
+        return res.status(500).json(`Internal server error ${error}`)
+    }
+})
 
 router.route('/token').post(async(req: Request, res: Response) : Promise<any> => {
    

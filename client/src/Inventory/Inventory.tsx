@@ -63,9 +63,10 @@ function DisplayInventory() {
         gcTime: 2 * 60 * 1000,
         refetchInterval: 45 * 1000
     })
-
+    const [items, setItems] = useState<Item[]>([])
     const [addItem, setAddItem] = useState(false)
     const [currentCategories, setCurrentCategories] = useState<Set<string>>(new Set())
+    const [filterCategory, setFilterCategory] = useState<string>('All')
 
     useEffect(() => {
         const newCategories = new Set<string>()
@@ -85,6 +86,14 @@ function DisplayInventory() {
         setCurrentCategories(newCategories)
     }, [inventoryData])
 
+    useEffect(() => {
+        if (filterCategory === "All") {
+            setItems(inventoryData)
+            return
+        }
+        setItems(inventoryData.filter((item) => item.category.includes(filterCategory)))
+    }, [filterCategory, inventoryData])
+
     if (error) { return <Error message={error.message} /> }
 
     return <div className="flex flex-col w-[90%] h-fit mx-auto md:my-2">
@@ -95,7 +104,10 @@ function DisplayInventory() {
             </div>
             <div className="flex flex-row items-center ml-auto space-x-1">
                 <p className="text-xl">Category: </p>
-                <select className="border-black border-2 p-0.5 rounded-lg font-button">
+                <select className="border-black border-2 p-0.5 rounded-lg font-button" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+                    {[...currentCategories].map((category) => {
+                        return <option key={category} value={category}>{category}</option>
+                    })}
                     <option>All</option>
                 </select>
             </div>
@@ -106,7 +118,7 @@ function DisplayInventory() {
             <Loading />
         </div> :
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto max-h-120 border-black border-2 my-2 shadow-gray-400 shadow-lg">
-                {inventoryData?.map((item: Item, index) => {
+                {items?.map((item: Item, index) => {
                     return <DisplayItem key={index} item={item} />
                 })}
             </div>
@@ -134,11 +146,14 @@ function DisplayItem({ item }: DisplayItemProps) {
                 }
             })
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['inventory'] })
-            queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
-            queryClient.invalidateQueries({ queryKey: [item.name] })
-            window.location.reload()
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['inventory'] })
+            await queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
+            await queryClient.invalidateQueries({ queryKey: [item.name] })
+
+            await queryClient.refetchQueries({ queryKey: ['inventory'] })
+            await queryClient.refetchQueries({ queryKey: ['inventory', item.category] })
+            await queryClient.refetchQueries({ queryKey: [item.name] })
         }
     })
 
@@ -218,13 +233,16 @@ function ModifyItem({ item }: DisplayItemProps) {
                         Authorization: `Bearer ${accessToken}`
                     }
                 })
-                window.location.reload()
                 return response.data
             },
-            onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['inventory'] })
-                queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
-                queryClient.invalidateQueries({ queryKey: [item.name] })
+            onSuccess: async () => {
+                await queryClient.invalidateQueries({ queryKey: ['inventory'] })
+                await queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
+                await queryClient.invalidateQueries({ queryKey: [item.name] })
+
+                await queryClient.refetchQueries({ queryKey: ['inventory'] })
+                await queryClient.refetchQueries({ queryKey: ['inventory', item.category] })
+                await queryClient.refetchQueries({ queryKey: [item.name] })
             }
         }
     )
@@ -312,10 +330,16 @@ function ModifyItem({ item }: DisplayItemProps) {
     </div>
 }
 
+interface ItemMutationProps {
+    item: Item
+}
+
 interface AddItemProps {
     categories: Set<string>
 }
+
 function AddItem({ categories }: AddItemProps) {
+    const queryClient = useQueryClient()
     const { accessToken } = useAuth()
     const [item, setItem] = useState<Item>({
         name: "",
@@ -328,19 +352,39 @@ function AddItem({ categories }: AddItemProps) {
         reviews: []
     })
 
-    const handleAddItem = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-
-        try {
+    const itemMutate = useMutation({
+        mutationFn: async ({ item }: ItemMutationProps) => {
             await axios.post('http://localhost:5000/inventory/item', { item: item }, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
             })
-            window.location.reload()
-        } catch (error) {
-            console.log(error)
+            setItem({
+                name: "",
+                price: 0,
+                category: [],
+                options: {},
+                quantity: 0,
+                description: "",
+                photos: [],
+                reviews: []
+            })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['inventory'] })
+            await queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
+            await queryClient.invalidateQueries({ queryKey: [item.name] })
+
+            await queryClient.refetchQueries({ queryKey: ['inventory'] })
+            await queryClient.refetchQueries({ queryKey: ['inventory', item.category] })
+            await queryClient.refetchQueries({ queryKey: [item.name] })
         }
+    })
+
+    const handleAddItem = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
+        itemMutate.mutate({ item: item })
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>, field: keyof Item) => {
@@ -561,6 +605,11 @@ interface PhotoUploadProps {
 function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
     const [photoUrl, setPhotoUrl] = useState<string>(photo ? photo : '')
 
+    useEffect(() => {
+        if (item.photos.length === 0) {
+            setPhotoUrl('')
+        }
+    }, [item.photos])
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
 
