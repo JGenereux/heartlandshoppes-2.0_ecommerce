@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build: ./server  # Backend located in the /server directory
@@ -7,8 +5,6 @@ services:
       - "5000:5000"
     depends_on:
       - redis
-    env_file:
-      - .env
     environment:
       - NODE_ENV=development
       - REDIS_HOST=redis
@@ -21,7 +17,7 @@ services:
   frontend:
     build: ./client  # Frontend located in the /client directory
     ports:
-      - "3000:3000"
+      - "80:3000"
     depends_on:
       - backend
     volumes:
