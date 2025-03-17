@@ -3,7 +3,7 @@ services:
     build: ./server  # Backend located in the /server directory
     ports:
       - "5000:5000"
-    env_file: 
+    env_file:
       - ./server/.env
     depends_on:
       - redis
@@ -19,7 +19,7 @@ services:
   frontend:
     build: ./client  # Frontend located in the /client directory
     ports:
-      - "80:3000"
+      - "80:80"
     depends_on:
       - backend
     volumes:
