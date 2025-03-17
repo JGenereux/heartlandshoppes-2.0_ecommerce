@@ -46,8 +46,8 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
                 allowed_countries: ['US', 'CA'],  // Ask for full shipping address
             },
             mode: 'payment',
-            success_url: 'http://localhost:3000/?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'http://localhost:3000/?success=false',  
+            success_url: `http://${process.env.FRONTEND_URL}/?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `http://${process.env.FRONTEND_URL}/?success=false`,  
         })
 
         if(session.url === null) {
