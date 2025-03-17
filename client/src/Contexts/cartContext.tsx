@@ -2,6 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useState 
 import { CartItem } from "../interfaces/userinterface";
 import { useAuth } from "./authContext";
 import axios from "axios";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 interface CartContextType {
     cart: CartItem[] | null;
@@ -41,7 +42,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         try {
-            await axios.put(`http://localhost:5000/users/cart/${user.email}`, { cart: userCart }, {
+            await axios.put(`${apiUrl}/users/cart/${user.email}`, { cart: userCart }, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }

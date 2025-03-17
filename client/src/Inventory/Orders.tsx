@@ -6,6 +6,7 @@ import axios from "axios"
 import Loading from "../Loading/Loading"
 import Error from "../Loading/Error"
 import { useAuth } from "../Contexts/authContext"
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Orders() {
     const { accessToken } = useAuth()
@@ -15,7 +16,7 @@ export default function Orders() {
     const { isFetching, error, data: ordersData = [] } = useQuery<Order[], Error>({
         queryKey: ['orders'],
         queryFn: async () => {
-            const res = await axios.get<Order[]>('http://localhost:5000/orders/', {
+            const res = await axios.get<Order[]>(`${apiUrl}/orders/`, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
@@ -191,7 +192,7 @@ function DisplayOrder({ order }: DisplayOrderProps) {
 
     const orderMutation = useMutation<void, Error, MutationProps>({
         mutationFn: async ({ orderId, status, trackingNumber }: MutationProps) => {
-            await axios.put(`http://localhost:5000/orders/${orderId}/`, { status: status, trackingNumber: trackingNumber }, {
+            await axios.put(`${apiUrl}/orders/${orderId}/`, { status: status, trackingNumber: trackingNumber }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
         },

@@ -4,6 +4,7 @@ import { Item } from "../interfaces/iteminterface";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import Loading from "../Loading/Loading";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Shop() {
     return <Routes>
@@ -25,7 +26,7 @@ function ShopMenu({ category }: ShopMenuProps) {
     const { isPending, data: inventoryData = [], isFetching } = useQuery<Item[], Error>({
         queryKey: ['inventory', category],
         queryFn: async () => {
-            const res = await axios.get<Item[]>(`http://localhost:5000/inventory/${category}`)
+            const res = await axios.get<Item[]>(`${apiUrl}/inventory/${category}`)
             return res.data
         },
         staleTime: 5 * 60 * 1000,
@@ -73,7 +74,7 @@ interface DisplayItemsProps {
 function DisplayItems({ items }: DisplayItemsProps) {
 
     return <div className="w-full h-full my-2">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 max-w-6xl gap-6 w-full pb-4 pt-4 pr-2 pl-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 max-w-6xl space-y-8 gap-6 w-full pb-4 pt-4 pr-2 pl-2">
             {items?.map((item, index) => {
                 return <DisplayItem key={index} item={item} />
             })}
@@ -91,8 +92,8 @@ function DisplayItem({ item }: ItemProps) {
     const handleItemRedirect = () => {
         navigate(`/shop/item/${item.name}`)
     }
-    return <div className="flex flex-col h-58 pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
-        <img src={item?.photos[0]} className="w-[55%] h-full aspect-auto">
+    return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
+        <img src={item?.photos[0]} className="h-40 ">
         </img>
         <div className="flex flex-col font-regular items-center">
             <p>{item.name}</p>

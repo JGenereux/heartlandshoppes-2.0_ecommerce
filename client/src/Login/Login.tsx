@@ -6,6 +6,7 @@ import { User } from "../interfaces/userinterface";
 import axios, { isAxiosError } from "axios";
 import logo from '../assets/LOGO.png'
 import Error from "../Loading/Error";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Login() {
     return (
@@ -48,7 +49,7 @@ function LoginForm() {
         }
 
         try {
-            const res = await axios.post<LoginResponse>('http://localhost:5000/auth/login', {
+            const res = await axios.post<LoginResponse>(`${apiUrl}/auth/login`, {
                 userEmail: email,
                 password: password
             }, {
@@ -70,7 +71,7 @@ function LoginForm() {
 
     const handleForgotPassword = async () => {
         try {
-            await axios.post("http://localhost:5000/auth/reset", { userEmail: email }, { withCredentials: true })
+            await axios.post(`${apiUrl}/auth/reset`, { userEmail: email }, { withCredentials: true })
             window.alert('Check email for reset link')
         } catch (error) {
             if (isAxiosError(error) && error.response) {

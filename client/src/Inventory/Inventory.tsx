@@ -9,6 +9,7 @@ import Orders from "./Orders";
 import Loading from "../Loading/Loading";
 import Error from "../Loading/Error";
 import { useAuth } from "../Contexts/authContext";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Inventory() {
     return (
@@ -56,7 +57,7 @@ function DisplayInventory() {
     const { isFetching, error, data: inventoryData = [] } = useQuery<Item[], Error>({
         queryKey: ['inventory'],
         queryFn: async () => {
-            const res = await axios.get<Item[]>('http://localhost:5000/inventory')
+            const res = await axios.get<Item[]>(`${apiUrl}/inventory`)
             return res.data
         },
         staleTime: 60 * 1000,
@@ -140,7 +141,7 @@ function DisplayItem({ item }: DisplayItemProps) {
 
     const deleteMutation = useMutation({
         mutationFn: async ({ itemName }: DeleteMutationProps) => {
-            await axios.delete(`http://localhost:5000/inventory/item/${itemName}`, {
+            await axios.delete(`${apiUrl}/inventory/item/${itemName}`, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
@@ -228,7 +229,7 @@ function ModifyItem({ item }: DisplayItemProps) {
         {
             mutationFn: async (updatedItem: Item) => {
                 updatedItem.photos = updatedItem.photos.filter((photo) => photo.length !== 0)
-                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}`, { item: updatedItem, oldCategories: item.category }, {
+                const response = await axios.put(`${apiUrl}/inventory/item/${item.name}`, { item: updatedItem, oldCategories: item.category }, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`
                     }
@@ -354,7 +355,7 @@ function AddItem({ categories }: AddItemProps) {
 
     const itemMutate = useMutation({
         mutationFn: async ({ item }: ItemMutationProps) => {
-            await axios.post('http://localhost:5000/inventory/item', { item: item }, {
+            await axios.post(`$[apiUrl}/inventory/item`, { item: item }, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
@@ -622,7 +623,7 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
         formData.append("image", file)
 
         try {
-            const res = await axios.post<ImageResponse>('http://localhost:5000/image/', formData, {
+            const res = await axios.post<ImageResponse>(`$[apiUrl}/image/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 }

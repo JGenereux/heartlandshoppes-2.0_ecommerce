@@ -226,11 +226,52 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
     }
 })
 
+router.route('/item/:name/review').get(async(req: Request, res: Response) : Promise<any> => {
+    const {name} = req.params
+    const {userEmail} = req.query
+
+    // item name is stored in orders as <item-name> - <options>
+    try{
+        const orderHistory = await Orders.findOne({
+            "billingInfo.email": userEmail,  // Match the user's email
+            "items": { 
+                $elemMatch: { 
+                    description: { $regex: name, $options: "i" } // Match any description containing itemName
+                }
+            }
+        });
+
+        if(!orderHistory) {
+            return res.status(202).json("You have not purchased this item")
+        }
+
+        const item = await Items.findOne({
+            name: name
+        })
+
+        if(!item) {
+            return res.status(202).json("Error checking review history")
+        }
+
+        const userHasReviewed = item.reviews.some(review => review.fullName === orderHistory.billingInfo.fullName)
+
+        if (userHasReviewed) {
+            return res.status(400).json("You have already reviewed this item");
+        }
+
+        return res.status(200).json("User can post review")
+    } catch(error) {
+        console.error(error)
+        return res.status(500).json(`Internal server error ${error}`)
+    }
+})
+
 router.route('/item/:name/review').put(async(req: Request, res: Response) : Promise<any> => {
     const {name} = req.params
     const {review} = req.body
     
     try{
+      
         // update item then validate cache again
         const itemUpdated = await Items.findOneAndUpdate(
             {name: name}, 
@@ -266,7 +307,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
          
-            // update item in category list cache
+            // update item for each category list cache
             for(const category of items[index].category) {
                 const itemCategory = category
                 const categoryExist = await client.exists(`${itemCategory}`)

@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
 import Loading from "../Loading/Loading";
 import Error from "../Loading/Error";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Home() {
     return (
@@ -47,7 +48,7 @@ function Featured() {
     const { data: featuredItems = [], isError, error, isFetching } = useQuery<Item[]>({
         queryKey: ['inventory', 'Featured'],
         queryFn: async () => {
-            const res = await axios.get<Item[]>('http://localhost:5000/inventory/Featured')
+            const res = await axios.get<Item[]>(`${apiUrl}/inventory/Featured`)
             return res.data
         },
         staleTime: 5 * 60 * 1000,

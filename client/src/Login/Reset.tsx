@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import Error from "../Loading/Error"
 import logo from '../assets/LOGO.png'
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Reset() {
     const params = useParams()
@@ -16,7 +17,7 @@ export default function Reset() {
     useEffect(() => {
         const verifyToken = async () => {
             try {
-                await axios.get(`http://localhost:5000/auth/reset/verify?token=${token}`)
+                await axios.get(`${apiUrl}/auth/reset/verify?token=${token}`)
                 setValid(true)
             } catch (error) {
                 navigate('/', { replace: true })
@@ -62,7 +63,7 @@ function ResetForm({ setError }: ResetFormProps) {
         }
 
         try {
-            const res = await axios.post('http://localhost:5000/auth/reset/credentials', { token: token, password: password })
+            const res = await axios.post(`${apiUrl}/auth/reset/credentials`, { token: token, password: password })
             console.log(res)
             navigate('/', { replace: true })
         } catch (error) {

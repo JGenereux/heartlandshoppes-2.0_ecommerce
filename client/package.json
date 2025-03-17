@@ -24,6 +24,7 @@
     "@tanstack/react-query": "^5.67.1",
     "@tanstack/react-query-devtools": "^5.67.1",
     "axios": "^1.8.3",
+    "dotenv": "^16.4.7",
     "form-data": "^4.0.2",
     "framer-motion": "^12.5.0",
     "react": "^19.0.0",

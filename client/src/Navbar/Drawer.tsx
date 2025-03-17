@@ -8,6 +8,7 @@ import { Item } from '../interfaces/iteminterface'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import Error from '../Loading/Error'
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Drawer() {
     const { user } = useAuth()
@@ -128,7 +129,7 @@ function SearchBar({ search, setSearch, reference }: SearchBarProps) {
     const { isFetching, error, isError, data: inventoryData = [] } = useQuery<Item[], Error>({
         queryKey: ['inventory'],
         queryFn: async () => {
-            const res = await axios.get<Item[]>('http://localhost:5000/inventory')
+            const res = await axios.get<Item[]>(`${apiUrl}/inventory`)
             return res.data
         },
         staleTime: 60 * 1000,

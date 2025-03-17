@@ -6,6 +6,7 @@ import { User } from "../interfaces/userinterface";
 import axios, { isAxiosError } from "axios";
 import logo from '../assets/LOGO.png'
 import Error from "../Loading/Error";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Signup() {
     return <div className="h-[90vh]">
@@ -50,7 +51,7 @@ function SignupForm() {
         }
 
         try {
-            const res = await axios.post<LoginResponse>('http://localhost:5000/auth/signup', {
+            const res = await axios.post<LoginResponse>(`${apiUrl}/auth/signup`, {
                 userEmail: email,
                 password: password
             }, {

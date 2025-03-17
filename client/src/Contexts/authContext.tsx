@@ -1,6 +1,8 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { User } from "../interfaces/userinterface";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 interface AuthContextType {
   user: User | null;
@@ -29,10 +31,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
+  const navigate = useNavigate()
   const refreshToken = async () => {
     try {
 
-      const response = await axios.post("http://localhost:5000/auth/token", {}, {
+      const response = await axios.post(`${apiUrl}/auth/token`, {}, {
         withCredentials: true
       });
 
@@ -57,9 +60,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     setUser(null);
     setAccessToken(null);
-    await axios.post('http://localhost:5000/auth/logout', {}, {
+    await axios.post(`${apiUrl}/auth/logout`, {}, {
       withCredentials: true
     })
+    navigate('/', { replace: true })
   };
 
   return <AuthContext.Provider value={{ user, accessToken, login, logout }}>{children}</AuthContext.Provider>;

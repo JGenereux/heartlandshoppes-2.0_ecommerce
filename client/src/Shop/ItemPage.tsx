@@ -9,6 +9,8 @@ import uploadPhotoICON from '../assets/uploadPhotoICON.png'
 import { useCart } from "../Contexts/cartContext";
 import Loading from "../Loading/Loading";
 import Error from "../Loading/Error";
+import { useAuth } from "../Contexts/authContext";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function ItemPage() {
     const { name } = useParams()
@@ -16,8 +18,7 @@ export default function ItemPage() {
     const { isPending, isFetching, isError, data: item, error } = useQuery<Item, Error>({
         queryKey: [name],
         queryFn: async () => {
-            const res = await axios.get<Item>(`http://localhost:5000/inventory/item/${name}`);
-            console.log("axios", res);
+            const res = await axios.get<Item>(`${apiUrl}/inventory/item/${name}`);
             return res.data;
         },
         staleTime: 5 * 60 * 1000,
@@ -196,7 +197,8 @@ function DisplayOption({ option, optionValues, currOptions, setCurrOptions }: Di
         })
     }
 
-    return <select className="border-1 border-black ml-1 p-1 px-2 rounded-full shadow-gray-600 shadow-sm hover:border-actionColor cursor-pointer" value={currOptions[option] || ' '} onChange={(e) => handleOptionChange(e)}>
+
+    return <select className="border-1 border-black ml-1 p-1 px-2 rounded-full shadow-gray-600 shadow-sm hover:border-actionColor cursor-pointer" value={(currOptions[option])[0] || ' '} onChange={(e) => handleOptionChange(e)}>
         {optionValues[option].map((currValue) => {
             return <option key={currValue} value={currValue}>{currValue}</option>
         })}
@@ -204,11 +206,34 @@ function DisplayOption({ option, optionValues, currOptions, setCurrOptions }: Di
 }
 
 function Reviews({ item }: DisplayItemProps) {
+    const { user } = useAuth()
+    const [canReview, setCanReview] = useState(false)
     const [leaveReview, setLeaveReview] = useState(false)
+
+    const checkReview = async () => {
+        if (!user || !user.email) return
+        try {
+            const res = await axios.get(`${apiUrl}/inventory/item/${item.name}/review?userEmail=${user.email}`)
+            if (res.status === 200) {
+                setCanReview(true)
+            } else {
+                setCanReview(false)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        checkReview()
+    }, [user])
+
+
+
     return <div className="flex flex-col self-center  w-[95%] h-fit">
         <div className="flex flex-col md:flex-row py-1">
             <h3 className="font-headerFont text-2xl">Reviews</h3>
-            <button className=" w-fit md:ml-auto text-xl md:mr-8 rounded-lg p-1 font-button bg-[#f8b4c4] text-white font-bold cursor-pointer" onClick={() => setLeaveReview((review) => !review)}>{leaveReview ? 'Go Back' : 'Leave a review'}</button>
+            {canReview && <button className=" w-fit md:ml-auto text-xl md:mr-8 rounded-lg p-1 font-button bg-[#f8b4c4] text-white font-bold cursor-pointer" onClick={() => setLeaveReview((review) => !review)}>{leaveReview ? 'Go Back' : 'Leave a review'}</button>}
         </div>
         {leaveReview && <AddReview item={item} setLeaveReview={setLeaveReview} />}
         <div className="flex flex-col space-y-6 mb-2">
@@ -241,7 +266,7 @@ function AddReview({ item, setLeaveReview }: AddReviewProps) {
     const mutation = useMutation(
         {
             mutationFn: async (review: Review) => {
-                const response = await axios.put(`http://localhost:5000/inventory/item/${item.name}/review`, { review: review })
+                const response = await axios.put(`${apiUrl}/inventory/item/${item.name}/review`, { review: review })
                 return response.data
             },
             onSuccess: () => {
@@ -300,7 +325,7 @@ function UploadPhoto({ review, handleReviewChange }: UploadPhotoProps) {
         formData.append("image", file)
 
         try {
-            const res = await axios.post<ImageResponse>('http://localhost:5000/image/', formData, {
+            const res = await axios.post<ImageResponse>(`${apiUrl}/image/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 }
