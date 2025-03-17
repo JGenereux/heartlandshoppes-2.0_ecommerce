@@ -23,6 +23,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@13.59.194.63 << 'EOF'
             cd /home/ubuntu/heartlandshoppes-2.0 || exit
             git pull origin main || exit
-            docker-compose down || exit
-            docker-compose up --build -d || exit
+            sudo docker-compose down || exit
+            sudo docker-compose up --build -d || exit
           EOF
