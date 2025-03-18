@@ -217,32 +217,31 @@ function DisplayOrder({ order }: DisplayOrderProps) {
     }
 
     return (
-        <div className="flex flex-col border-gray-800 border-1 rounded-xl w-fit p-2 font-headerFont">
-            <div className="flex flex-row border-black border-b-1 w-full space-x-4 pb-2">
-                <div className="flex flex-col">
+        <div className="flex flex-col border-gray-800 border-1 rounded-xl w-96 p-2 font-headerFont">
+            <div className="flex flex-row border-black border-b-1 w-full pb-2">
+                <div className="flex flex-col flex-grow overflow-hidden">
                     <label className="flex flex-row">
-                        Order ID:
-                        <p className="ml-1 font-regular">{order._id}</p>
+                        Order ID:<p className="font-regular truncate">{order._id}</p>
                     </label>
                     <label className="flex flex-row">
                         Tracking Number:
                         {editOrder ? (
                             <input
-                                className="w-fit ml-1 border-gray-700 border-2 rounded-lg font-regular hover:ring-blue-500 hover:ring-1 hover:border-blue-500"
+                                className="w-32 ml-1 border-gray-700 border-2 rounded-lg font-regular hover:ring-blue-500 hover:ring-1 hover:border-blue-500"
                                 defaultValue={order.trackingNumber || ""}
                                 onChange={(e) => setTrackingNumber(e.target.value)}
                             />
                         ) : (
-                            <p className="ml-1 font-regular">{order.trackingNumber || "Not Available"}</p>
+                            <p className="ml-1 font-regular truncate">{order.trackingNumber || "Not Available"}</p>
                         )}
                     </label>
                 </div>
-                <label className="flex flex-row items-center self-start ml-auto">
+                <div className="w-28 flex-shrink-0 flex items-start">
                     <Status status={status} setStatus={setStatus} editOrder={editOrder} />
-                </label>
+                </div>
             </div>
-            <div className="flex flex-row space-x-12 my-2">
-                <div className="flex flex-col">
+            <div className="flex flex-row mt-2">
+                <div className="flex flex-col w-2/3 pr-2">
                     <label className="flex flex-row">
                         Order placed on:
                         <p className="ml-1 font-regular">{new Date(order.date).toLocaleDateString()}</p>
@@ -273,11 +272,11 @@ function DisplayOrder({ order }: DisplayOrderProps) {
                             })}
                         </div>
                     </label>
-                    <label className="flex flex-col">
+                    <label className="flex flex-col mb-0">
                         Items:
-                        <div className="flex flex-col ml-2">
+                        <div className="flex flex-col ml-2 max-h-40 overflow-y-auto pb-0">
                             {order.items.map((item: ItemInvoice, index) => (
-                                <label key={`${item.description}-${index}`}>
+                                <label key={`${item.description}-${index}`} className="mb-0">
                                     {item.description
                                         .replace(/([A-Z])/g, " $1")
                                         .replace(/_/g, " ")
@@ -285,23 +284,23 @@ function DisplayOrder({ order }: DisplayOrderProps) {
                                         .split(" ")
                                         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                                         .join(" ")}
-                                    <p className="ml-2 font-regular">Quantity: {item.quantity}</p>
-                                    <p className="ml-2 font-regular">Price: ${(item.amount / 100).toFixed(2)}</p>
+                                    <p className="ml-2 font-regular mb-0">Quantity: {item.quantity}</p>
+                                    <p className="ml-2 font-regular mb-0">Price: ${(item.amount / 100).toFixed(2)}</p>
                                 </label>
                             ))}
                         </div>
                     </label>
                 </div>
-                <div className="flex flex-col self-start space-y-2 w-full">
+                <div className="flex flex-col w-1/3 items-end space-y-2">
                     <button
-                        className="self-end border-black border-1 shadow-gray-500 shadow-sm w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer"
+                        className="border-black border-1 shadow-gray-500 shadow-sm w-16 px-3 py-1 rounded-full font-bold font-button cursor-pointer"
                         onClick={() => setEditOrder((prev) => !prev)}
                     >
                         Edit
                     </button>
                     {editOrder && (
                         <button
-                            className="self-end border-black border-1 shadow-gray-500 shadow-sm w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer"
+                            className="border-black border-1 shadow-gray-500 shadow-sm w-16 px-3 py-1 rounded-full font-bold font-button cursor-pointer"
                             onClick={handleOrderUpdate}
                         >
                             Confirm

@@ -193,8 +193,8 @@ function CustomProduct() {
                 <p>We create t-shirt concepts for charity teams, clubs and small businesses. No order is to small for Heartland Shoppes. Our designs have shown up at Spin Classes, Charity T-Rex runs, our regional Neo-natal Unit, rare diseases month and similar worthwhile causes. Teams sporting our designs get noticed. Whether its a t-shirt and/or a water bottle, the competitors proudly display their custom handmade items, as they rise to the challenges ahead of them; as competitors and supporters of these events. Heartland Shoppes applauds all participants in these noble initiatives.</p>
             </div>
             <div className="flex flex-col mx-auto space-y-1 my-2">
-                <p className="font-regular text-xl">Want a custom product?</p>
-                <button className="bg-[#f8b4c4] font-semibold text-md md:text-lg text-white p-1 rounded-md font-button">Request Product</button>
+                <p className="font-regular text-2xl">Want a custom product?</p>
+                <button className="mx-auto w-fit bg-[#f8b4c4] font-semibold text-2xl text-white p-1.5 rounded-md font-button  cursor-pointer transition-transform transform hover:scale-110 active:scale-95">Request Product</button>
             </div>
         </div>
     )

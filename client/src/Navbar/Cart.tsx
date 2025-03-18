@@ -58,7 +58,7 @@ export default function Cart() {
 function Items() {
     const { cart } = useCart()
 
-    return <div className="flex flex-col w-full overflow-y-scroll space-y-2 my-2">
+    return <div className="flex flex-col w-full overflow-y-auto space-y-2 my-2">
         {(cart && cart.length > 0) ? cart?.map((cartItem, index) => {
             return <Item key={index} item={cartItem} />
         }) : <div className="mx-auto font-regular font-bold">
