@@ -13,7 +13,7 @@ const app = express()
 
 app.use(cors({
     origin: (origin, callback) => {
-        const allowedOrigins = ['http://13.59.194.63', 'http://localhost:80'];
+        const allowedOrigins = ['http://13.59.194.63', 'http://localhost'];
         if (allowedOrigins.indexOf(origin || '') !== -1) {
             callback(null, true);  // Allow the request
         } else {
