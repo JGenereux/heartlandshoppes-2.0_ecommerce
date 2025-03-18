@@ -56,7 +56,8 @@ function Featured() {
     })
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
     const [leftIndex, setLeftIndex] = useState(0)
-    const [rightIndex, setRightIndex] = useState(isDesktop ? 2 : 1)
+    const SIZE = isDesktop ? 2 : 1
+    const [rightIndex, setRightIndex] = useState(SIZE)
     const featuredItemsSlice = featuredItems.slice(leftIndex, rightIndex + 1)
 
     const handleResize = () => {
@@ -71,7 +72,7 @@ function Featured() {
     const handleMoveLeft = () => {
         if (leftIndex > 0) {
             setLeftIndex(leftIndex - 1)
-            if ((rightIndex + 1) - leftIndex > 2) {
+            if ((rightIndex + 1) - leftIndex > SIZE) {
                 setRightIndex(rightIndex - 1)
             }
         }
@@ -80,7 +81,7 @@ function Featured() {
     const handleMoveRight = () => {
         if (rightIndex < featuredItems.length - 1) {
             setRightIndex(rightIndex + 1)
-            if ((rightIndex + 1) - leftIndex > 2) {
+            if ((rightIndex + 1) - leftIndex > SIZE) {
                 setLeftIndex(leftIndex + 1)
             }
         }
@@ -116,7 +117,7 @@ interface FeaturedItemsProps {
 
 function FeaturedItemsDisplay({ featuredItemsSlice, handleMoveLeft, handleMoveRight }: FeaturedItemsProps) {
 
-    return <div className="w-[80%] flex flex-row space-x-2 items-center justify-center">
+    return <div className="w-[95%] md:w-[80%] flex flex-row space-x-2 items-center justify-center">
         <button
             className="bg-[#f8b4c4] font-semibold rounded-full p-2 pt-1 pb-1 text-white shadow-md shadow-gray-400 cursor-pointer transition-transform transform hover:scale-110 active:scale-95"
             onClick={handleMoveLeft}
@@ -126,7 +127,7 @@ function FeaturedItemsDisplay({ featuredItemsSlice, handleMoveLeft, handleMoveRi
             } />
         </button>
 
-        <div className="flex flex-row space-x-4 items-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 md:gap-4">
             {featuredItemsSlice?.map((item, index) => (
                 <DisplayItem key={index} item={item} />
             ))}
@@ -147,15 +148,31 @@ interface DisplayItemProps {
 
 function DisplayItem({ item }: DisplayItemProps) {
 
+    const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
     const navigate = useNavigate()
     const navigateToItem = () => {
         navigate(`/shop/item/${item.name}`)
     }
+
+    const handleResize = () => {
+        setIsDesktop(window.innerWidth >= 768)
+    }
+
+    useEffect(() => {
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    })
+    const truncateLength = isDesktop ? 20 : 8
+    const truncatedName = item.name.length > truncateLength
+        ? item.name.substring(0, truncateLength) + "..."
+        : item.name;
+
+
     return (
-        <div className="flex flex-col w-fit pl-2 pt-2  font-regular transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 items-center" onClick={navigateToItem}>
-            <img src={item.photos[0]} className="w-auto h-[190px] ">
+        <div className="flex flex-col pl-2 pt-2  font-regular transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 items-center" onClick={navigateToItem}>
+            <img src={item.photos[0]} className="h-40 ">
             </img>
-            <p>{item.name}</p>
+            <p>{truncatedName}</p>
             <p>${item.price.toFixed(2)}</p>
             <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>
         </div>

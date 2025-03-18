@@ -13,7 +13,7 @@ export default defineConfig({
     port: 80,  // Expose on port 3000
     hmr: {
       protocol: 'ws',  // Use WebSocket protocol for HMR
-      host: '13.59.194.63',  // Adjust WebSocket connection to point to localhost (the Docker host)
+      host: '0.0.0.0',  // Adjust WebSocket connection to point to localhost (the Docker host)
       clientPort: 80,  // Ensure the WebSocket client is on the correct port
     }
   }
