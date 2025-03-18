@@ -13,8 +13,8 @@ const app = express()
 
 app.use(cors({
     origin: (origin, callback) => {
-        const allowedOrigins = ['http://13.59.194.63', 'http://localhost'];
-        if (allowedOrigins.indexOf(origin || '') !== -1) {
+        const allowedOrigins = ['http://13.59.194.63', 'http://localhost', 'https://stripe.com'];
+        if (if (allowedOrigins.includes(origin))) {
             callback(null, true);  // Allow the request
         } else {
             callback(new Error('Not allowed by CORS'), false);  // Reject the request
