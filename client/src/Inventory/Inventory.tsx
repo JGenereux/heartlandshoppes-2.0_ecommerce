@@ -60,9 +60,9 @@ function DisplayInventory() {
             const res = await axios.get<Item[]>(`${apiUrl}/inventory`)
             return res.data
         },
-        staleTime: 60 * 1000,
-        gcTime: 2 * 60 * 1000,
-        refetchInterval: 45 * 1000
+        staleTime: 5 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchInterval: 2 * 60 * 1000
     })
     const [items, setItems] = useState<Item[]>([])
     const [addItem, setAddItem] = useState(false)

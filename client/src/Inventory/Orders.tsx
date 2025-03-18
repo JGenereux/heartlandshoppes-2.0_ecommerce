@@ -23,9 +23,9 @@ export default function Orders() {
             })
             return res.data
         },
-        staleTime: 60 * 1000,
-        gcTime: 2 * 60 * 1000,
-        refetchInterval: 60 * 1000
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchInterval: 2 * 60 * 1000
     })
 
     useEffect(() => {
