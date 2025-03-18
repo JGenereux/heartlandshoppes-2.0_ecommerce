@@ -234,6 +234,7 @@ function ModifyItem({ item }: DisplayItemProps) {
                         Authorization: `Bearer ${accessToken}`
                     }
                 })
+                console.log('Response: ', response.data)
                 return response.data
             },
             onSuccess: async () => {
