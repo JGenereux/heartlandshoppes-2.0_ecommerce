@@ -162,7 +162,9 @@ router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : P
 router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
     const {name} = req.params
     const {item, oldCategories} = req.body
-    
+    console.log('REQ MADE: ', name)
+    console.log('ITEM: ', item)
+    console.log('oldCategorie', oldCategories)
     try{
         const updated = await Items.findOneAndUpdate(
             { name: name }, 
