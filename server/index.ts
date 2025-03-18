@@ -12,14 +12,7 @@ const PORT = process.env.PORT || 5000
 const app = express()
 
 app.use(cors({
-    origin: (origin, callback) => {
-        const allowedOrigins = ['http://13.59.194.63', 'http://localhost'];
-        if (allowedOrigins.indexOf(origin || '') !== -1) {
-            callback(null, true);  // Allow the request
-        } else {
-            callback(new Error('Not allowed by CORS'), false);  // Reject the request
-        }
-    },
+    origin: ['http://13.59.194.63', 'http://localhost', 'https://stripe.com'],
     credentials: true,
 }));
 

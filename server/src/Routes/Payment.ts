@@ -76,7 +76,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
       return response.status(400).send(`Webhook Error: ${err}`);
     }
 
-
+    console.log(event)
     if(event.type === 'invoice.finalized') {
         const invoice = event.data.object
      
