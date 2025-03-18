@@ -27,7 +27,7 @@ export default function Home() {
 
 function Header() {
     return (
-        <div className="flex justify-center w-[100%] h-[30%] sm:h-[20%] md:h-[30%]">
+        <div className="flex justify-center w-[100%] h-[30%] sm:h-[20%] md:h-[30%] my-6 md:my-0">
             <div className="w-full h-full  relative border-b-2 border-black">
                 <div className="w-[100%] h-full">
 
