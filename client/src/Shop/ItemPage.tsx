@@ -54,13 +54,13 @@ interface DisplayItemProps {
 function DisplayItem({ item }: DisplayItemProps) {
     const [photoUrl, setPhotoUrl] = useState(item?.photos[0] || "")
     return (
-        <div className="w-[75%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
+        <div className="w-[90%] md:w-[75%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
             <div className="flex flex-col md:flex-row w-full h-[90%] bg-white py-2">
-                <div className="flex flex-col w-[90%] md:w-[35%] h-full items-center mx-auto">
-                    <img src={photoUrl} className="w-full h-[65vh] "></img>
+                <div className="flex flex-col w-fit h-full items-center mx-auto">
+                    <img src={photoUrl} className="h-[50vh] md:h-[65vh] object-contain w-full"></img>
                     <ImageSlider item={item} setPhotoUrl={setPhotoUrl} />
                 </div>
-                <div className="md:w-1/2 h-full flex flex-col pl-2 md:pl-0">
+                <div className="w-full md:w-1/2 h-full flex flex-col px-4 md:pl-0">
                     <ItemDescription item={item} />
                 </div>
             </div>
@@ -148,7 +148,7 @@ function ItemDescription({ item }: DisplayItemProps) {
                 <button onClick={handleAddQuantity} className="cursor-pointer">+</button>
             </div>
         </div>
-        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="self-start my-4 text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button">Add To Cart</button>
+        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="md:self-start self-center w-fit my-4 text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button">Add To Cart</button>
         <div className="flex flex-col pt-4 w-[95%]">
             <p className="font-button font-bold">About this item: </p>
             <p className="font-regular text-md">{item.description}</p>
