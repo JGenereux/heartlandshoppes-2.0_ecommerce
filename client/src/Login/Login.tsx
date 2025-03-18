@@ -10,7 +10,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Login() {
     return (
-        <div className="h-[90vh]">
+        <div className="h-screen md:h-[90vh]">
             <Drawer />
             <div className="flex justify-center items-center h-full w-full">
                 <LoginForm />

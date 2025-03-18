@@ -40,7 +40,7 @@ export default function Cart() {
                         <h3 className="text-xl">Cart</h3>
                         <button onClick={() => setIsOpen(false)} className="ml-auto cursor-pointer">🛒</button>
                     </div>
-                    {!user && <div className="flex font-button font-semibold">
+                    {(!user && cart && cart.length > 0) && <div className="flex font-button font-semibold">
                         <p>Login to save cart</p>
                     </div>}
                     <Items />

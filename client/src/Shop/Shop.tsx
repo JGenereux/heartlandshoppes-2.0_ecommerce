@@ -34,8 +34,6 @@ function ShopMenu({ category }: ShopMenuProps) {
         refetchInterval: 10 * 60 * 1000
     })
 
-    if (isPending) { return 'Loading...' }
-
     return <div>
         <Drawer />
         <CategoriesBar category={category} />
@@ -53,8 +51,8 @@ interface categoryProps {
 function CategoriesBar({ category }: categoryProps) {
     return (
         <div className="flex flex-col w-full h-fit border-gray-600 border-b-2 items-center justify-center font-button pt-1.5">
-            <p className="text-sm md:text-lg">{category}</p>
-            <div className="flex flex-row flex-wrap w-full text-sm md:text-lg space-x-4 md:space-x-10 justify-center">
+            <p className="text-md md:text-lg">{category}</p>
+            <div className="flex flex-row flex-wrap w-full text-md md:text-lg space-x-4 md:space-x-10 justify-center">
                 <Link to="/shop">Featured</Link>
                 <Link to="/shop/tshirts">T-Shirts</Link>
                 <Link to="/shop/tumblercups">Tumbler Cups</Link>
@@ -74,11 +72,13 @@ interface DisplayItemsProps {
 function DisplayItems({ items }: DisplayItemsProps) {
 
     return <div className="w-full h-full my-2">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 max-w-6xl space-y-8 gap-6 w-full pb-4 pt-4 pr-2 pl-2">
+        {items && items.length > 0 ? <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 max-w-6xl gap-6 w-full pb-4 pt-4 pr-2 pl-2">
             {items?.map((item, index) => {
                 return <DisplayItem key={index} item={item} />
             })}
-        </div>
+        </div> : <div className="flex h-full justify-center items-center my-6 font-headerFont text-lg md:text-xl lg:text-2xl">
+            <p>There are no items in this category.</p>
+        </div>}
     </div>
 }
 
@@ -93,10 +93,10 @@ function DisplayItem({ item }: ItemProps) {
         navigate(`/shop/item/${item.name}`)
     }
     return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
-        <img src={item?.photos[0]} className="h-40 ">
+        <img src={item?.photos[0]} className="h-40">
         </img>
         <div className="flex flex-col font-regular items-center">
-            <p>{item.name}</p>
+            <p className="overflow-hidden line-clamp-1">{item.name}</p>
             <p>${item.price.toFixed(2)}</p>
             <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>
         </div>

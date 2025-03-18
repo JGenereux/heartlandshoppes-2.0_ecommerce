@@ -140,14 +140,14 @@ function ItemDescription({ item }: DisplayItemProps) {
             <DisplayOptions options={item.options} setItem={setTempItem} />
         </div>
 
-        <div className="flex flex-row pt-2 items-center space-x-2">
+        {quantity > 0 && <div className="flex flex-row pt-2 items-center space-x-2">
             <p className="font-regular">Quantity: </p>
             <div className="flex flex-row space-x-4 font-button font-bold w-fit p-2 rounded-lg">
                 <button onClick={handleRemoveQuantity} className="cursor-pointer">-</button>
                 <p>{quantity}</p>
                 <button onClick={handleAddQuantity} className="cursor-pointer">+</button>
             </div>
-        </div>
+        </div>}
         <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="md:self-start self-center w-fit my-4 text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button">Add To Cart</button>
         <div className="flex flex-col pt-4 w-[95%]">
             <p className="font-button font-bold">About this item: </p>

@@ -76,11 +76,11 @@ export default function Drawer() {
                 <Link to="/about" className="hover:text-blue-500 transition-colors duration-300">About</Link>
                 <Link to="/contact" className="hover:text-blue-500 transition-colors duration-300">Contact</Link>
                 {isDesktop && <SearchBar search={search} setSearch={setSearch} reference={searchRef} />}
-                <div className="flex flex-col md:flex-row md:ml-auto mr-6 space-x-6">
+                <div className="flex flex-col md:flex-row md:ml-auto self-start md:self-auto md:mr-6 md:space-x-6">
                     {user?.role === 'admin' && <Link to="/inventory" className="hover:text-blue-500 transition-colors duration-300">Inventory</Link>}
                     {user ?
                         viewAccount ? <Account setViewAccount={setViewAccount} /> :
-                            <button onClick={() => setViewAccount((view) => !view)} className="cursor-pointer hover:text-blue-500 transition-colors duration-300">Account</button>
+                            <button onClick={() => setViewAccount((view) => !view)} className="cursor-pointer hover:text-blue-500 transition-colors duration-300 w-fit md:w-auto">Account</button>
                         :
                         <Link to="/login" className="hover:text-blue-500 transition-colors duration-300">Login</Link>}
                     <Cart />
@@ -104,8 +104,8 @@ function Account({ setViewAccount }: AccountProps) {
     return <div className="relative w-full">
         <div className="absolute top-0 left-0 md:left-auto md:right-0 z-10 bg-white shadow-gray-500 shadow-sm rounded-lg">
             <div className="flex flex-col p-2">
-                <button onClick={() => setViewAccount((view) => !view)} className="self-end mr-2 cursor-pointer hover:text-blue-500 transition-colors duration-300">Account</button>
-                <div className="flex flex-row space-x-6">
+                <button onClick={() => setViewAccount((view) => !view)} className="self-start md:self-end mr-2 cursor-pointer hover:text-blue-500 transition-colors duration-300">Account</button>
+                <div className="flex flex-row space-x-2 md:space-x-6">
                     <Link to="/account" className="hover:text-blue-500 transition-colors duration-300">Settings</Link>
                     <button onClick={handleLogout} className="cursor-pointer hover:text-blue-500 transition-colors duration-300">Logout</button>
                 </div>
@@ -223,7 +223,7 @@ function SearchBar({ search, setSearch, reference }: SearchBarProps) {
             </div>
 
             {isError ? <Error message={error ? `${error}` : 'Error loading items'} /> : <div
-                className={`w-[140%] relative z-10 transform-gpu overflow-${overflow} transition-all duration-400 ease-in-out`}
+                className={`w-[140%] relative z-10 ml-6 md:ml-0 transform-gpu overflow-${overflow} transition-all duration-400 ease-in-out`}
                 style={{
                     height: height,
                     opacity: opacity / 100
@@ -253,11 +253,13 @@ function DisplayItem({ item, isFirst, isLast }: DisplayItemProps) {
         window.location.href = `/shop/item/${item.name}`
     }
 
-    return <div className={`relative flex flex-row h-18 bg-white p-1.5 cursor-pointer
+    return <div className={`relative flex flex-row h-fit bg-white p-1.5 cursor-pointer
         ${isFirst ? 'rounded-t-lg' : ''}
         ${isLast ? 'rounded-b-lg' : ''}
     `} onClick={handleNav}>
-        <img src={item.photos[0]} className="w-[20%] h-full"></img>
+        <div className="w-14 h-20 justify-center">
+            <img src={item.photos[0]} className="w-full max-h-full aspect-auto"></img>
+        </div>
         <div className="flex flex-col h-full ml-2">
             <p>{item.name}</p>
             <p>${item.price}</p>

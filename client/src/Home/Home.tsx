@@ -62,7 +62,7 @@ function Featured() {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
     const [leftIndex, setLeftIndex] = useState(0)
     const SIZE = isDesktop ? 2 : 1
-    const [rightIndex, setRightIndex] = useState(SIZE)
+    const [rightIndex, setRightIndex] = useState(isDesktop ? 2 : 1)
     const featuredItemsSlice = featuredItems.slice(leftIndex, rightIndex + 1)
 
     const handleResize = () => {

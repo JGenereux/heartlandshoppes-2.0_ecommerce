@@ -9,7 +9,7 @@ import Error from "../Loading/Error";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Signup() {
-    return <div className="h-[90vh]">
+    return <div className="h-screen md:h-[90vh]">
         <Drawer />
         <div className="flex justify-center items-center h-full w-full">
             <SignupForm />
@@ -71,7 +71,7 @@ function SignupForm() {
         }
     }
 
-    return <div className="flex flex-col w-fit md:w-[35%] h-fit rounded-sm justify-center items-center py-6 shadow-gray-600 shadow-md">
+    return <div className="flex flex-col w-fit md:w-[35%] h-fit rounded-sm justify-center items-center md:py-6 shadow-gray-600 shadow-md">
         {error && <Error message={error} />}
         <img src={logo} className="w-40 h-40 rounded-full mb-2"></img>
         <h3 className="font-headerFont text-2xl">Heartland Shoppes</h3>
