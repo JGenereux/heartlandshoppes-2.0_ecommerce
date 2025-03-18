@@ -63,10 +63,10 @@ export default function Drawer() {
         };
     }, [])
 
-    return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit  bg-backgroundColor shadow-gray-500 shadow-sm items-center fixed md:static z-50" : "flex flex-row w-full h-fit items-center md:static z-50"}>
-        <div className="flex flex-col md:flex-row w-full h-full my-1">
-            <div className={isOpen ? "flex flex-row cursor-pointer w-fit items-center pr-2 md:pr-0" : "cursor-pointer w-8 h-full border-black border-2"}>
-                {(!isDesktop) && <img src={menuIcon} onClick={handleDrawer} className="w-8 h-8"></img>}
+    return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit  bg-backgroundColor shadow-gray-500 shadow-sm items-center fixed top-0 left-0 md:static z-50" : "flex flex-row w-full h-fit items-center fixed top-0 left-0 md:static z-50"}>
+        <div className={isDesktop ? "flex flex-col md:flex-row w-full h-full my-1" : "flex flex-col md:flex-row w-fit h-fit fixed top-0 bg-backgroundColor shadow-black shadow-md"}>
+            <div className={isOpen ? "flex flex-row cursor-pointer w-fit items-center pr-2 md:pr-0 " : "cursor-pointer w-full h-full "}>
+                {<img src={menuIcon} onClick={handleDrawer} className="w-8 h-8 "></img>}
                 {(isOpen && !isDesktop) && <SearchBar search={search} setSearch={setSearch} reference={searchRef} />}
             </div>
             {isOpen && <div className="flex flex-col md:flex-row md:items-center space-x-4 pr-2 md:pr-0 pb-2 md:pb-0 ml-2 md:ml-3 md:w-full font-button">
