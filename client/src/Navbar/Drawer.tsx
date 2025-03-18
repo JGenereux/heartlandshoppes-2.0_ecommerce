@@ -24,6 +24,7 @@ export default function Drawer() {
     }
 
     const handleDrawer = () => {
+        if (isDesktop && isOpen) return
         setIsOpen((open) => !open)
     }
 

@@ -97,7 +97,7 @@ function DisplayInventory() {
 
     if (error) { return <Error message={error.message} /> }
 
-    return <div className="flex flex-col w-[90%] h-fit mx-auto md:my-2">
+    return <div className="flex flex-col w-[95%] md:w-[90%] h-fit mx-auto md:my-2">
         <div className="flex flex-row flex-wrap w-full">
             <div>
                 <h3 className="text-2xl font-headerFont">Current Inventory</h3>
@@ -169,7 +169,7 @@ function DisplayItem({ item }: DisplayItemProps) {
             {modify ?
                 <ModifyItem item={item} /> : <>
                     <img src={item?.photos[0]} className="w-full h-[250px] object-contain"></img>
-                    <div>
+                    <div className="md:text-lg">
                         <p>Name: {item.name}</p>
                         <p>Price: ${item.price.toFixed(2)}</p>
                         <p>Quantity: {item.quantity}</p>
@@ -404,19 +404,19 @@ function AddItem({ categories }: AddItemProps) {
         }));
     }
 
-    return <div className="w-full p-2 p-r-0  my-2 font-regular">
+    return <div className="w-full p-2 p-r-0  my-2 font-regular md:text-lg">
         <form onSubmit={(event) => handleAddItem(event)}>
             <div className="flex flex-col w-full">
                 <div className="flex flex-col md:flex-row">
-                    <div className="flex flex-col w-1/2">
+                    <div className="flex flex-col w-full md:w-1/2">
                         <p>Item Name</p>
-                        <input type="text" className=" border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.name} onChange={(event) => handleInputChange(event, "name")}></input>
+                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.name} onChange={(event) => handleInputChange(event, "name")}></input>
                         <p>Item Price</p>
-                        <input type="text" className="border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.price} onChange={(event) => handleInputChange(event, "price")}></input>
+                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.price} onChange={(event) => handleInputChange(event, "price")}></input>
                         <p>Category</p>
-                        <input type="text" className="border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.category} onChange={(event) => handleInputChange(event, "category")}></input>
+                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.category} onChange={(event) => handleInputChange(event, "category")}></input>
                         <p>Quantity</p>
-                        <input type="text" className="border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.quantity} onChange={(event) => handleInputChange(event, "quantity")}></input>
+                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.quantity} onChange={(event) => handleInputChange(event, "quantity")}></input>
                         <p>Description</p>
                         <textarea className="resize-none border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 h-fit ml-2" value={item.description} onChange={(event) => handleInputChange(event, "description")}></textarea>
                     </div>
@@ -460,7 +460,7 @@ interface DisplayCategoryProps {
 }
 
 function DisplayCategory({ category }: DisplayCategoryProps) {
-    return <div className="border-gray-400 border-2 px-2 py-1 rounded-full">
+    return <div className="border-gray-400 border-2 px-2 py-1 rounded-full text-sm md:text-[16px]">
         <p>{category}</p>
     </div>
 }
