@@ -355,7 +355,7 @@ function AddItem({ categories }: AddItemProps) {
 
     const itemMutate = useMutation({
         mutationFn: async ({ item }: ItemMutationProps) => {
-            await axios.post(`$[apiUrl}/inventory/item`, { item: item }, {
+            await axios.post(`${apiUrl}/inventory/item`, { item: item }, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
@@ -623,7 +623,7 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
         formData.append("image", file)
 
         try {
-            const res = await axios.post<ImageResponse>(`$[apiUrl}/image/`, formData, {
+            const res = await axios.post<ImageResponse>(`${apiUrl}/image/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 }

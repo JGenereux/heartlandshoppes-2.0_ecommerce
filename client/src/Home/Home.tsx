@@ -178,7 +178,7 @@ function DisplayItem({ item }: DisplayItemProps) {
             <img src={item.photos[0]} className="h-40 ">
             </img>
             <p>{truncatedName}</p>
-            <p>${typeof item.price === "number" && item.price.toFixed(2)}</p>
+            <p>${Number(item.price).toFixed(2)}</p>
             <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>
         </div>
     )
