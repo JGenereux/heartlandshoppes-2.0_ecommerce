@@ -27,17 +27,22 @@ export default function Home() {
 
 function Header() {
     return (
-        <div className="flex justify-center w-[100%] h-[30%] sm:h-[20%] md:h-[30%] my-6 md:my-0">
-            <div className="w-full h-full  relative border-b-2 border-black">
-                <div className="w-[100%] h-full">
+        <div className="flex justify-center w-full my-6 md:my-0">
+            <div className="w-full relative border-b-2 border-black">
 
-                </div>
-                <div className="flex flex-col w-full justify-between h-full absolute top-0 py-2">
+                <div className="flex flex-col w-full justify-between py-4">
                     <div>
                         <p className="text-2xl md:text-[3rem] font-headerFont pl-6">Heartland Shoppes</p>
                     </div>
-                    <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] ml-12">Discover the heart of shopping at heartland shoppes where quality meets community</p>
-                    <Link to="/shop" className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit mx-auto p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 ">Shop now</Link>
+                    <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] ml-12 my-3">
+                        Discover the heart of shopping at heartland shoppes where quality meets community
+                    </p>
+                    <Link
+                        to="/shop"
+                        className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit mx-auto p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+                    >
+                        Shop now
+                    </Link>
                 </div>
             </div>
         </div>
