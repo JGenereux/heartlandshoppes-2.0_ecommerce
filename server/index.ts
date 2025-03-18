@@ -12,8 +12,15 @@ const PORT = process.env.PORT || 5000
 const app = express()
 
 app.use(cors({
-    origin: ['http://13.59.194.63', 'http://localhost:80'], // ✅ Explicitly allow frontend origin
-    credentials: true, // ✅ Allow sending cookies
+    origin: (origin, callback) => {
+        const allowedOrigins = ['http://13.59.194.63', 'http://localhost:80'];
+        if (allowedOrigins.indexOf(origin || '') !== -1) {
+            callback(null, true);  // Allow the request
+        } else {
+            callback(new Error('Not allowed by CORS'), false);  // Reject the request
+        }
+    },
+    credentials: true,
 }));
 
 app.use('/payment/webhook', express.raw({ type: 'application/json' }));
