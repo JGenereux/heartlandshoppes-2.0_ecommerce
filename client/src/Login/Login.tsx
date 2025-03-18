@@ -96,8 +96,8 @@ function LoginForm() {
                 <input type="password" id="username" className="border-black border-2 w-full pl-1 h-8 rounded-sm" value={password} onChange={(event) => setPassword(event.target.value)}></input>
                 <Link to="/signup" className="underline underline-offset-[1.5px]">Don't have an account yet? Sign up</Link>
             </div>
-            <button onClick={handleForgotPassword} type="button">Forgot Password</button>
-            <button className="my-4 bg-[#f8b4c4] font-button font-semibold w-fit p-1.5 rounded-lg text-lg text-white" type="submit">LOGIN</button>
+            <button onClick={handleForgotPassword} type="button" className="mt-2 bg-[#f8b4c4] font-button font-semibold w-fit p-1 rounded-lg text-md text-white">Forgot Password</button>
+            <button className="mt-2 bg-[#f8b4c4] font-button font-semibold w-fit p-1.5 rounded-lg text-lg text-white" type="submit">Login</button>
         </form >
     </div >
 }
