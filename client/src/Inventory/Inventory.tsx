@@ -171,7 +171,7 @@ function DisplayItem({ item }: DisplayItemProps) {
                     <img src={item?.photos[0]} className="w-full h-[250px] object-contain"></img>
                     <div className="md:text-lg">
                         <p>Name: {item.name}</p>
-                        <p>Price: ${typeof item.price === "number" && item.price.toFixed(2)}</p>
+                        <p>Price: ${item.price.toFixed(2)}</p>
                         <p>Quantity: {item.quantity}</p>
                         <p>Categories: {item.category.length > 1 ? `${item.category.join(", ").slice(0, 10)}...` : `${item.category[0]}`}</p>
                         <p>Description: {item.description.slice(0, 10)}...</p>
@@ -234,7 +234,6 @@ function ModifyItem({ item }: DisplayItemProps) {
                         Authorization: `Bearer ${accessToken}`
                     }
                 })
-                console.log('Response: ', response.data)
                 return response.data
             },
             onSuccess: async () => {
