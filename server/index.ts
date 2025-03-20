@@ -12,11 +12,32 @@ const PORT = process.env.PORT || 5000
 const app = express()
 
 app.use(cors({
-    origin: ['http://13.59.194.63', 'http://localhost', 'https://stripe.com'],
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://heartlandshoppes.ca',
+            'https://www.heartlandshoppes.ca',
+            'http://18.119.6.239',
+            'http://10.0.0.228',
+            'http://localhost:8080',
+	    'http://10.0.0.1/',
+            'http://127.0.0.1:5000',
+            'http://127.0.0.1:8080'
+        ];
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(null, true); // Allow all origins
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 }));
 
-app.use('/payment/webhook', express.raw({ type: 'application/json' }));
+app.options('*', cors());
+   
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json())
 app.use(cookieParser())
 
@@ -35,14 +56,14 @@ import authRouter from './src/Routes/Auth'
 import imageRouter from './src/Routes/Images'
 import paymentRouter from './src/Routes/Payment'
 
-app.use('/inventory', inventoryRouter)
-app.use('/users', userRouter)
-app.use('/orders', orderRouter)
-app.use('/auth', authRouter)
-app.use('/image', imageRouter)
-app.use('/payment', paymentRouter)
+app.use('/api/inventory', inventoryRouter)
+app.use('/api/users', userRouter)
+app.use('/api/orders', orderRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/image', imageRouter)
+app.use('/api/payment', paymentRouter)
 
-app.get('/', (req: any, res: any) => {
+app.get('/api', (req: any, res: any) => {
     res.send('API is running')
 })
 

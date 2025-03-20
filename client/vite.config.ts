@@ -1,8 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite'; // ✅ FIX: Add this import
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
@@ -10,11 +9,12 @@ export default defineConfig({
       usePolling: true,
     },
     host: '0.0.0.0',  // Listen on all network interfaces
-    port: 80,  // Expose on port 3000
+    port: 8080,  // Expose on port 8080
+    allowedHosts: ['heartlandshoppes.ca', 'www.heartlandshoppes.ca'],
     hmr: {
-      protocol: 'ws',  // Use WebSocket protocol for HMR
-      host: '13.59.194.63',  // Adjust WebSocket connection to point to localhost (the Docker host)
-      clientPort: 80,  // Ensure the WebSocket client is on the correct port
+      protocol: 'wss',  // ✅ Change to secure WebSocket (wss)
+      host: 'heartlandshoppes.ca',  // ✅ Match your domain
+      clientPort: 443,  // ✅ WebSockets should use port 443 for HTTPS
     }
   }
 })
