@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { useCart } from "../Contexts/cartContext"
-import { CartItem } from "../interfaces/userinterface"
+import type { CartItem } from "../interfaces/userinterface"
 import axios from "axios"
 import { useAuth } from "../Contexts/authContext"
-const apiUrl = import.meta.env.VITE_API_URL;
+import { ShoppingCart, X, Plus, Minus } from "lucide-react"
+
+const apiUrl = import.meta.env.VITE_API_URL
 
 interface checkoutResponse {
     url: string
@@ -20,51 +22,84 @@ export default function Cart() {
             const res = await axios.post<checkoutResponse>(`${apiUrl}/payment/checkout`, { items: cart })
             const { url } = res.data
 
-            window.location.href = url;
+            window.location.href = url
         } catch (error) {
             window.alert(error)
         }
     }
+
     return (
         <div className="w-full relative">
-            {isOpen ? <div
-                className={`absolute top-0 left-0 md:left-auto md:right-0 z-10 bg-white text-black p-4 rounded shadow-lg transition-all duration-1000 ease-out transform ${isOpen ? 'translate-x-0' : 'translate-x-full'
-                    }`}
-                style={{
-                    visibility: isOpen ? 'visible' : 'hidden',
-                    opacity: isOpen ? 1 : 0,
-                }}
-            >
-                <div className="flex flex-col w-80 max-h-80">
-                    <div className="flex flex-row">
-                        <h3 className="text-xl">Cart</h3>
-                        <button onClick={() => setIsOpen(false)} className="ml-auto cursor-pointer">🛒</button>
-                    </div>
-                    {(!user && cart && cart.length > 0) && <div className="flex font-button font-semibold">
-                        <p>Login to save cart</p>
-                    </div>}
-                    <Items />
-                    <button className="self-center my-2 bg-[#f8b4c4] p-0.5 text-white font-bold text-lg rounded-lg cursor-pointer" onClick={handleCheckout}>Checkout</button>
-                </div>
+            {/* Cart Button */}
+            <div className="flex md:justify-end">
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="relative flex items-center justify-center cursor-pointer"
+                    aria-label="Open shopping cart"
+                >
+                    <ShoppingCart className="h-6 w-6 text-gray-800" />
+                    {cart && cart.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-[#f8b4c4] text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                            {cart.length}
+                        </span>
+                    )}
+                </button>
             </div>
-                :
-                <div className="flex md:justify-end">
-                    <button onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">🛒</button>
-                </div>}
+
+            {/* Cart Dropdown - Positioned like the original */}
+            {isOpen && (
+                <div
+                    className="absolute top-0 left-0 md:left-auto md:right-0 z-10 bg-white text-black p-4 rounded shadow-lg w-80"
+                    style={{
+                        visibility: isOpen ? "visible" : "hidden",
+                        opacity: isOpen ? 1 : 0,
+                    }}
+                >
+                    <div className="flex flex-col w-full max-h-80 overflow-y-auto">
+                        {/* Cart Header */}
+                        <div className="flex flex-row items-center mb-2">
+                            <h3 className="text-xl font-medium">Cart</h3>
+                            <button onClick={() => setIsOpen(false)} className="ml-auto cursor-pointer">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        {/* Login Prompt */}
+                        {!user && cart && cart.length > 0 && (
+                            <div className="flex items-center bg-gray-50 border border-gray-100 rounded-md p-2 mb-3">
+                                <div className="w-1 h-10 bg-[#f8b4c4] rounded-full mr-2"></div>
+                                <div>
+                                    <p className="font-medium text-sm text-gray-800">Login to save your cart</p>
+                                    <p className="text-xs text-gray-500">Your items will be saved for later</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Cart Items */}
+                        <div className="flex flex-col w-full overflow-y-auto space-y-2 my-2">
+                            {cart && cart.length > 0 ? (
+                                cart.map((cartItem, index) => <Item key={index} item={cartItem} />)
+                            ) : (
+                                <div className="mx-auto font-bold py-4">
+                                    <p>No items in cart</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Checkout Button */}
+                        {cart && cart.length > 0 && (
+                            <button
+                                className="self-center my-2 bg-[#f8b4c4] p-2 text-white font-bold text-lg rounded-lg cursor-pointer w-full hover:bg-[#f5a1b5] transition-colors"
+                                onClick={handleCheckout}
+                            >
+                                Checkout
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     )
-}
-
-function Items() {
-    const { cart } = useCart()
-
-    return <div className="flex flex-col w-full overflow-y-auto space-y-2 my-2">
-        {(cart && cart.length > 0) ? cart?.map((cartItem, index) => {
-            return <Item key={index} item={cartItem} />
-        }) : <div className="mx-auto font-regular font-bold">
-            <p>No items in cart</p>
-        </div>}
-    </div>
 }
 
 interface ItemProps {
@@ -72,24 +107,37 @@ interface ItemProps {
 }
 
 function Item({ item }: ItemProps) {
-
     const { addToCart, removeFromCart } = useCart()
-    return <div className="flex flex-row border-black border-1">
-        <img src={item.item?.photos[0]} className="w-[35%] border-black border-2"></img>
-        <div className="flex flex-col pl-2 py-0.5 w-[70%]">
-            <p>{item.item.name}</p>
-            <p>{item.item.price}</p>
-            <p>Options</p>
-            {Object.keys(item.item.options).map((option) => {
-                return <div key={option}>
-                    <p>{item.item.options[option]}</p>
+
+    return (
+        <div className="flex flex-row border border-gray-200 rounded-lg">
+            <img src={item.item?.photos[0] || "/placeholder.svg"} className="w-[35%] object-cover" alt={item.item.name} />
+
+            <div className="flex flex-col pl-2 py-1 w-[65%]">
+                <p className="font-medium text-sm">{item.item.name}</p>
+                <p className="font-semibold text-sm">{item.item.price}</p>
+
+                <p className="text-xs text-gray-500 mt-1">Options</p>
+                {Object.keys(item.item.options).map((option) => (
+                    <div key={option} className="text-xs">
+                        <p>{item.item.options[option]}</p>
+                    </div>
+                ))}
+
+                <div className="flex flex-row self-end space-x-2 border border-gray-300 rounded-lg mr-2 px-1 mt-1">
+                    <button onClick={() => removeFromCart(item)} className="text-gray-600 hover:text-gray-900">
+                        <Minus className="h-3 w-3" />
+                    </button>
+                    <p className="text-sm">{item.quantity}</p>
+                    <button
+                        onClick={() => addToCart({ item: item.item, quantity: item.quantity + 1 })}
+                        className="text-gray-600 hover:text-gray-900"
+                    >
+                        <Plus className="h-3 w-3" />
+                    </button>
                 </div>
-            })}
-            <div className="flex flex-row self-end space-x-2 border-black border-2 mr-4 pl-1 pr-1 rounded-lg">
-                <button onClick={() => removeFromCart(item)}>-</button>
-                <p>{item.quantity}</p>
-                <button onClick={() => addToCart({ item: item.item, quantity: item.quantity + 1 })}>+</button>
             </div>
         </div>
-    </div>
+    )
 }
+

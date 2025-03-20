@@ -71,7 +71,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const addToCart = (item: CartItem) => {
         setCart((prevCart) => {
-            if (!prevCart || prevCart.length == 0) return [{ ...item, quantity: item.quantity || 1 }];
+
+            if (!prevCart || prevCart.length == 0) return [{ ...item, quantity: item.quantity > 0 ? item.quantity : 1 }];
 
             //Check if item exists at all by name first
             const itemIndex = prevCart.findIndex(
@@ -83,12 +84,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (itemIndex !== -1) {
                 return prevCart.map((currItem, index) =>
                     index === itemIndex
-                        ? { ...currItem, quantity: item.quantity }
+                        ? { ...currItem, quantity: item.quantity > 0 ? item.quantity : 1 }
                         : currItem
                 );
             }
 
-            return [...prevCart, { ...item, quantity: item.quantity }];
+            return [...prevCart, { ...item, quantity: item.quantity > 0 ? item.quantity : 1 }];
         });
     }
 
