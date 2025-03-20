@@ -122,10 +122,10 @@ function AboutPage() {
     const [partners] = useState<Partner[]>([
         {
             id: "1",
-            name: "Artisan Crafts Co.",
-            location: "Portland, Oregon",
+            name: "mbym Knitwear",
+            location: "Medicine Hat, AB",
             description:
-                "Our primary woodworking partner who helps create our signature wooden items. They use sustainable materials and traditional crafting techniques.",
+                "I have recently partnered with 'nbym Knitware'. Debbie, a local knitter in my community of Medicine Hat, designs and creates knitted apparel and giftware.",
         },
     ])
 
@@ -325,7 +325,7 @@ function AboutPage() {
                 {/* About Store Section */}
                 <div className="mb-16">
                     <div className="mb-6">
-                        <h2 className="text-3xl font-bold">About Our Store</h2>
+                        <h2 className="text-3xl font-bold">About HeartlandShoppes</h2>
                     </div>
 
                     <div className="prose max-w-none">
