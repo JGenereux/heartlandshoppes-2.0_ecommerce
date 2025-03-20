@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import Drawer from "../Navbar/Drawer"
-import { useAuth } from "@/Contexts/authContext"
+import { useAuth } from "../Contexts/authContext"
 import axios, { isAxiosError } from "axios"
 import Error from "../Loading/Error"
 const apiUrl = import.meta.env.VITE_API_URL;

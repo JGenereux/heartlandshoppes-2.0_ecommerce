@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.59.194.63 << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@18.119.6.239 << 'EOF'
             cd /home/ubuntu/heartlandshoppes-2.0 || exit
             git pull origin main || exit
             sudo docker-compose down || exit
