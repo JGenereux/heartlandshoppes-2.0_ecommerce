@@ -134,8 +134,8 @@ function SearchBar({ ordersData, setOrders }: SearchBarProps) {
     };
 
 
-    return <div className="flex flex-row items-center my-2 pl-2 space-x-2">
-        <div className="flex flex-row w-fit items-center relative">
+    return <div className="flex flex-row flex-wrap space-y-2 items-center my-2 pl-2 space-x-2">
+        <div className="flex flex-row flex-wrap w-fit items-center relative">
             <input
                 type="text"
                 placeholder="Search"
