@@ -2,13 +2,13 @@ import type React from "react"
 
 import { useState, useEffect, useRef, FormEvent } from "react"
 import { Mail, MapPin, ImagePlus, Edit, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "../components/ui/button"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
 import Drawer from "../Navbar/Drawer"
 import { useAuth } from "@/Contexts/authContext"
 import axios, { isAxiosError } from "axios"
-import Error from "@/Loading/Error"
+import Error from "../Loading/Error"
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // Custom Modal Component
