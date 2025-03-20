@@ -12,9 +12,9 @@ export default defineConfig({
     port: 8080,  // Expose on port 8080
     allowedHosts: ['heartlandshoppes.ca', 'www.heartlandshoppes.ca'],
     hmr: {
-      protocol: 'wss',  // ✅ Change to secure WebSocket (wss)
-      host: 'heartlandshoppes.ca',  // ✅ Match your domain
-      clientPort: 443,  // ✅ WebSockets should use port 443 for HTTPS
+      protocol: 'wss',  
+      host: 'heartlandshoppes.ca',  
+      clientPort: 443,  
     }
   }
 })

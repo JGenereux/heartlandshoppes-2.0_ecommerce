@@ -2,7 +2,6 @@ import { Route, Routes } from "react-router-dom"
 import Home from "./Home/Home"
 import Shop from "./Shop/Shop"
 import About from "./About/About"
-import Contact from "./Contact/Contact"
 import Inventory from "./Inventory/Inventory"
 import Login from "./Login/Login"
 import ItemPage from "./Shop/ItemPage"
@@ -37,7 +36,6 @@ function App() {
       <Route path="/shop/*" element={<Shop />} />
       <Route path="/shop/item/:name" element={<ItemPage />} />
       <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
       <Route path="/inventory" element={<ProtectedComponent children={<Inventory />} allowedRoles={['admin']} />} />
       <Route path="/login" element={<Login />} />
       <Route path="/reset/:token" element={<Reset />} />

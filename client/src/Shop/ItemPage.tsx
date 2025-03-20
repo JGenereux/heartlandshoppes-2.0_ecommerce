@@ -54,10 +54,10 @@ interface DisplayItemProps {
 function DisplayItem({ item }: DisplayItemProps) {
     const [photoUrl, setPhotoUrl] = useState(item?.photos[0] || "")
     return (
-        <div className="w-[90%] md:w-[75%] h-fit flex flex-col mx-auto py-2 shadow-black shadow-lg">
-            <div className="flex flex-col md:flex-row w-full h-[90%] bg-white py-2">
-                <div className="flex flex-col w-fit h-full items-center mx-auto">
-                    <img src={photoUrl} className="h-[50vh] md:h-[65vh] object-contain w-full"></img>
+        <div className="w-[95%] md:w-[75%] h-fit flex flex-col mx-auto shadow-black shadow-lg pb-4">
+            <div className="flex flex-col md:flex-row w-full h-[90%] bg-white">
+                <div className="flex flex-col w-fit h-full items-center mx-auto space-y-2 md:space-y-0 py-2">
+                    <img src={photoUrl} className="max-h-[50vh] md:max-h-[65vh] object-contain max-w-[80%]"></img>
                     <ImageSlider item={item} setPhotoUrl={setPhotoUrl} />
                 </div>
                 <div className="w-full md:w-1/2 h-full flex flex-col px-4 md:pl-0">
@@ -75,18 +75,25 @@ interface ImageSliderProps {
 }
 
 function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
+    const [selectedIndex, setSelectedIndex] = useState(0)
     const photosSliced = item.photos.slice(0, 3)
+
+    const handleButtonClick = (photoIndex: number) => {
+        setPhotoUrl(photosSliced[photoIndex])
+        setSelectedIndex(photoIndex)
+    }
+
     return < div className="w-full flex flex-col  items-center" >
         <div className="flex flex-row w-full p-2 justify-center space-x-3">
             <div className="w-full flex flex-row space-x-2 justify-center">
                 {photosSliced.map((photo, index) => {
-                    return <img key={index} src={photo} className="w-auto h-18" onClick={() => setPhotoUrl(photo)}></img>
+                    return <img key={index} src={photo} className="cursor-pointer w-18 md:w-auto h-18" onClick={() => setPhotoUrl(photo)}></img>
                 })}
             </div>
         </div>
         <div className="flex flex-row space-x-2 pb-1">
-            {photosSliced.map((photo, index) => {
-                return <button key={photo} className="w-4 h-4 rounded-lg border-black border-2 cursor-pointer" onClick={() => setPhotoUrl(photosSliced[index])}></button>
+            {(photosSliced && photosSliced.length > 0) && photosSliced.map((photo, index) => {
+                return <button key={photo} style={index === selectedIndex ? { backgroundColor: 'pink' } : {}} className="w-4 h-4 rounded-lg border-gray-400 border-2 cursor-pointer focus:ring-actionColor hover:border-actionColor focus:border-actionColor transition-colors" onClick={() => handleButtonClick(index)}></button>
             })}
         </div>
     </div >
@@ -133,8 +140,8 @@ function ItemDescription({ item }: DisplayItemProps) {
 
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
         <div className="flex flex-col">
-            <h3 className="text-3xl font-headerFont">{item.name}</h3>
-            <p className="text-xl font-regular">${item.price.toFixed(2)}</p>
+            <h3 className="text-2xl md:text-3xl font-headerFont">{item.name}</h3>
+            <p className="text-lg md:text-xl font-regular">${item.price.toFixed(2)}</p>
         </div>
         <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-24">
             <DisplayOptions options={item.options} setItem={setTempItem} />
@@ -148,10 +155,10 @@ function ItemDescription({ item }: DisplayItemProps) {
                 <button onClick={handleAddQuantity} className="cursor-pointer">+</button>
             </div>
         </div>}
-        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="md:self-start self-center w-fit my-4 text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button">Add To Cart</button>
-        <div className="flex flex-col pt-4 w-[95%]">
+        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="md:self-start self-center w-fit my-4 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button">Add To Cart</button>
+        <div className="flex flex-col pt-4 w-[100%]">
             <p className="font-button font-bold">About this item: </p>
-            <p className="font-regular text-md">{item.description}</p>
+            <p className="font-regular text-md ml-2 md:ml-0">{item.description}</p>
         </div>
     </div>
 }
@@ -175,7 +182,7 @@ function DisplayOptions({ options, setItem }: DisplayOptionsProps) {
     return <div className="flex flex-col space-y-2">
         {Object.keys(options).map((option) => {
             return <label key={option}>
-                {option}:
+                {option.charAt(0).toUpperCase() + option.slice(1)}:
                 <DisplayOption option={option} optionValues={options} currOptions={currOptions} setCurrOptions={setCurrOptions} />
             </label>
         })}
@@ -237,9 +244,11 @@ function Reviews({ item }: DisplayItemProps) {
         </div>
         {leaveReview && <AddReview item={item} setLeaveReview={setLeaveReview} />}
         <div className="flex flex-col space-y-6 mb-2">
-            {item.reviews?.map((review: Review, index) => {
+            {(item && item.reviews.length > 0) ? item.reviews?.map((review: Review, index) => {
                 return <DisplayReview key={index} review={review} />
-            })}
+            }) :
+                <p className="mx-auto font-regular">There are no reviews for this item yet.</p>
+            }
         </div>
     </div>
 }

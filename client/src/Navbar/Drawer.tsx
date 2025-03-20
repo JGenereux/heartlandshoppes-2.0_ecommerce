@@ -64,7 +64,7 @@ export default function Drawer() {
         };
     }, [])
 
-    return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit  bg-backgroundColor shadow-gray-500 shadow-sm items-center fixed top-0 left-0 md:static z-50" : "flex flex-row w-full h-fit items-center fixed top-0 left-0 md:static z-50"}>
+    return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit  bg-backgroundColor shadow-pink-300 shadow-sm items-center fixed top-0 left-0 md:static z-50" : "flex flex-row w-full h-fit items-center fixed top-0 left-0 md:static z-50"}>
         <div className={isDesktop ? "flex flex-col md:flex-row w-full h-full my-1" : "flex flex-col md:flex-row w-fit h-fit fixed top-0 bg-backgroundColor shadow-black shadow-md"}>
             <div className={isOpen ? "flex flex-row cursor-pointer w-fit items-center pr-2 md:pr-0 " : "cursor-pointer w-full h-full "}>
                 {<img src={menuIcon} onClick={handleDrawer} className="w-8 h-8 "></img>}
@@ -74,7 +74,6 @@ export default function Drawer() {
                 <Link to="/" className="hover:text-blue-500 transition-colors duration-300">Home</Link>
                 <Link to="/shop" className="hover:text-blue-500 transition-colors duration-300">Shop</Link>
                 <Link to="/about" className="hover:text-blue-500 transition-colors duration-300">About</Link>
-                <Link to="/contact" className="hover:text-blue-500 transition-colors duration-300">Contact</Link>
                 {isDesktop && <SearchBar search={search} setSearch={setSearch} reference={searchRef} />}
                 <div className="flex flex-col md:flex-row md:ml-auto self-start md:self-auto md:mr-6 md:space-x-6">
                     {user?.role === 'admin' && <Link to="/inventory" className="hover:text-blue-500 transition-colors duration-300">Inventory</Link>}
@@ -257,12 +256,12 @@ function DisplayItem({ item, isFirst, isLast }: DisplayItemProps) {
         ${isFirst ? 'rounded-t-lg' : ''}
         ${isLast ? 'rounded-b-lg' : ''}
     `} onClick={handleNav}>
-        <div className="w-14 h-20 justify-center">
-            <img src={item.photos[0]} className="w-full max-h-full aspect-auto"></img>
+        <div className="w-14 h-full justify-center">
+            <img src={item.photos[0]} className="w-auto h-max object-contain"></img>
         </div>
         <div className="flex flex-col h-full ml-2">
             <p>{item.name}</p>
-            <p>${item.price}</p>
+            <p>${item.price.toFixed(2)}</p>
         </div>
     </div>
 }

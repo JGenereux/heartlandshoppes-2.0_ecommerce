@@ -9,12 +9,12 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export default function Shop() {
     return <Routes>
         <Route path="/" element={<ShopMenu category="Featured" />} />
-        <Route path="tshirts" element={<ShopMenu category="T-Shirts" />} />
-        <Route path="tumblercups" element={<ShopMenu category="Tumbler Cups" />} />
+        <Route path="tumblers" element={<ShopMenu category="Tumblers" />} />
+        <Route path="accessories" element={<ShopMenu category="Tumbler Accessories" />} />
         <Route path="homedecor" element={<ShopMenu category="Home Decor" />} />
         <Route path="seasonal" element={<ShopMenu category="Seasonal" />} />
-        <Route path="craftingsupplies" element={<ShopMenu category="Crafting Supplies" />} />
-        <Route path="accessories" element={<ShopMenu category="Tumbler Accessories" />} />
+        <Route path="customorder" element={<ShopMenu category="Custom Order" />} />
+        <Route path="miscellaneous" element={<ShopMenu category="Miscellaneous" />} />
     </Routes>
 }
 
@@ -54,12 +54,12 @@ function CategoriesBar({ category }: categoryProps) {
             <p className="text-md md:text-lg">{category}</p>
             <div className="flex flex-row flex-wrap w-full text-md md:text-lg space-x-4 md:space-x-10 justify-center">
                 <Link to="/shop">Featured</Link>
-                <Link to="/shop/tshirts">T-Shirts</Link>
-                <Link to="/shop/tumblercups">Tumbler Cups</Link>
+                <Link to="/shop/tumblers">Tumblers</Link>
+                <Link to="/shop/accessories">Tumbler Accessories</Link>
                 <Link to="/shop/homedecor">Home Decor</Link>
                 <Link to="/shop/seasonal">Seasonal</Link>
-                <Link to="/shop/craftingsupplies">Crafting Supplies</Link>
-                <Link to="/shop/accessories">Tumbler Accessories</Link>
+                <Link to="/shop/customorder">Custom Order</Link>
+                <Link to="/shop/miscellaneous">Miscellaneous</Link>
             </div>
         </div>
     )

@@ -55,6 +55,7 @@ import orderRouter from './src/Routes/Orders'
 import authRouter from './src/Routes/Auth'
 import imageRouter from './src/Routes/Images'
 import paymentRouter from './src/Routes/Payment'
+import emailRouter from './src/Routes/Emails'
 
 app.use('/api/inventory', inventoryRouter)
 app.use('/api/users', userRouter)
@@ -62,6 +63,7 @@ app.use('/api/orders', orderRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/image', imageRouter)
 app.use('/api/payment', paymentRouter)
+app.use('/api/email', emailRouter)
 
 app.get('/api', (req: any, res: any) => {
     res.send('API is running')

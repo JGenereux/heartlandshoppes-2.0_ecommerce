@@ -32,7 +32,7 @@ function Header() {
 
                 <div className="flex flex-col w-full justify-between py-4">
                     <div>
-                        <p className="text-2xl md:text-[3rem] font-headerFont pl-6">Heartland Shoppes</p>
+                        <p className="text-2xl md:text-[3rem] font-headerFont pl-6">HeartlandShoppes</p>
                     </div>
                     <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] ml-12 my-3">
                         Discover the heart of shopping at heartland shoppes where quality meets community
