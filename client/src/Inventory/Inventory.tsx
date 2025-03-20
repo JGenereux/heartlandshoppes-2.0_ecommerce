@@ -175,13 +175,13 @@ function DisplayItem({ item }: DisplayItemProps) {
                         <p>Quantity: {item.quantity}</p>
                         <p>Categories: {item.category.length > 1 ? `${item.category.join(", ").slice(0, 10)}...` : `${item.category[0]}`}</p>
                         <p>Description: {item.description.slice(0, 10)}...</p>
-                        <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-1">
                             {Object.keys(item.options).map((option) => {
                                 return <label key={option}>
-                                    {option}
-                                    <div className="grid grid-cols-2">
+                                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                                    <div className="">
                                         {item.options[option].map((value) => {
-                                            return <p key={value} className="ml-2">{value}</p>
+                                            return <p key={value} className="ml-1">-{value}</p>
                                         })}
                                     </div>
                                 </label>
