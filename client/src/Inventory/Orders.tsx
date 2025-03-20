@@ -332,7 +332,7 @@ function Status({ status, setStatus, editOrder }: StatusProps) {
                 <button className="bg-[#008000] cursor-pointer rounded-full px-2 py-1 transition ease-in-out duration-300 hover:translate-y-1 hover:scale-110" onClick={() => setStatus('fulfilled')}>Fulfilled</button>
             </div>
         </label>
-    </div> : <div style={{ backgroundColor: `${statusColor}` }} className="rounded-full px-2 py-1 text-white font-bold font-button border-black border-2 shadow-gray-500 shadow-sm">
+    </div> : <div style={{ backgroundColor: `${statusColor}` }} className="ml-auto rounded-full px-2 py-1 text-white font-bold font-button border-black border-2 shadow-gray-500 shadow-sm">
         <p>{status.charAt(0).toUpperCase() + status.slice(1)}</p>
     </div>;
 }
