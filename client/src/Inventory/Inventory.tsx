@@ -626,7 +626,8 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
             const res = await axios.post<ImageResponse>(`${apiUrl}/image/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
-                }
+                },
+		withCredentials: true
             })
 
             if (setItem) {

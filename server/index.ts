@@ -19,11 +19,11 @@ app.use(cors({
             'http://18.119.6.239',
             'http://10.0.0.228',
             'http://localhost:8080',
-	    'http://10.0.0.1/',
+            'http://10.0.0.1/',
             'http://127.0.0.1:5000',
             'http://127.0.0.1:8080'
         ];
-        // Allow requests with no origin (like mobile apps or curl requests)
+        // Allow requests with no origin
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
@@ -31,11 +31,10 @@ app.use(cors({
         }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    exposedHeaders: ['Set-Cookie', 'Date', 'ETag'],
     credentials: true,
 }));
-
-app.options('*', cors());
    
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json())
