@@ -76,23 +76,23 @@ interface ImageSliderProps {
 
 function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
     const [selectedIndex, setSelectedIndex] = useState(0)
-    const photosSliced = item.photos.slice(0, 3)
+    const photos = item.photos
 
     const handleButtonClick = (photoIndex: number) => {
-        setPhotoUrl(photosSliced[photoIndex])
+        setPhotoUrl(photos[photoIndex])
         setSelectedIndex(photoIndex)
     }
 
-    return < div className="w-full flex flex-col  items-center" >
+    return < div className="w-full flex flex-col  items-center justify-center" >
         <div className="flex flex-row w-full p-2 justify-center space-x-3">
-            <div className="w-full flex flex-row space-x-2 justify-center">
-                {photosSliced.map((photo, index) => {
-                    return <img key={index} src={photo} className="cursor-pointer w-18 md:w-auto h-18" onClick={() => setPhotoUrl(photo)}></img>
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                {photos.map((photo, index) => {
+                    return <img key={index} src={photo} className="cursor-pointer  w-18 object-contain md:w-auto h-18" onClick={() => setPhotoUrl(photo)}></img>
                 })}
             </div>
         </div>
-        <div className="flex flex-row space-x-2 pb-1">
-            {(photosSliced && photosSliced.length > 0) && photosSliced.map((photo, index) => {
+        <div className="grid grid-cols-5 pb-1 gap-2">
+            {(photos && photos.length > 0) && photos.map((photo, index) => {
                 return <button key={photo} style={index === selectedIndex ? { backgroundColor: 'pink' } : {}} className="w-4 h-4 rounded-lg border-gray-400 border-2 cursor-pointer focus:ring-actionColor hover:border-actionColor focus:border-actionColor transition-colors" onClick={() => handleButtonClick(index)}></button>
             })}
         </div>
