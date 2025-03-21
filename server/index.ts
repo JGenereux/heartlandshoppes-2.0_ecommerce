@@ -12,28 +12,28 @@ const PORT = process.env.PORT || 5000
 const app = express()
 
 app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = [
-            'https://heartlandshoppes.ca',
-            'https://www.heartlandshoppes.ca',
-            'http://18.119.6.239',
-            'http://10.0.0.228',
-            'http://localhost:8080',
-            'http://10.0.0.1/',
-            'http://127.0.0.1:5000',
-            'http://127.0.0.1:8080'
-        ];
-        // Allow requests with no origin
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(null, true); // Allow all origins
-        }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-    exposedHeaders: ['Set-Cookie', 'Date', 'ETag'],
-    credentials: true,
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://heartlandshoppes.ca',
+      'https://www.heartlandshoppes.ca',
+      'http://18.119.6.239',
+      'http://10.0.0.228',
+      'http://localhost:8080',
+      'http://10.0.0.1/',
+      'http://127.0.0.1:5000',
+      'http://127.0.0.1:8080'
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin); // ✅ Echo back the origin
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie', 'Date', 'ETag'],
 }));
    
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
