@@ -4,7 +4,6 @@ import axios from "axios";
 import FormData from "form-data";
 
 const router = require("express").Router();
-
 const upload: Multer = multer({ storage: multer.memoryStorage() });
 
 
@@ -48,6 +47,7 @@ async function uploadImage(imageBuffer: Buffer, fileName: string): Promise<strin
  * @param {String} fileName The name of the file
  */
 router.route("/").post(upload.single("image"), async (req: Request, res: Response) => {
+	console.log('IMage upload route called')
   const { filename } = req.body;
   try {
     if (!req.file) {
