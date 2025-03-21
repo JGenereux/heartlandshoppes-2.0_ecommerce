@@ -319,7 +319,8 @@ function ModifyItem({ item }: DisplayItemProps) {
                 {photos?.map((photo) => {
                     return <PhotoUpload key={photo} item={item} photo={photo} setPhotos={setPhotos} />
                 })}
-                <PhotoUpload item={item} setPhotos={setPhotos} />
+
+                <PhotoUpload item={item} setPhotos={setPhotos} index={20} />
             </div>
             <button
                 type="submit"
@@ -601,16 +602,19 @@ interface PhotoUploadProps {
     photo?: string,
     setItem?: (item: Item) => void,
     setPhotos?: React.Dispatch<React.SetStateAction<string[]>>;
+    index?: number
 }
 
-function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
-    const [photoUrl, setPhotoUrl] = useState<string>(photo ? photo : '')
+function PhotoUpload({ item, photo, setItem, setPhotos, index }: PhotoUploadProps) {
+
+    const [photoUrl, setPhotoUrl] = useState<string>(photo || '')
 
     useEffect(() => {
         if (item.photos.length === 0) {
             setPhotoUrl('')
         }
     }, [item.photos])
+
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
 
@@ -626,7 +630,8 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
             const res = await axios.post<ImageResponse>(`${apiUrl}/image/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
-                }
+                },
+                withCredentials: true
             })
 
             if (setItem) {
@@ -636,7 +641,10 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
             } else if (setPhotos) {
                 setPhotos((prevPhotos) => [...prevPhotos, res.data.imageUrl])
             }
-            setPhotoUrl(res.data.imageUrl)
+            if (index === 20) {
+                console.log('set photo url')
+            }
+
             event.target.value = ""
         } catch (error) {
             console.error(error)
