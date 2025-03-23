@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import menuIcon from '../assets/menuicon.png'
 import { Link } from 'react-router-dom'
 import Cart from './Cart'
@@ -10,7 +10,10 @@ import axios from 'axios'
 import Error from '../Loading/Error'
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export default function Drawer() {
+interface DrawerProps {
+    drawerRef?: RefObject<HTMLDivElement | null>
+}
+export default function Drawer({ drawerRef }: DrawerProps) {
     const { user } = useAuth()
     const [viewAccount, setViewAccount] = useState(false)
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
@@ -64,7 +67,7 @@ export default function Drawer() {
         };
     }, [])
 
-    return <div className={isOpen ? "flex flex-row w-fit md:w-full h-fit  bg-backgroundColor shadow-pink-300 shadow-sm items-center fixed top-0 left-0 md:static z-50" : "flex flex-row w-full h-fit items-center fixed top-0 left-0 md:static z-50"}>
+    return <div ref={drawerRef} className={isOpen ? "flex flex-row w-fit md:w-full h-fit  bg-backgroundColor shadow-pink-300 shadow-sm items-center fixed top-0 left-0 md:static z-50" : "flex flex-row w-full h-fit items-center fixed top-0 left-0 md:static z-50"}>
         <div className={isDesktop ? "flex flex-col md:flex-row w-full h-full my-1" : "flex flex-col md:flex-row w-fit h-fit fixed top-0 bg-backgroundColor shadow-black shadow-md"}>
             <div className={isOpen ? "flex flex-row cursor-pointer w-fit items-center pr-2 md:pr-0 " : "cursor-pointer w-full h-full "}>
                 {<img src={menuIcon} onClick={handleDrawer} className="w-8 h-8 "></img>}

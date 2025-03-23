@@ -33,14 +33,31 @@ function ShopMenu({ category }: ShopMenuProps) {
         gcTime: 10 * 60 * 1000,
         refetchInterval: 10 * 60 * 1000
     })
+    const navigate = useNavigate()
 
-    return <div>
+    const handleCustomRequest = () => {
+        navigate('/?customOrder=true')
+    }
+
+    return <div className="mb-4">
         <Drawer />
         <CategoriesBar category={category} />
         {(isPending || isFetching) ? <div className="flex flex-col w-full items-center justify-center p-12 space-y-1.5">
             <p className="font-regular font-bold text-xl">Loading Shop Items</p>
             <Loading />
-        </div> : <DisplayItems items={inventoryData} />}
+        </div> : <div className="flex flex-col">
+            <DisplayItems items={inventoryData} />
+            {category.toLowerCase().trim() === "custom order" && <div className="w-fit mx-auto text-center">
+                <p className="font-bold font-regular">Want a custom order?</p>
+                <button
+                    type="button"
+                    onClick={handleCustomRequest}
+                    className="w-full bg-actionColor hover:actionColor/90 text-primary-foreground font-button font-medium py-2 px-4 rounded-md transition-colors"
+                >
+                    Request Custom Order
+                </button>
+            </div>}
+        </div>}
     </div>
 }
 

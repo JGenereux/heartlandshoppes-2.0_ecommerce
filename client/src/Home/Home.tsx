@@ -1,9 +1,9 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, RefObject, useEffect, useRef, useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios, { isAxiosError } from "axios";
 import { Item } from "../interfaces/iteminterface";
@@ -14,12 +14,24 @@ import Error from "../Loading/Error";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Home() {
+    const [searchParams] = useSearchParams();
+
+    const drawerRef = useRef<HTMLDivElement | null>(null);
+    const customProdRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const customOrder = searchParams.get('customOrder')
+        if (customOrder === 'true' && customProdRef.current) {
+            customProdRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+    }, [searchParams])
+
     return (
         <div className="h-screen">
-            <Drawer />
+            <Drawer drawerRef={drawerRef} />
             <Header />
             <Featured />
-            <CustomProduct />
+            <CustomProduct customProdRef={customProdRef} />
             <Footer />
         </div>
     )
@@ -184,11 +196,15 @@ function DisplayItem({ item }: DisplayItemProps) {
     )
 }
 
-function CustomProduct() {
+interface CustomProductProps {
+    customProdRef: RefObject<HTMLDivElement | null>
+}
+
+function CustomProduct({ customProdRef }: CustomProductProps) {
     const [formOpen, setFormOpen] = useState<boolean>(false)
 
     return (
-        <div className="flex flex-col w-full pb-2 pl-2 py-2 md:py-6 relative">
+        <div ref={customProdRef} className="flex flex-col w-full pb-2 pl-2 py-2 md:py-6 relative">
             <h3 className="text-2xl lg:text-3xl font-headerFont">Express yourself with a unique homemade gift</h3>
             <div className="flex flex-col space-y-2 text-lg w-[95%] self-center font-regular my-1">
                 <p>How would you like to express yourself? Guaranteed, family and friends will admire and appreciate your custom handmade item, as intended. Many of these custom handmade gifts are very personal and do not appear in our catalogue. Don't let what you see in our catalogue limit your creativity and inspiration. If you can dream it, Heartland Shoppes can help bring it to life.</p>
@@ -227,13 +243,13 @@ interface CustomOrderFormProps {
 }
 
 function CustomOrderForm({ setFormOpen }: CustomOrderFormProps) {
+    const formRef = useRef<HTMLFormElement | null>(null);
     const [message, setMessage] = useState<Message>({
         name: "", email: "", message: ""
     })
     const [error, setError] = useState("")
     const [messageSent, setMessageSent] = useState<boolean>(false)
 
-    const formRef = useRef<HTMLFormElement | null>(null);
 
     const handleClickOutsideSearch = (event: MouseEvent) => {
         if (formRef.current && !formRef.current.contains(event.target as Node)) {
@@ -282,9 +298,9 @@ function CustomOrderForm({ setFormOpen }: CustomOrderFormProps) {
         }
     }
 
-    return <div className="absolute w-full z-[50]">
+    return <div className="absolute w-[80%] md:w-full z-[50] bottom-4">
         {(error && error.length > 0) && <Error message={error} />}
-        <div className="bg-background rounded-lg py-4 px-4 shadow-sm w-[33%] mx-auto">
+        <div className="bg-background rounded-lg py-4 px-4 shadow-sm w-[90%] md:w-[33%] mx-auto">
             <h3 className="text-xl font-semibold mb-4 text-primary font-headerFont">Request custom order</h3>
             <form className="space-y-4" onSubmit={sendMessage} ref={formRef}>
                 <div>
