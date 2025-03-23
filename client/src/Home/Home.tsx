@@ -22,7 +22,7 @@ export default function Home() {
     useEffect(() => {
         const customOrder = searchParams.get('customOrder')
         if (customOrder === 'true' && customProdRef.current) {
-            customProdRef.current.scrollIntoView({ behavior: 'smooth' })
+            customProdRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
         }
     }, [searchParams])
 
