@@ -6,7 +6,6 @@ import axios from "axios";
 import Loading from "../Loading/Loading";
 import { Button } from "../components/ui/button"
 import { Label } from "../components/ui/label"
-import { useAuth } from "@/Contexts/authContext";
 import { useEffect, useState } from "react";
 import { Edit, ImagePlus, X } from "lucide-react";
 import Modal from "@mui/material/Modal";
@@ -71,14 +70,13 @@ function ShopMenu({ category }: ShopMenuProps) {
 }
 
 function CustomOrderSlide() {
-    const { user } = useAuth();
     const [imagesModalOpen, setImagesModalOpen] = useState(false)
     const [currentImage, setCurrentImage] = useState(0)
-    const [images, setImages] = useState([
+    const images = [
         "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?q=80&w=1200&auto=format&fit=crop",
         "https://images.unsplash.com/photo-1556760544-74068565f05c?q=80&w=1200&auto=format&fit=crop",
         "https://images.unsplash.com/photo-1464316325666-63beaf639dbb?q=80&w=1200&auto=format&fit=crop",
-    ])
+    ]
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -122,19 +120,6 @@ function CustomOrderSlide() {
                     ))}
                 </div>
             </div>
-
-            {/* Edit Images Button */}
-            {user && user.role === "admin" && (
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm"
-                    onClick={() => setImagesModalOpen(true)}
-                >
-                    <ImagePlus className="w-4 h-4 mr-2" />
-                    Edit Images
-                </Button>
-            )}
 
             {/* Images Modal */}
             <Modal open={imagesModalOpen}
