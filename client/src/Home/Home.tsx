@@ -298,9 +298,9 @@ function CustomOrderForm({ setFormOpen }: CustomOrderFormProps) {
         }
     }
 
-    return <div className="absolute w-[80%] md:w-full z-[50] bottom-4">
+    return <div className="absolute w-[80%] md:w-[95%] z-[50] bottom-4">
         {(error && error.length > 0) && <Error message={error} />}
-        <div className="bg-background rounded-lg py-4 px-4 shadow-sm w-[90%] md:w-[33%] mx-auto">
+        <div className="bg-background rounded-lg py-4 px-4 shadow-sm w-[90%] md:w-[40%] mx-auto">
             <h3 className="text-xl font-semibold mb-4 text-primary font-headerFont">Request custom order</h3>
             <form className="space-y-4" onSubmit={sendMessage} ref={formRef}>
                 <div>
