@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { Item } from "../interfaces/iteminterface";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
@@ -185,8 +185,10 @@ function DisplayItem({ item }: DisplayItemProps) {
 }
 
 function CustomProduct() {
+    const [formOpen, setFormOpen] = useState<boolean>(false)
+
     return (
-        <div className="flex flex-col w-full pb-2 pl-2 py-2 md:py-4">
+        <div className="flex flex-col w-full pb-2 pl-2 py-2 md:py-6 relative">
             <h3 className="text-2xl lg:text-3xl font-headerFont">Express yourself with a unique homemade gift</h3>
             <div className="flex flex-col space-y-2 text-lg w-[95%] self-center font-regular my-1">
                 <p>How would you like to express yourself? Guaranteed, family and friends will admire and appreciate your custom handmade item, as intended. Many of these custom handmade gifts are very personal and do not appear in our catalogue. Don't let what you see in our catalogue limit your creativity and inspiration. If you can dream it, Heartland Shoppes can help bring it to life.</p>
@@ -194,8 +196,9 @@ function CustomProduct() {
             </div>
             <div className="flex flex-col mx-auto space-y-1 my-2">
                 <p className="font-regular text-2xl">Want a custom product?</p>
-                <button className="mx-auto w-fit bg-[#f8b4c4] font-semibold text-2xl text-white p-1.5 rounded-md font-button  cursor-pointer transition-transform transform hover:scale-110 active:scale-95">Request Product</button>
+                <button className="mx-auto w-fit bg-[#f8b4c4] font-semibold text-2xl text-white p-1.5 rounded-md font-button  cursor-pointer transition-transform transform hover:scale-110 active:scale-95" onClick={() => setFormOpen(true)}>Request Product</button>
             </div>
+            {formOpen && <CustomOrderForm setFormOpen={setFormOpen} />}
         </div>
     )
 }
@@ -211,4 +214,122 @@ function Footer() {
             </div>
         </div>
     )
+}
+
+interface Message {
+    name: string,
+    email: string,
+    message: string
+}
+
+interface CustomOrderFormProps {
+    setFormOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+function CustomOrderForm({ setFormOpen }: CustomOrderFormProps) {
+    const [message, setMessage] = useState<Message>({
+        name: "", email: "", message: ""
+    })
+    const [error, setError] = useState("")
+    const [messageSent, setMessageSent] = useState<boolean>(false)
+
+    const formRef = useRef<HTMLFormElement | null>(null);
+
+    const handleClickOutsideSearch = (event: MouseEvent) => {
+        if (formRef.current && !formRef.current.contains(event.target as Node)) {
+            setFormOpen(false);
+        }
+    }
+
+    useEffect(() => {
+        window.addEventListener('mousedown', handleClickOutsideSearch)
+        const originalStyle = document.body.style.overflow;
+
+        // Apply blur to everything except the navbar
+        document.body.classList.add('blur-background');
+
+        return () => {
+            window.removeEventListener("mousedown", handleClickOutsideSearch);
+            // Clean up when component unmounts or search becomes false
+            document.body.classList.remove('blur-background');
+            document.body.style.overflow = originalStyle;
+        };
+    }, [])
+
+    const handleChangeMessage = (property: keyof Message, value: string) => {
+        setMessage((prevMessage) => ({
+            ...prevMessage,
+            [property]: value
+        }))
+    }
+
+    const sendMessage = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (message.email.length === 0 || message.name.length === 0 || message.message.length === 0) {
+            setError("All inputs must be filled before sending inquiry")
+            return
+        }
+
+        try {
+            const res = await axios.post(`${apiUrl}/email`, { userInquiry: message })
+            if (res.status === 200) {
+                setMessageSent(true)
+            }
+        } catch (error) {
+            if (isAxiosError(error) && error.response) {
+                setError(error.response.data)
+            }
+        }
+    }
+
+    return <div className="absolute w-full z-[50]">
+        {(error && error.length > 0) && <Error message={error} />}
+        <div className="bg-background rounded-lg py-4 px-4 shadow-sm w-[33%] mx-auto">
+            <h3 className="text-xl font-semibold mb-4 text-primary font-headerFont">Request custom order</h3>
+            <form className="space-y-4" onSubmit={sendMessage} ref={formRef}>
+                <div>
+                    <label htmlFor="contactName" className="block text-sm font-medium text-muted-foreground mb-1">
+                        Name
+                    </label>
+                    <input
+                        type="text"
+                        id="contactName"
+                        value={message.name}
+                        onChange={(e) => handleChangeMessage('name', e.target.value)}
+                        className="w-full bg-muted/50 border border-input rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="contactEmail" className="block text-sm font-medium text-muted-foreground mb-1">
+                        Email
+                    </label>
+                    <input
+                        type="email"
+                        id="contactEmail"
+                        value={message.email}
+                        onChange={(e) => handleChangeMessage('email', e.target.value)}
+                        className="w-full bg-muted/50 border border-input rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="contactMessage" className="block text-sm font-medium text-muted-foreground mb-1">
+                        Message
+                    </label>
+                    <textarea
+                        id="contactMessage"
+                        rows={4}
+                        value={message.message}
+                        onChange={(e) => handleChangeMessage('message', e.target.value)}
+                        className="w-full bg-muted/50 border border-input rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none resize-none"
+                    ></textarea>
+                </div>
+                <button
+                    type={messageSent ? "button" : "submit"}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-md transition-colors"
+                >
+                    {messageSent ? 'Message Sent' : 'Send Message'}
+                </button>
+            </form>
+        </div>
+    </div>
 }

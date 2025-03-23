@@ -261,7 +261,7 @@ function DisplayItem({ item, isFirst, isLast }: DisplayItemProps) {
         </div>
         <div className="flex flex-col h-full ml-2">
             <p>{item.name}</p>
-            <p>${item.price.toFixed(2)}</p>
+            <p>${Number(item.price).toFixed(2) || 0}</p>
         </div>
     </div>
 }

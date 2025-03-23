@@ -20,8 +20,8 @@ async function sendTrackingNumberMessage(body: MessageBody) {
   })
 
   try {
-    const data = await mg.messages.create("sandbox8373989a01464570a895aacaa209b7f8.mailgun.org", {
-      from: "Mailgun Sandbox <postmaster@sandbox8373989a01464570a895aacaa209b7f8.mailgun.org>",
+    const data = await mg.messages.create("hs.heartlandshoppes.ca", {
+      from: "Heartland Shoppes <orders@hs.heartlandshoppes.ca>",
       to: [`${body.fullName} <${body.email}>`],
       subject: `HeartlandShoppes Order #${body.orderId} tracking number`,
       text: body.text,
@@ -41,8 +41,8 @@ async function sendForgotPasswordMessage(body: MessageBody) {
   })
 
   try {
-    const data = await mg.messages.create("sandbox8373989a01464570a895aacaa209b7f8.mailgun.org", {
-      from: "Mailgun Sandbox <postmaster@sandbox8373989a01464570a895aacaa209b7f8.mailgun.org>",
+    const data = await mg.messages.create("hs.heartlandshoppes.ca", {
+      from: "Heartland Shoppes <admin@hs.heartlandshoppes.ca>",
       to: [`<${body.email}>`],
       subject: `HeartlandShoppes Reset Password Link`,
       text: body.text,
@@ -62,8 +62,8 @@ async function sendInquiryMessage(body: MessageBody) {
   })
 
   try {
-    const data = await mg.messages.create("sandbox8373989a01464570a895aacaa209b7f8.mailgun.org", {
-      from: "Mailgun Sandbox <postmaster@sandbox8373989a01464570a895aacaa209b7f8.mailgun.org>",
+    const data = await mg.messages.create("hs.heartlandshoppes.ca", {
+      from: "Heartland Shoppes <inquires@hs.heartlandshoppes.ca>",
       to: [`<heartlandshoppes@gmail.com>`],
       subject: `Customer Inquiry - ${body.fullName}`,
       text: body.text,
