@@ -2,11 +2,6 @@ import mongoose from 'mongoose'
 
 const Schema = mongoose.Schema
 
-const priceOptionsSchema = new Schema({
-    priceOptions: {
-        type: Map, of: Number, default: {}
-    }
-})
 
 const reviewSchema = new Schema({
     fullName: {type: String, required: true},
@@ -19,7 +14,9 @@ const itemSchema = new Schema(
     {
         name: {type: String, required: true},
         price: {type: Number, required: true},
-        priceOptions: {type: priceOptionsSchema, required: false},
+        priceOptions: {
+            type: Map, of: Number, default: {}
+        },
         category: {type: [String], required: true},
         options: { type: Map, of: [String], required: false },
         quantity: {type: Number, required: true},
