@@ -48,7 +48,7 @@ function Header() {
                         <p className="text-2xl md:text-[3rem] font-headerFont pl-6">HeartlandShoppes</p>
                     </div>
                     <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] ml-12 my-3">
-                        Discover the heart of shopping at heartland shoppes where quality meets community
+                        Discover the heart of shopping at heartland shoppes where imagination meets creation
                     </p>
                     <Link
                         to="/shop"
