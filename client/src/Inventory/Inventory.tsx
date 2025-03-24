@@ -548,7 +548,7 @@ function DisplayBundles({ setItem, initialBundles = {} }: DisplayBundlesProps) {
         <div className="flex flex-col w-fit">
             <p className="w-fit border-gray-800 border-3 border-b-0 px-2 rounded-tr-2xl rounded-tl-2xl">Bundles</p>
             <div className="border-gray-800 border-3 p-2 rounded-bl-lg rounded-br-lg rounded-tr-lg">
-                <p>Enter Bundle to add:</p>
+                <p>Enter Quantity of item for bundle:</p>
                 <div className="flex flex-row flex-wrap gap-2">
                     <input
                         type="text"

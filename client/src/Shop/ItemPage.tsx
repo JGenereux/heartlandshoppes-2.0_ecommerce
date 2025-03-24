@@ -388,8 +388,8 @@ function DisplayOption({ option, optionValues, currOptions, setCurrOptions }: Di
     }
 
 
-    return <select className="border-1 border-black ml-1 p-1 px-2 rounded-full shadow-gray-600 shadow-sm hover:border-actionColor cursor-pointer" value={(currOptions[option])[0] || ' '} onChange={(e) => handleOptionChange(e)}>
-        {optionValues[option].map((currValue) => {
+    return <select className="border-1 border-black ml-1 p-1 px-2 rounded-full shadow-gray-600 shadow-sm hover:border-actionColor cursor-pointer" value={currOptions && currOptions[option]?.[0] ? (currOptions[option])[0] : ''} onChange={(e) => handleOptionChange(e)}>
+        {(optionValues && Object.keys(optionValues).length > 0) && optionValues[option].map((currValue) => {
             return <option key={currValue} value={currValue}>{currValue}</option>
         })}
     </select>
