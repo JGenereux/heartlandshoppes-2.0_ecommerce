@@ -275,7 +275,7 @@ function ItemDescription({ item }: DisplayItemProps) {
                     >
                         {bundleAmounts.map((amount) => (
                             <option key={amount} value={amount}>
-                                {amount} items for ${currentBundleOpts[amount].toFixed(2)}/each (${(amount * currentBundleOpts[amount]).toFixed(2)} total)
+                                {amount} items for ${currentBundleOpts[amount].toFixed(2)}
                             </option>
                         ))}
                     </select>
