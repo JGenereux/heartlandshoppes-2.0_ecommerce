@@ -13,6 +13,8 @@ interface Item {
     quantity: number,
     description: string,
     photos: string[],
+    isBundle: boolean,
+    priceOptions: Record<string, number>,
     reviews: Review[]
 }
 export type {Item, Review}

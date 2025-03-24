@@ -7,7 +7,7 @@ import Loading from "../Loading/Loading";
 import { Button } from "../components/ui/button"
 import { Label } from "../components/ui/label"
 import { useEffect, useState } from "react";
-import { Edit, ImagePlus, X } from "lucide-react";
+import { Edit, X } from "lucide-react";
 import Modal from "@mui/material/Modal";
 const apiUrl = import.meta.env.VITE_API_URL;
 

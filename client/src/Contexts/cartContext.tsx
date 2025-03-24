@@ -2,6 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useState 
 import { CartItem } from "../interfaces/userinterface";
 import { useAuth } from "./authContext";
 import axios from "axios";
+
 const apiUrl = import.meta.env.VITE_API_URL;
 
 interface CartContextType {
@@ -71,46 +72,92 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const addToCart = (item: CartItem) => {
         setCart((prevCart) => {
-
             if (!prevCart || prevCart.length == 0) return [{ ...item, quantity: item.quantity > 0 ? item.quantity : 1 }];
 
-            //Check if item exists at all by name first
+            // Check if item exists by name and options
             const itemIndex = prevCart.findIndex(
                 (currItem) =>
                     currItem.item.name === item.item.name &&
                     JSON.stringify(currItem.item.options) === JSON.stringify(item.item.options)
             );
 
-            if (itemIndex !== -1) {
+            // If the item has isBundle flag, we don't allow adding more of it if it already exists
+            if (item.item.isBundle && itemIndex !== -1) {
+                // Just update the existing bundle (price, etc.) but don't change quantity
                 return prevCart.map((currItem, index) =>
                     index === itemIndex
-                        ? { ...currItem, quantity: item.quantity > 0 ? item.quantity : 1 }
+                        ? {
+                            ...currItem,
+                            item: {
+                                ...currItem.item,
+                                price: item.item.price,
+                            }
+                        }
                         : currItem
                 );
             }
 
-            return [...prevCart, { ...item, quantity: item.quantity > 0 ? item.quantity : 1 }];
+            // For non-bundle items or new bundle items
+            if (itemIndex !== -1) {
+                return prevCart.map((currItem, index) =>
+                    index === itemIndex
+                        ? {
+                            ...currItem,
+                            quantity: item.item.isBundle ? item.quantity : (item.quantity > 0 ? item.quantity : 1),
+                            item: {
+                                ...currItem.item,
+                                price: item.item.price,
+                                isBundle: item.item.isBundle
+                            }
+                        }
+                        : currItem
+                );
+            }
+
+            return [...prevCart, {
+                ...item,
+                quantity: item.quantity > 0 ? item.quantity : 1,
+                item: {
+                    ...item.item,
+                    isBundle: item.item.isBundle
+                }
+            }];
         });
     }
 
     const removeFromCart = (item: CartItem) => {
         if (!cart) return
-        const itemIndex = cart.findIndex((currItem) => currItem.item.name === item.item.name)
+
+        const itemIndex = cart.findIndex(
+            (currItem) =>
+                currItem.item.name === item.item.name &&
+                JSON.stringify(currItem.item.options) === JSON.stringify(item.item.options)
+        );
 
         if (itemIndex === -1) return
 
         const newCart = [...cart]
 
-        if (cart[itemIndex].quantity > 1) {
-            newCart[itemIndex] = {
-                ...newCart[itemIndex], quantity: newCart[itemIndex].quantity - 1, item: {
-                    ...newCart[itemIndex].item,
-                    options: item.item.options
-                }
-            }
-        } else {
+        // If it's a bundle or item.quantity is explicitly set to 0, remove the entire item
+        if (cart[itemIndex].item.isBundle || item.quantity === 0) {
             newCart.splice(itemIndex, 1)
+        } else {
+            // For regular items, decrement quantity if > 1
+            if (cart[itemIndex].quantity > 1) {
+                newCart[itemIndex] = {
+                    ...newCart[itemIndex],
+                    quantity: newCart[itemIndex].quantity - 1,
+                    item: {
+                        ...newCart[itemIndex].item,
+                        options: item.item.options,
+                        price: item.item.price
+                    }
+                }
+            } else {
+                newCart.splice(itemIndex, 1)
+            }
         }
+
         setCart(newCart)
     }
 

@@ -3,6 +3,7 @@ import Drawer from "../Navbar/Drawer";
 import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'
+import hsLogo from '../assets/LOGO.png'
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios, { isAxiosError } from "axios";
@@ -41,8 +42,8 @@ function Header() {
     return (
         <div className="flex justify-center w-full my-6 md:my-0">
             <div className="w-full relative border-b-2 border-black">
-
-                <div className="flex flex-col w-full justify-between py-4">
+                {/* Text and button */}
+                <div className="flex flex-col w-full justify-between py-4 relative z-10">
                     <div>
                         <p className="text-2xl md:text-[3rem] font-headerFont pl-6">HeartlandShoppes</p>
                     </div>
@@ -56,6 +57,13 @@ function Header() {
                         Shop now
                     </Link>
                 </div>
+
+                {/* Background image */}
+                <img
+                    src={hsLogo}
+                    className="w-auto h-full absolute top-0 right-0 z-0 mr-4 opacity-90 pointer-events-none"
+                    alt="Background logo"
+                />
             </div>
         </div>
     )

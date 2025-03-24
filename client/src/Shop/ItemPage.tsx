@@ -123,39 +123,222 @@ function ItemDescription({ item }: DisplayItemProps) {
 
     const [quantity, setQuantity] = useState(() => retrieveItem())
 
-    useEffect(() => {
-        setQuantity(retrieveItem())
-    }, [cart, tempItem.options])
+    const [currentBundleOpts] = useState<Record<string, number>>(
+        (item.priceOptions && Object.keys(item.priceOptions).length > 0) ?
+            Object.fromEntries(
+                Object.entries(item.priceOptions).sort(([a], [b]) => Number(a) - Number(b))
+            ) : {}
+    )
 
-    const handleAddQuantity = () => {
-        setQuantity(quantity => quantity + 1)
-        addToCart({ item: tempItem, quantity: quantity + 1 })
+    // Extract sorted bundle amounts as numbers
+    const [bundleAmounts] = useState<number[]>(
+        Object.keys(currentBundleOpts).length > 0
+            ? Object.keys(currentBundleOpts).map((key) => Number(key))
+            : []
+    )
+
+    // Initialize with the lowest bundle amount
+    const retrieveBundleAmt = () => {
+        if (bundleAmounts.length > 0) {
+            return bundleAmounts[0];
+        } else {
+            return 1;
+        }
     }
 
-    const handleRemoveQuantity = () => {
-        if (quantity <= 0) return
-        setQuantity(quantity => quantity - 1)
-        removeFromCart({ item: tempItem, quantity: quantity - 1 })
+    const [selectedBundle, setSelectedBundle] = useState<number>(retrieveBundleAmt())
+
+    // Set initial price based on selected bundle
+    useEffect(() => {
+        if (bundleAmounts.length > 0) {
+            const price = currentBundleOpts[selectedBundle];
+            setTempItem(prev => ({
+                ...prev,
+                price: price
+            }));
+        }
+    }, [selectedBundle])
+
+    useEffect(() => {
+        const itemQuantity = retrieveItem()
+        setQuantity(itemQuantity)
+    }, [cart, tempItem.options])
+
+    const handleBundleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newBundle = Number(e.target.value);
+        setSelectedBundle(newBundle);
+
+        // If there are items in the cart, update them with the new bundle
+        if (quantity > 0) {
+            const newPrice = currentBundleOpts[newBundle];
+
+            // Create a new tempItem with updated price
+            const updatedItem = {
+                ...tempItem,
+                price: newPrice
+            };
+
+            // Update the tempItem state
+            setTempItem(updatedItem);
+
+            // Update the cart with the new quantity and price
+            removeFromCart({ item: tempItem, quantity: 0 }); // Remove old item
+            addToCart({ item: updatedItem, quantity: newBundle }); // Add updated item
+        }
+    }
+
+    const handleAddToCart = () => {
+        if (bundleAmounts.length > 0) {
+            // Bundle case - original functionality
+            if (quantity > 0) return;
+
+            const newQuantity = selectedBundle;
+            const price = currentBundleOpts[selectedBundle];
+
+            // Create a new tempItem with the updated price to ensure price sync
+            const updatedItem = {
+                ...tempItem,
+                price: price
+            };
+
+            // Update the tempItem state
+            setTempItem(updatedItem);
+
+            // Add the item with the selected bundle quantity to the cart
+            addToCart({ item: updatedItem, quantity: newQuantity });
+            setQuantity(newQuantity);
+        } else {
+            // Non-bundle case - add 1 item
+            const updatedItem = {
+                ...tempItem,
+                price: tempItem.price
+            };
+
+            // Add one item to the cart
+            addToCart({ item: updatedItem, quantity: quantity + 1 });
+            setQuantity(quantity + 1);
+        }
+    }
+
+    const handleRemoveFromCart = () => {
+        if (quantity <= 0) return;
+
+        // Create item with correct price
+        const updatedItem = {
+            ...tempItem,
+            price: tempItem.price
+        };
+
+        // Remove one item from cart
+        if (bundleAmounts.length > 0) {
+            // Bundle case - original functionality
+            removeFromCart({ item: updatedItem, quantity: 0 });
+            setQuantity(0);
+        } else {
+            // Non-bundle case - remove 1 item
+            const newQuantity = quantity - 1;
+            removeFromCart({ item: updatedItem, quantity: newQuantity });
+            setQuantity(newQuantity);
+        }
+    }
+
+    const handleClearCart = () => {
+        if (quantity === 0) return;
+
+        // Create item with correct price
+        const updatedItem = {
+            ...tempItem,
+            price: bundleAmounts.length > 0 ? currentBundleOpts[selectedBundle] : tempItem.price
+        };
+
+        // Remove the item from cart by setting quantity to 0
+        removeFromCart({ item: updatedItem, quantity: 0 });
+        setQuantity(0);
     }
 
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
         <div className="flex flex-col">
             <h3 className="text-2xl md:text-3xl font-headerFont">{item.name}</h3>
-            <p className="text-lg md:text-xl font-regular">${item.price.toFixed(2)}</p>
+            <p className="text-lg md:text-xl font-regular">${tempItem.price.toFixed(2)}</p>
         </div>
         <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-24">
             <DisplayOptions options={item.options} setItem={setTempItem} />
         </div>
 
-        {quantity > 0 && <div className="flex flex-row pt-2 items-center space-x-2">
-            <p className="font-regular">Quantity: </p>
-            <div className="flex flex-row space-x-4 font-button font-bold w-fit p-2 rounded-lg">
-                <button onClick={handleRemoveQuantity} className="cursor-pointer">-</button>
-                <p>{quantity}</p>
-                <button onClick={handleAddQuantity} className="cursor-pointer">+</button>
+        {Object.keys(currentBundleOpts).length > 0 ? (
+            <div className="flex flex-col space-y-4 pt-4">
+                <div className="flex flex-col space-y-2">
+                    <select
+                        value={selectedBundle}
+                        onChange={handleBundleChange}
+                        className="p-2 border border-gray-300 rounded-md"
+                    >
+                        {bundleAmounts.map((amount) => (
+                            <option key={amount} value={amount}>
+                                {amount} items for ${currentBundleOpts[amount].toFixed(2)}/each (${(amount * currentBundleOpts[amount]).toFixed(2)} total)
+                            </option>
+                        ))}
+                    </select>
+
+                    {quantity === 0 ? (
+                        <button
+                            onClick={() => handleAddToCart()}
+                            className="md:self-start self-center w-fit my-2 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button"
+                        >
+                            Add To Cart
+                        </button>
+                    ) : (
+                        <div className="flex flex-col space-y-2">
+                            <p className="font-regular">
+                                <span className="font-bold">{quantity} items</span> in cart at <span className="font-bold">${tempItem.price.toFixed(2)}/each</span>
+                            </p>
+                            <button
+                                onClick={handleClearCart}
+                                className="md:self-start self-center w-fit text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-red-500 hover:border-2 font-button"
+                            >
+                                Remove From Cart
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>}
-        <button onClick={() => addToCart({ item: tempItem, quantity: quantity })} className="md:self-start self-center w-fit my-4 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button">Add To Cart</button>
+        ) : (
+            <div className="flex flex-col space-y-4 pt-4">
+                <div className="flex flex-col space-y-2">
+                    {quantity === 0 ? (
+                        <button
+                            onClick={() => handleAddToCart()}
+                            className="md:self-start self-center w-fit my-2 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button"
+                        >
+                            Add To Cart
+                        </button>
+                    ) : (
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={handleRemoveFromCart}
+                                className="px-3 py-1 text-xl font-bold border border-gray-300 rounded-md hover:bg-gray-100"
+                            >
+                                -
+                            </button>
+                            <span className="px-3 py-1 font-bold">{quantity}</span>
+                            <button
+                                onClick={handleAddToCart}
+                                className="px-3 py-1 text-xl font-bold border border-gray-300 rounded-md hover:bg-gray-100"
+                            >
+                                +
+                            </button>
+                            <button
+                                onClick={handleClearCart}
+                                className="ml-2 md:self-start self-center w-fit text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-red-500 hover:border-2 font-button"
+                            >
+                                Remove All
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
         <div className="flex flex-col pt-4 w-[100%]">
             <p className="font-button font-bold">About this item: </p>
             <p className="font-regular text-md ml-2 md:ml-0">{item.description}</p>
