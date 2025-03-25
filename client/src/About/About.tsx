@@ -118,16 +118,6 @@ function AboutPage() {
         "Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.",
     ])
 
-    // Partners state
-    const [partners] = useState<Partner[]>([
-        {
-            id: "1",
-            name: "mbym Knitwear",
-            location: "Medicine Hat, AB",
-            description:
-                "I have recently partnered with 'nbym Knitware'. Debbie, a local knitter in my community of Medicine Hat, designs and creates knitted apparel and giftware.",
-        },
-    ])
 
     const [message, setMessage] = useState<Message>({
         name: "", email: "", message: ""
@@ -333,23 +323,6 @@ function AboutPage() {
                             <p key={index} className={`text-muted-foreground ${index > 0 ? "mt-4" : ""}`}>
                                 {paragraph}
                             </p>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Production Partners Section */}
-                <div>
-                    <div className="mb-6">
-                        <h2 className="text-3xl font-bold">Our Production Partners</h2>
-                    </div>
-
-                    <div className="grid gap-8">
-                        {partners.map((partner) => (
-                            <div key={partner.id} className="border rounded-lg p-6">
-                                <h3 className="text-xl font-bold mb-1">{partner.name}</h3>
-                                <p className="text-primary font-medium mb-3">{partner.location}</p>
-                                <p className="text-muted-foreground">{partner.description}</p>
-                            </div>
                         ))}
                     </div>
                 </div>

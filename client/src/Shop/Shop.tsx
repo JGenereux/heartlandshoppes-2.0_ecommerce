@@ -8,6 +8,9 @@ import { Button } from "../components/ui/button"
 import { Label } from "../components/ui/label"
 import { useEffect, useState } from "react";
 import { Edit, X } from "lucide-react";
+import Stockings from '../assets/CustomPics/stockings.jpg'
+import customCup from '../assets/CustomPics/customcup.jpg'
+import cuttingBoard from '../assets/CustomPics/cuttingBoard.jpg'
 import Modal from "@mui/material/Modal";
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -73,9 +76,9 @@ function CustomOrderSlide() {
     const [imagesModalOpen, setImagesModalOpen] = useState(false)
     const [currentImage, setCurrentImage] = useState(0)
     const images = [
-        "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?q=80&w=1200&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1556760544-74068565f05c?q=80&w=1200&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1464316325666-63beaf639dbb?q=80&w=1200&auto=format&fit=crop",
+        Stockings,
+        customCup,
+        cuttingBoard,
     ]
 
     useEffect(() => {
@@ -100,7 +103,7 @@ function CustomOrderSlide() {
                             }`}
                     >
                         <img
-                            src={src || "https://via.placeholder.com/1200x400"}
+                            src={src}
                             alt={`Handmade product image ${index + 1}`}
                             className="w-full h-full object-cover"
                             loading={index === 0 ? "eager" : "lazy"}
