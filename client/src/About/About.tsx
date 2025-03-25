@@ -1,77 +1,15 @@
 import type React from "react"
 
-import { useState, useEffect, useRef, FormEvent } from "react"
-import { Mail, MapPin, ImagePlus, Edit, X } from "lucide-react"
-import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
+import { useState, useEffect, FormEvent } from "react"
+import { Mail, MapPin } from "lucide-react"
 import Drawer from "../Navbar/Drawer"
-import { useAuth } from "../Contexts/authContext"
 import axios, { isAxiosError } from "axios"
 import Error from "../Loading/Error"
+import laser from '../assets/AboutPics/laser.jpg'
+import macbook from '../assets/AboutPics/macbook.jpg'
+import printer from '../assets/AboutPics/printer.jpg'
 const apiUrl = import.meta.env.VITE_API_URL;
 
-// Custom Modal Component
-function Modal({
-    isOpen,
-    onClose,
-    title,
-    children,
-}: {
-    isOpen: boolean
-    onClose: () => void
-    title: string
-    children: React.ReactNode
-}) {
-    const modalRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        // Prevent body scrolling when modal is open
-        if (isOpen) {
-            document.body.style.overflow = "hidden"
-        } else {
-            document.body.style.overflow = ""
-        }
-
-        // Close on escape key
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape") onClose()
-        }
-
-        window.addEventListener("keydown", handleEscape)
-        return () => {
-            document.body.style.overflow = ""
-            window.removeEventListener("keydown", handleEscape)
-        }
-    }, [isOpen, onClose])
-
-    // Close when clicking outside
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-            onClose()
-        }
-    }
-
-    if (!isOpen) return null
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleBackdropClick}>
-            <div
-                ref={modalRef}
-                className="bg-background rounded-lg shadow-lg w-full max-w-md md:max-w-xl max-h-[90vh] overflow-auto"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between p-4 border-b">
-                    <h3 className="text-lg font-semibold">{title}</h3>
-                    <button onClick={onClose} className="rounded-full p-1 hover:bg-muted transition-colors">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-                <div className="p-4">{children}</div>
-            </div>
-        </div>
-    )
-}
 
 export default function About() {
     return (
@@ -82,14 +20,6 @@ export default function About() {
     )
 }
 
-// Define the Partner type
-interface Partner {
-    id: string
-    name: string
-    location: string
-    description: string
-}
-
 interface Message {
     name: string,
     email: string,
@@ -97,25 +27,23 @@ interface Message {
 }
 
 function AboutPage() {
-    const { user } = useAuth()
-
-    // Modal states
-    const [imagesModalOpen, setImagesModalOpen] = useState(false)
 
     // Image slider state
     const [currentImage, setCurrentImage] = useState(0)
-    const [images, setImages] = useState([
-        "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?q=80&w=1200&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1556760544-74068565f05c?q=80&w=1200&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1464316325666-63beaf639dbb?q=80&w=1200&auto=format&fit=crop",
+    const [images] = useState([
+        laser,
+        macbook,
+        printer,
     ])
-    const [newImageUrl, setNewImageUrl] = useState("")
-    const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null)
 
     // About section state
     const [aboutText] = useState([
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vitae elit libero, a pharetra augue. Nullam id dolor id nibh ultricies vehicula ut id elit. Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.",
-        "Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.",
+        "Hi I’m Donna, the founder of Heartland Shoppes. I was born in small town Alberta, and my family moved to Toronto, Ontario then we settled in Calgary, Alberta. ",
+        "Upon getting married, our family has lived in many cities and towns across Alberta, and have now settled in Southern Alberta.",
+        "My love of crafting has always been with me, as my mom was into ceramics and would often ask if I would like to go with her. It was nice creating something different and unique. In high school, I took shop as I loved working with all the different mediums and again the fun of seeing an idea come too fruition.",
+        "I learned at a young age that I really did enjoy unique gifts, not cookie cutter ones that everyone else received, again attributed to my mom who made gifts for her friends and family and seeing their expressions upon receipt. I remember one year, my parents had no idea what to get me for Christmas, and they ended up buying me a knitting machine. Needless to say I wore it out.",
+        "My vision for this new venture is to bring ideas to life. I would like to be a go to ,when people can’t seem to find that perfect gift. Retailers have all kinds of gifts that can express different feelings, but I find they are to generic. I want my gift to enable an emotional reaction from them, and one they will proudly display in their home.",
+        " I believe you shouldn’t have to compromise style for function. We are passionate about designing one of a kind items to be used everyday, or to hang beautifully in your home."
     ])
 
 
@@ -129,50 +57,13 @@ function AboutPage() {
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))
-        }, 5000)
+        }, 10000)
         return () => clearInterval(interval)
     }, [images.length])
 
     // Manual navigation
     const goToImage = (index: number) => {
         setCurrentImage(index)
-    }
-
-    // Add a new image
-    const addImage = () => {
-        if (newImageUrl.trim()) {
-            setImages([...images, newImageUrl])
-            setNewImageUrl("")
-        }
-    }
-
-    // Update an existing image
-    const updateImage = () => {
-        if (editingImageIndex !== null && newImageUrl.trim()) {
-            const newImages = [...images]
-            newImages[editingImageIndex] = newImageUrl
-            setImages(newImages)
-            setNewImageUrl("")
-            setEditingImageIndex(null)
-        }
-    }
-
-    // Start editing an image
-    const startEditingImage = (index: number) => {
-        setEditingImageIndex(index)
-        setNewImageUrl(images[index])
-    }
-
-    // Remove an image
-    const removeImage = (index: number) => {
-        if (images.length > 1) {
-            const newImages = [...images]
-            newImages.splice(index, 1)
-            setImages(newImages)
-            if (currentImage >= newImages.length) {
-                setCurrentImage(newImages.length - 1)
-            }
-        }
     }
 
     const handleChangeMessage = (property: keyof Message, value: string) => {
@@ -217,7 +108,7 @@ function AboutPage() {
                                 <img
                                     src={src || "https://via.placeholder.com/1200x400"}
                                     alt={`Handmade product image ${index + 1}`}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                     loading={index === 0 ? "eager" : "lazy"}
                                 />
                             </div>
@@ -229,82 +120,12 @@ function AboutPage() {
                                 <button
                                     key={index}
                                     onClick={() => goToImage(index)}
-                                    className={`w-3 h-3 rounded-full ${currentImage === index ? "bg-white" : "bg-white/50"}`}
+                                    className={`w-3 h-3 rounded-full border-black border-1 ${currentImage === index ? "bg-white" : "bg-white/50"}`}
                                     aria-label={`Go to image ${index + 1}`}
                                 />
                             ))}
                         </div>
                     </div>
-
-                    {/* Edit Images Button */}
-                    {user && user.role === "admin" && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm"
-                            onClick={() => setImagesModalOpen(true)}
-                        >
-                            <ImagePlus className="w-4 h-4 mr-2" />
-                            Edit Images
-                        </Button>
-                    )}
-
-                    {/* Images Modal */}
-                    <Modal isOpen={imagesModalOpen} onClose={() => setImagesModalOpen(false)} title="Manage Slider Images">
-                        <div className="py-4">
-                            <div className="grid gap-4 mb-4">
-                                <Label>Current Images</Label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {images.map((src, index) => (
-                                        <div key={index} className="relative group rounded-md overflow-hidden border">
-                                            <img
-                                                src={src || "https://via.placeholder.com/120x80"}
-                                                alt={`Image ${index + 1}`}
-                                                className="object-cover w-full h-20"
-                                            />
-                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-white"
-                                                    onClick={() => startEditingImage(index)}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-white"
-                                                    onClick={() => removeImage(index)}
-                                                    disabled={images.length <= 1}
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="grid gap-4">
-                                <Label htmlFor="imageUrl">
-                                    {editingImageIndex !== null ? `Update Image ${editingImageIndex + 1}` : "Add New Image"}
-                                </Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        id="imageUrl"
-                                        value={newImageUrl}
-                                        onChange={(e) => setNewImageUrl(e.target.value)}
-                                        placeholder="Enter image URL"
-                                        className="flex-1"
-                                    />
-                                    <Button onClick={editingImageIndex !== null ? updateImage : addImage}>
-                                        {editingImageIndex !== null ? "Update" : "Add"}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </Modal>
                 </div>
 
                 {/* Tagline */}
@@ -315,12 +136,12 @@ function AboutPage() {
                 {/* About Store Section */}
                 <div className="mb-16">
                     <div className="mb-6">
-                        <h2 className="text-3xl font-bold">About HeartlandShoppes</h2>
+                        <h2 className="text-3xl font-bold">My Story</h2>
                     </div>
 
                     <div className="prose max-w-none">
                         {aboutText.map((paragraph, index) => (
-                            <p key={index} className={`text-muted-foreground ${index > 0 ? "mt-4" : ""}`}>
+                            <p key={index} className={` ${index > 0 ? "mt-3" : ""}`}>
                                 {paragraph}
                             </p>
                         ))}
