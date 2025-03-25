@@ -11,6 +11,7 @@ import { Edit, X } from "lucide-react";
 import Stockings from '../assets/CustomPics/stockings.jpg'
 import customCup from '../assets/CustomPics/customcup.jpg'
 import cuttingBoard from '../assets/CustomPics/cuttingBoard.jpg'
+import customCupTWO from '../assets/CustomPics/customCupTWO.jpg'
 import Modal from "@mui/material/Modal";
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -79,6 +80,7 @@ function CustomOrderSlide() {
         Stockings,
         customCup,
         cuttingBoard,
+        customCupTWO,
     ]
 
     useEffect(() => {
