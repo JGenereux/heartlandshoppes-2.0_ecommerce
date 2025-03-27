@@ -50,7 +50,7 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
                   shipping_rate_data: {
                     type: 'fixed_amount',
                     fixed_amount: {
-                      amount: 2000,
+                      amount: 2200,
                       currency: 'cad',
                     },
                     display_name: 'Standard Shipping',
@@ -156,6 +156,6 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
     }
   
     return response.status(200).end();
-  });
+});
 
 export default router
