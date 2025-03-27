@@ -5,6 +5,7 @@ import { Item } from "../Interfaces/itemInterface";
 import { CartItem } from "../Interfaces/userInterface";
 import { ItemInvoice, Order } from "../Interfaces/orderInterface";
 import axios from "axios";
+const { parseStringPromise } = require('xml2js');
 import { Orders } from "../Models/Order";
 import { Users } from "../Models/User";
 import { client } from "../../redis-client";
@@ -14,7 +15,6 @@ const STRIPE_KEY = process.env.STRIPE_SECRET
 const stripe = new Stripe(STRIPE_KEY || '')
 
 const router = express.Router()
-
 
 router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
     const {items} = req.body
@@ -43,8 +43,24 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
             invoice_creation: { enabled: true },
             billing_address_collection: 'required',
             shipping_address_collection: {
-                allowed_countries: ['US', 'CA'],  // Ask for full shipping address
+                allowed_countries: ['US', 'CA'],  
             },
+            shipping_options: [
+                {
+                  shipping_rate_data: {
+                    type: 'fixed_amount',
+                    fixed_amount: {
+                      amount: 2000,
+                      currency: 'cad',
+                    },
+                    display_name: 'Standard Shipping',
+                    delivery_estimate: {
+                      minimum: { unit: 'business_day', value: 3 },
+                      maximum: { unit: 'business_day', value: 7 },
+                    },
+                  },
+                },
+            ],
             mode: 'payment',
             success_url: `${process.env.FRONTEND_URL}/?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.FRONTEND_URL}/?success=false`, 
@@ -76,7 +92,6 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
       return response.status(400).send(`Webhook Error: ${err}`);
     }
 
-    console.log(event)
     if(event.type === 'invoice.finalized') {
         const invoice = event.data.object
      
