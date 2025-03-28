@@ -134,7 +134,7 @@ router.route('/item/:name').get(async(req: Request,res: Response): Promise<any> 
  */
 router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : Promise<any> => {
     const {item} = req.body
-
+	console.log(item)
     try{
         const newItem = new Items(item)
         await newItem.save()
