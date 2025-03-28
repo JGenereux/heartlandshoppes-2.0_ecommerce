@@ -59,7 +59,7 @@ function Header() {
                     <div className="flex flex-col w-full justify-between py-4 relative z-10">
                         <p className="text-2xl md:text-[3rem] font-headerFont pl-4">HeartlandShoppes</p>
                         <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] pl-6 my-3">
-                            Discover the heart of shopping at heartland shoppes where imagination meets creation
+                            Discover the heart of shopping at HeartlandShoppes where imagination meets creation
                         </p>
                         <Link
                             to="/shop"
@@ -77,7 +77,7 @@ function Header() {
                 />
 
                 {!isDesktop && <div className="w-full flex flex-col items-center justify-center">
-                    <p className="font-regular text-center">Discover the heart of shopping at heartland shoppes where imagination meets creation</p>
+                    <p className="font-regular text-center">Discover the heart of shopping at HeartlandShoppes where imagination meets creation</p>
                     <Link
                         to="/shop"
                         className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
