@@ -69,7 +69,7 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
                     },
                     display_name: 'Local Pickup',
                     delivery_estimate: {
-                      minimum: { unit: 'business_day', value: 0 },
+                      minimum: { unit: 'business_day', value: 1 },
                       maximum: { unit: 'business_day', value: 7 },
                     },
                   },
