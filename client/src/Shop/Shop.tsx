@@ -196,7 +196,7 @@ interface DisplayItemsProps {
 
 function DisplayItems({ items }: DisplayItemsProps) {
 
-    return <div className="w-full h-full my-2">
+    return <div className="flex items-center justify-center w-full h-full my-2">
         {items && items.length > 0 ? <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 max-w-6xl gap-6 w-full pb-4 pt-4 pr-2 pl-2">
             {items?.map((item, index) => {
                 return <DisplayItem key={index} item={item} />
