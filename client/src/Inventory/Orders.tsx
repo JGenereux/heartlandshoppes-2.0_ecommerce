@@ -293,14 +293,14 @@ function DisplayOrder({ order }: DisplayOrderProps) {
                 </div>
                 <div className="flex flex-col w-1/3 items-end space-y-2">
                     <button
-                        className="border-black border-1 shadow-gray-500 shadow-sm w-16 px-3 py-1 rounded-full font-bold font-button cursor-pointer"
+                        className="border-black border-1 shadow-gray-500 shadow-sm w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer"
                         onClick={() => setEditOrder((prev) => !prev)}
                     >
                         Edit
                     </button>
                     {editOrder && (
                         <button
-                            className="border-black border-1 shadow-gray-500 shadow-sm w-16 px-3 py-1 rounded-full font-bold font-button cursor-pointer"
+                            className="border-black border-1 shadow-gray-500 shadow-sm w-fit px-3 py-1 rounded-full font-bold font-button cursor-pointer"
                             onClick={handleOrderUpdate}
                         >
                             Confirm
@@ -327,9 +327,27 @@ function Status({ status, setStatus, editOrder }: StatusProps) {
         <label>
             Select Status:
             <div className="flex flex-col space-y-1 font-bold font-button text-white">
-                <button className="bg-[#FF0000] cursor-pointer rounded-full px-2 py-1 transition ease-in-out duration-300 hover:translate-y-1 hover:scale-110" onClick={() => setStatus('added')}>Added</button>
-                <button className="bg-[#FFA500] cursor-pointer rounded-full px-2 py-1 transition ease-in-out duration-300 hover:translate-y-1 hover:scale-110" onClick={() => setStatus('in_progress')}>In Progress</button>
-                <button className="bg-[#008000] cursor-pointer rounded-full px-2 py-1 transition ease-in-out duration-300 hover:translate-y-1 hover:scale-110" onClick={() => setStatus('fulfilled')}>Fulfilled</button>
+                <button
+                    className={`bg-[#FF0000] cursor-pointer rounded-full px-2 py-1 
+                    ${status === 'added' ? 'border-4 border-black' : ''}`}
+                    onClick={() => setStatus('added')}
+                >
+                    Added
+                </button>
+                <button
+                    className={`bg-[#FFA500] cursor-pointer rounded-full px-2 py-1 
+                    ${status === 'in_progress' ? 'border-4 border-black' : ''}`}
+                    onClick={() => setStatus('in_progress')}
+                >
+                    In Progress
+                </button>
+                <button
+                    className={`bg-[#008000] cursor-pointer rounded-full px-2 py-1 
+                    ${status === 'fulfilled' ? 'border-4 border-black' : ''}`}
+                    onClick={() => setStatus('fulfilled')}
+                >
+                    Fulfilled
+                </button>
             </div>
         </label>
     </div> : <div style={{ backgroundColor: `${statusColor}` }} className="ml-auto rounded-full px-2 py-1 text-white font-bold font-button border-black border-2 shadow-gray-500 shadow-sm">
