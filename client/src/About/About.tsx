@@ -81,7 +81,7 @@ function AboutPage() {
         }
 
         try {
-            const res = await axios.post(`${apiUrl}/email`, { userInquiry: message })
+            const res = await axios.post(`${apiUrl}/email/inquire`, { userInquiry: message })
             if (res.status === 200) {
                 setMessageSent(true)
             }
