@@ -75,6 +75,13 @@ export default function Cart() {
                             </div>
                         )}
 
+                        {cart && cart.length > 0 && <div className="flex items-center bg-gray-50 border border-gray-100 rounded-md p-2 mb-3">
+                            <div className="w-1 h-10 bg-[#f8b4c4] rounded-full mr-2"></div>
+                            <div>
+                                <p className="font-medium text-sm text-gray-800">Spend $125 or more for free shipping</p>
+                            </div>
+                        </div>}
+
                         {/* Cart Items */}
                         <div className="flex flex-col w-full overflow-y-auto space-y-2 my-2">
                             {cart && cart.length > 0 ? (
