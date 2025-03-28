@@ -60,6 +60,20 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
                     },
                   },
                 },
+                {
+                  shipping_rate_data: {
+                    type: 'fixed_amount',
+                    fixed_amount: {
+                      amount: 0,
+                      currency: 'cad',
+                    },
+                    display_name: 'Local Pickup',
+                    delivery_estimate: {
+                      minimum: { unit: 'business_day', value: 0 },
+                      maximum: { unit: 'business_day', value: 7 },
+                    },
+                  },
+                },
             ],
             mode: 'payment',
             success_url: `${process.env.FRONTEND_URL}/?session_id={CHECKOUT_SESSION_ID}`,
