@@ -67,7 +67,7 @@ router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
                       amount: 0,
                       currency: 'cad',
                     },
-                    display_name: 'Local Pickup',
+                    display_name: 'Local Pickup (Medicine Hat, AB)',
                     delivery_estimate: {
                       minimum: { unit: 'business_day', value: 1 },
                       maximum: { unit: 'business_day', value: 7 },
