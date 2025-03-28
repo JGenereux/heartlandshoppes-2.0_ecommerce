@@ -16,7 +16,7 @@ const CartContext = createContext<CartContextType>({
     cart: null,
     addToCart: () => { },
     removeFromCart: () => { },
-    resetCart: () => { }
+    resetCart: () => { },
 })
 
 export const useCart = () => {
@@ -52,6 +52,20 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.error(error)
         }
     }, [cart, user?.email, accessToken])
+
+    const resetCart = async () => {
+        if (!user) return;
+        try {
+            await axios.put(`${apiUrl}/users/cart/${user.email}`, { cart: [] }, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })
+            setCart([])
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     useEffect(() => {
         window.addEventListener('beforeunload', saveCartOnUnload)
@@ -159,10 +173,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         setCart(newCart)
-    }
-
-    const resetCart = () => {
-        setCart([])
     }
 
     return <CartContext.Provider value={{ cart, addToCart, removeFromCart, resetCart }}>

@@ -12,19 +12,29 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
 import Loading from "../Loading/Loading";
 import Error from "../Loading/Error";
+import { useCart } from "@/Contexts/cartContext";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Home() {
     const [searchParams] = useSearchParams();
+    const { resetCart } = useCart()
 
     const drawerRef = useRef<HTMLDivElement | null>(null);
     const customProdRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const customOrder = searchParams.get('customOrder')
+        const paymentSuccessful = searchParams.get('session_id')
         if (customOrder === 'true' && customProdRef.current) {
             customProdRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+            return;
         }
+
+        if (paymentSuccessful === 'true') {
+            resetCart();
+            return;
+        }
+
     }, [searchParams])
 
     return (
