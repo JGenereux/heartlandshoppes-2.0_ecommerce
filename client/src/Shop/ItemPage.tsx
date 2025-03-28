@@ -56,8 +56,8 @@ function DisplayItem({ item }: DisplayItemProps) {
     return (
         <div className="w-[95%] md:w-[75%] h-fit flex flex-col mx-auto shadow-black shadow-lg pb-4">
             <div className="flex flex-col md:flex-row w-full h-[90%] bg-white">
-                <div className="flex flex-col w-fit h-full items-center mx-auto space-y-2 md:space-y-0 py-2">
-                    <img src={photoUrl} className="max-h-[50vh] md:max-h-[65vh] object-contain max-w-[80%]"></img>
+                <div className="flex flex-col h-full items-center mx-auto space-y-2 md:space-y-0 py-2">
+                    <img src={photoUrl} className="w-fit h-[50vh] md:h-[65vh] object-contain max-w-[80%]"></img>
                     <ImageSlider item={item} setPhotoUrl={setPhotoUrl} />
                 </div>
                 <div className="w-full md:w-1/2 h-full flex flex-col px-4 md:pl-0">

@@ -54,7 +54,7 @@ function Header() {
     return (
         <div className="flex justify-center w-full my-6 md:my-0">
             <div className="w-full relative border-b-2 border-black">
-                {/* Text and button */}
+
                 {isDesktop &&
                     <div className="flex flex-col w-full justify-between py-4 relative z-10">
                         <p className="text-2xl md:text-[3rem] font-headerFont pl-4">HeartlandShoppes</p>
@@ -100,60 +100,85 @@ function Featured() {
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000
     })
+
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
     const [leftIndex, setLeftIndex] = useState(0)
-    const SIZE = isDesktop ? 2 : 1
-    const [rightIndex, setRightIndex] = useState(isDesktop ? 2 : 1)
-    const featuredItemsSlice = featuredItems.slice(leftIndex, rightIndex + 1)
+    const [rightIndex, setRightIndex] = useState(window.innerWidth >= 768 ? 2 : 1)
 
-    const handleResize = () => {
-        setIsDesktop(window.innerWidth >= 768)
-    }
-
+    // Update layout on resize
     useEffect(() => {
+        const handleResize = () => {
+            const newIsDesktop = window.innerWidth >= 768
+            setIsDesktop(newIsDesktop)
+        }
+
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    })
+    }, [])
+
+    // Reset index range on layout change
+    useEffect(() => {
+        const newSize = isDesktop ? 2 : 1
+        setLeftIndex(0)
+        setRightIndex(newSize)
+    }, [isDesktop])
+
+    const SIZE = isDesktop ? 2 : 1
+    const featuredItemsSlice = featuredItems.slice(leftIndex, rightIndex + 1)
 
     const handleMoveLeft = () => {
         if (leftIndex > 0) {
-            setLeftIndex(leftIndex - 1)
-            if ((rightIndex + 1) - leftIndex > SIZE) {
-                setRightIndex(rightIndex - 1)
-            }
+            const newLeft = leftIndex - 1
+            const newRight = newLeft + SIZE
+            setLeftIndex(newLeft)
+            setRightIndex(newRight)
         }
     }
 
     const handleMoveRight = () => {
         if (rightIndex < featuredItems.length - 1) {
-            setRightIndex(rightIndex + 1)
-            if ((rightIndex + 1) - leftIndex > SIZE) {
-                setLeftIndex(leftIndex + 1)
+            const newLeft = leftIndex + 1
+            const newRight = newLeft + SIZE
+            if (newRight <= featuredItems.length) {
+                setLeftIndex(newLeft)
+                setRightIndex(newRight)
             }
         }
     }
 
-    if (isFetching) return (<div>
-        <div className="flex flex-col items-center justify-center w-full p-12 space-y-1.5">
-            <h3 className="text-lg md:text-2xl font-button">Loading Featured Products</h3>
-            <Loading />
-        </div>
-    </div>);
-    if (isError) return <Error message={error ? `${error}` : 'Error loading featured items'} />
+    if (isFetching) {
+        return (
+            <div className="flex flex-col items-center justify-center w-full p-12 space-y-1.5">
+                <h3 className="text-lg md:text-2xl font-button">Loading Featured Products</h3>
+                <Loading />
+            </div>
+        )
+    }
+
+    if (isError) {
+        return <Error message={error ? `${error}` : 'Error loading featured items'} />
+    }
 
     return (
         <div className="flex flex-col w-full h-fit items-center justify-center pb-2 space-y-1.5 my-2">
-            {featuredItemsSlice?.length > 0 ?
+            {featuredItemsSlice.length > 0 ? (
                 <>
                     <h3 className="text-lg md:text-2xl font-button">Featured Products</h3>
-                    < FeaturedItemsDisplay featuredItemsSlice={featuredItemsSlice} handleMoveLeft={handleMoveLeft} handleMoveRight={handleMoveRight} />
+                    <FeaturedItemsDisplay
+                        featuredItemsSlice={featuredItemsSlice}
+                        handleMoveLeft={handleMoveLeft}
+                        handleMoveRight={handleMoveRight}
+                    />
                 </>
-                :
-                <p className="text-xl font-regular font-bold p-12">There are no featured products at this time</p>
-            }
+            ) : (
+                <p className="text-xl font-regular font-bold p-12">
+                    There are no featured products at this time
+                </p>
+            )}
         </div>
     )
 }
+
 
 interface FeaturedItemsProps {
     featuredItemsSlice: Item[],
