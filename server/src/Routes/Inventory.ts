@@ -35,6 +35,7 @@ router.route('/').get(rateLimiter, async(req: Request,res: Response) => {
         await client.sendCommand(['DEL', 'items']); // Clear old list
         if(items.length > 0) {
             await client.sendCommand(['RPUSH', 'items', ...items.map(item => JSON.stringify(item))]); // Push all to Redis
+            await client.sendCommand(["EXPIRE", "items", "300"]);
         }
         res.status(200).json(items)
         return
@@ -69,6 +70,7 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
                 return res.status(200).json([])
             }
             await client.sendCommand(["RPUSH", `${category}`, ...items.map(item => JSON.stringify(item))])
+            await client.sendCommand(["EXPIRE", `${category}`, "300"]);
             return res.status(200).json(items)
         }
 
@@ -84,11 +86,13 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
         if(items.length > 0) {
             await client.sendCommand(["DEL", `items`])
             await client.sendCommand(["RPUSH", `items`, ...items.map(item => JSON.stringify(item))])
+            await client.sendCommand(["EXPIRE", "items", "300"]);
         }
         
         if(filteredItems.length > 0) {
             await client.sendCommand(["DEL", `${category}`])
             await client.sendCommand(["RPUSH", `${category}`, ...filteredItems.map(item => JSON.stringify(item))])
+            await client.sendCommand(["EXPIRE", `${category}`, "300"]);
         }
 
         return res.status(200).json(items)
@@ -144,6 +148,7 @@ router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : P
      
         for(const category of newItem.category) {
             await client.sendCommand(['LPUSH', `${category}`, JSON.stringify(newItem)])
+            await client.sendCommand(["EXPIRE", `${category}`, "300"]);
         }
       
         return res.status(200).json("Successfully added item")
@@ -193,7 +198,7 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
             
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
-            
+            await client.sendCommand(["EXPIRE", "items", "300"]);
             //delete old categories before updating new ones
             for(const category of oldCategories) {
                 await client.sendCommand(['DEL', `${category}`])
@@ -213,6 +218,7 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
 
                     await client.sendCommand(['DEL', `${itemCategory}`])
                     await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                     console.log(`Removed item from ${itemCategory} cache`)
                 }
             }
@@ -306,6 +312,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
 
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+            await client.sendCommand(["EXPIRE", "items", "300"]);
          
             // update item for each category list cache
             for(const category of items[index].category) {
@@ -327,6 +334,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
                 
                     await client.sendCommand(['DEL', `${itemCategory}`])
                     await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                 }
             }
         }
@@ -380,6 +388,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
             
             await client.sendCommand(['DEL', `items`])
             await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+            await client.sendCommand(["EXPIRE", "items", "300"]);
             
             // update item in category list cache
             for(const category of items[index].category){
@@ -397,6 +406,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
                 
                     await client.sendCommand(['DEL', `${itemCategory}`])
                     await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                 }
             }
         }
@@ -437,6 +447,7 @@ router.route('/item/:name').delete(authenticateToken, checkAdminRole,async(req,r
                 await client.sendCommand(['DEL', `items`])
                 if(items.length != 0) {
                     await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(["EXPIRE", "items", "300"]);
                 }
             }
         }
@@ -461,6 +472,7 @@ router.route('/item/:name').delete(authenticateToken, checkAdminRole,async(req,r
                     
                     if(validItems.length != 0) {
                         await client.sendCommand(['RPUSH', `${itemCategory}`, ...validItems.map((item) => JSON.stringify(item))])
+                        await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                     }   
                 }
             }
