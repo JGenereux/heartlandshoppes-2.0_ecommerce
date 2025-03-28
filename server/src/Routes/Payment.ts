@@ -16,80 +16,116 @@ const stripe = new Stripe(STRIPE_KEY || '')
 
 const router = express.Router()
 
-router.post('/checkout', async(req: Request, res: Response) : Promise<any> => {
-    const {items} = req.body
+router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
+    const { items } = req.body;
     
-    const cartItems: CartItem[] = items
+    const cartItems: CartItem[] = items;
     
-    try{
-        const session = await stripe.checkout.sessions.create({
-            line_items: cartItems.map((currItem) => {                
-                return {
-                    price_data: {
+    const cartTotal = cartItems.reduce((acc, currItem) => {
+        return acc + currItem.item.price * currItem.quantity * 100;
+    }, 0);
+
+    try {
+        // Define shipping options with correct Stripe typing
+        const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = cartTotal >= 12500 ? [
+            {
+                shipping_rate_data: {
+                    type: 'fixed_amount',
+                    fixed_amount: {
+                        amount: 0,
                         currency: 'cad',
-                        product_data: {
-                            name: `${currItem.item.name} - ${Object.entries(currItem.item.options)
-                                .map(([key, values]) => `${key}: ${values.join(', ')}`)
-                                .join(' | ')}`,
-                            description: currItem.item.description,
-                            images: currItem.item.photos?.length ? [currItem.item.photos[0]] : [],
-                        },
-                        unit_amount: currItem.item.price * 100,
                     },
-                    quantity: currItem.quantity,
-                };
-            }),
+                    display_name: 'Free Shipping',
+                    delivery_estimate: {
+                        minimum: { unit: 'business_day', value: 3 },
+                        maximum: { unit: 'business_day', value: 7 },
+                    },
+                },
+            },
+            {
+                shipping_rate_data: {
+                    type: 'fixed_amount',
+                    fixed_amount: {
+                        amount: 0,
+                        currency: 'cad',
+                    },
+                    display_name: 'Local Pickup (Medicine Hat, AB)',
+                    delivery_estimate: {
+                        minimum: { unit: 'business_day', value: 1 },
+                        maximum: { unit: 'business_day', value: 7 },
+                    },
+                },
+            }
+        ] : [
+            {
+                shipping_rate_data: {
+                    type: 'fixed_amount',
+                    fixed_amount: {
+                        amount: 2200,
+                        currency: 'cad',
+                    },
+                    display_name: 'Standard Shipping',
+                    delivery_estimate: {
+                        minimum: { unit: 'business_day', value: 3 },
+                        maximum: { unit: 'business_day', value: 7 },
+                    },
+                },
+            },
+            {
+                shipping_rate_data: {
+                    type: 'fixed_amount',
+                    fixed_amount: {
+                        amount: 0,
+                        currency: 'cad',
+                    },
+                    display_name: 'Local Pickup (Medicine Hat, AB)',
+                    delivery_estimate: {
+                        minimum: { unit: 'business_day', value: 1 },
+                        maximum: { unit: 'business_day', value: 7 },
+                    },
+                },
+            }
+        ];
+
+        const sessionParams: Stripe.Checkout.SessionCreateParams = {
+            line_items: cartItems.map((currItem) => ({
+                price_data: {
+                    currency: 'cad',
+                    product_data: {
+                        name: `${currItem.item.name} - ${Object.entries(currItem.item.options)
+                            .map(([key, values]) => `${key}: ${values.join(', ')}`)
+                            .join(' | ')}`,
+                        description: currItem.item.description,
+                        images: currItem.item.photos?.length ? [currItem.item.photos[0]] : [],
+                    },
+                    unit_amount: currItem.item.price * 100,
+                },
+                quantity: currItem.quantity,
+            })),
             customer_creation: "always",
             invoice_creation: { enabled: true },
             billing_address_collection: 'required',
             shipping_address_collection: {
                 allowed_countries: ['US', 'CA'],  
             },
-            shipping_options: [
-                {
-                  shipping_rate_data: {
-                    type: 'fixed_amount',
-                    fixed_amount: {
-                      amount: 2200,
-                      currency: 'cad',
-                    },
-                    display_name: 'Standard Shipping',
-                    delivery_estimate: {
-                      minimum: { unit: 'business_day', value: 3 },
-                      maximum: { unit: 'business_day', value: 7 },
-                    },
-                  },
-                },
-                {
-                  shipping_rate_data: {
-                    type: 'fixed_amount',
-                    fixed_amount: {
-                      amount: 0,
-                      currency: 'cad',
-                    },
-                    display_name: 'Local Pickup (Medicine Hat, AB)',
-                    delivery_estimate: {
-                      minimum: { unit: 'business_day', value: 1 },
-                      maximum: { unit: 'business_day', value: 7 },
-                    },
-                  },
-                },
-            ],
+            shipping_options: shippingOptions,
             mode: 'payment',
             success_url: `${process.env.FRONTEND_URL}/?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.FRONTEND_URL}/?success=false`, 
-        })
+        };
 
-        if(session.url === null) {
-            return res.status(404).json("Stripe error, please try again.")
+        const session = await stripe.checkout.sessions.create(sessionParams);
+
+        if (!session.url) {
+            return res.status(404).json({ error: "Stripe error, please try again." });
         }
 
-        return res.status(200).json({url: session.url})
-    } catch(error) {
+        return res.status(200).json({ url: session.url });
+    } catch (error) {
         console.error('Stripe checkout error:', error);
-        res.status(500).json(`Internal server error: ${error}`)
+        return res.status(500).json({ error: `Internal server error: ${error}` });
     }
-})
+});
 
 router.post('/webhook',express.raw({type: 'application/json'}), async (request, response) : Promise<any> => {
    
