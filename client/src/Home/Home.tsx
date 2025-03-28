@@ -57,8 +57,8 @@ function Header() {
                 {/* Text and button */}
                 {isDesktop &&
                     <div className="flex flex-col w-full justify-between py-4 relative z-10">
-                        <p className="text-2xl md:text-[3rem] font-headerFont pl-6">HeartlandShoppes</p>
-                        <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] ml-12 my-3">
+                        <p className="text-2xl md:text-[3rem] font-headerFont pl-4">HeartlandShoppes</p>
+                        <p className="font-regular text-lg md:text-xl lg:text-[1.4rem] pl-6 my-3">
                             Discover the heart of shopping at heartland shoppes where imagination meets creation
                         </p>
                         <Link
@@ -75,9 +75,18 @@ function Header() {
                     className={`w-auto h-42 md:h-full ${isDesktop ? `absolute` : `relative`} top-0 right-0 mx-auto left-0 md:left-auto md:right-0 md:mr-4 md:mx-0 z-0 opacity-90 pointer-events-none`}
                     alt="Background logo"
                 />
-                {!isDesktop && <p className="text-center font-regular">Discover the heart of shopping at heartland shoppes where imagination meets creation</p>}
+
+                {!isDesktop && <div className="w-full flex flex-col items-center justify-center">
+                    <p className="font-regular text-center">Discover the heart of shopping at heartland shoppes where imagination meets creation</p>
+                    <Link
+                        to="/shop"
+                        className="font-button mb-2 font-semibold bg-[#f8b4c4] w-fit p-0.5 md:p-1.5 rounded-sm md:text-lg shadow-gray-500 shadow-sm text-white transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+                    >
+                        Shop now
+                    </Link>
+                </div>}
             </div>
-        </div>
+        </div >
     )
 }
 

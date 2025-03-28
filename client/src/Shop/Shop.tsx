@@ -11,7 +11,7 @@ import { Edit, X } from "lucide-react";
 import Stockings from '../assets/CustomPics/stockings.jpg'
 import customCup from '../assets/CustomPics/customcup.jpg'
 import cuttingBoard from '../assets/CustomPics/cuttingBoard.jpg'
-import customCupTWO from '../assets/CustomPics/customCupTWO.jpg'
+import customCupTWO from '../assets/CustomPics/IMG_5268.jpg'
 import Modal from "@mui/material/Modal";
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -80,7 +80,7 @@ function CustomOrderSlide() {
         Stockings,
         customCup,
         cuttingBoard,
-        customCupTWO,
+        customCupTWO
     ]
 
     useEffect(() => {
@@ -97,7 +97,7 @@ function CustomOrderSlide() {
 
     return <div className="w-[80%] mx-auto">
         <div className="relative mb-8">
-            <div className="relative h-[250px] md:h-[350px] rounded-lg overflow-hidden">
+            <div className="relative h-[325px] md:h-[400px] rounded-lg overflow-hidden">
                 {images.map((src, index) => (
                     <div
                         key={index}
@@ -107,7 +107,7 @@ function CustomOrderSlide() {
                         <img
                             src={src}
                             alt={`Handmade product image ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                             loading={index === 0 ? "eager" : "lazy"}
                         />
                     </div>
@@ -138,7 +138,7 @@ function CustomOrderSlide() {
                                     <img
                                         src={src || "https://via.placeholder.com/120x80"}
                                         alt={`Image ${index + 1}`}
-                                        className="object-cover w-full h-20"
+                                        className="object-contain w-full h-full"
                                     />
                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                         <Button
