@@ -63,7 +63,7 @@ async function sendInquiryMessage(body: MessageBody) {
 
   try {
     const data = await mg.messages.create("hs.heartlandshoppes.ca", {
-      from: "Heartland Shoppes <inquires@hs.heartlandshoppes.ca>",
+      from: `Heartland Shoppes <${body.email}>`,
       to: [`<heartlandshoppes@gmail.com>`],
       subject: `Customer Inquiry - ${body.fullName}`,
       text: body.text,
