@@ -12,6 +12,7 @@ import Stockings from '../assets/CustomPics/stockings.jpg'
 import customCup from '../assets/CustomPics/customcup.jpg'
 import cuttingBoard from '../assets/CustomPics/cuttingBoard.jpg'
 import customCupTWO from '../assets/CustomPics/IMG_5268.jpg'
+import customCupTHREE from '../assets/CustomPics/IMG_9416.jpg'
 import Modal from "@mui/material/Modal";
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -80,7 +81,8 @@ function CustomOrderSlide() {
         Stockings,
         customCup,
         cuttingBoard,
-        customCupTWO
+        customCupTWO,
+        customCupTHREE
     ]
 
     useEffect(() => {
