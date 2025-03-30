@@ -219,12 +219,15 @@ function DisplayItem({ item }: ItemProps) {
     const handleItemRedirect = () => {
         navigate(`/shop/item/${item.name}`)
     }
+
+    const [itemPriceKey] = useState<string | null>(Object.keys(item.priceOptions).length > 0 ? Object.keys(item.priceOptions)[0] : null)
+
     return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
         <img src={item?.photos[0]} className="h-40">
         </img>
         <div className="flex flex-col font-regular items-center">
             <p className="overflow-hidden line-clamp-1">{item.name}</p>
-            <p>${Number(item.price).toFixed(2)}</p>
+            <p>${itemPriceKey !== null ? Number(item.priceOptions[itemPriceKey]).toFixed(2) : Number(item.price).toFixed(2)}</p>
             <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>
         </div>
     </div>

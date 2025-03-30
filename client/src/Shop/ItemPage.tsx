@@ -83,11 +83,16 @@ function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
         setSelectedIndex(photoIndex)
     }
 
+    const handlePhotoChange = (photo: string, index: number) => {
+        setPhotoUrl(photo);
+        setSelectedIndex(index);
+    }
+
     return < div className="w-full flex flex-col  items-center justify-center" >
         <div className="flex flex-row w-full p-2 justify-center space-x-3">
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                 {photos.map((photo, index) => {
-                    return <img key={index} src={photo} className="cursor-pointer  w-18 object-contain md:w-auto h-18" onClick={() => setPhotoUrl(photo)}></img>
+                    return <img key={index} src={photo} className="cursor-pointer  w-18 object-contain md:w-auto h-18" onClick={() => handlePhotoChange(photo, index)}></img>
                 })}
             </div>
         </div>
@@ -280,7 +285,7 @@ function ItemDescription({ item }: DisplayItemProps) {
                         ))}
                     </select>
 
-                    {quantity === 0 ? (
+                    {(quantity === 0) ? (
                         <button
                             onClick={() => handleAddToCart()}
                             className="md:self-start self-center w-fit my-2 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button"
@@ -303,6 +308,7 @@ function ItemDescription({ item }: DisplayItemProps) {
                 </div>
             </div>
         ) : (
+            item.price > 0 &&
             <div className="flex flex-col space-y-4 pt-4">
                 <div className="flex flex-col space-y-2">
                     {quantity === 0 ? (
