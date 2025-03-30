@@ -108,7 +108,6 @@ function Account({ setViewAccount }: AccountProps) {
             <div className="flex flex-col p-2">
                 <button onClick={() => setViewAccount((view) => !view)} className="self-start md:self-end mr-2 cursor-pointer hover:text-blue-500 transition-colors duration-300">Account</button>
                 <div className="flex flex-row space-x-2 md:space-x-6">
-                    <Link to="/account" className="hover:text-blue-500 transition-colors duration-300">Settings</Link>
                     <button onClick={handleLogout} className="cursor-pointer hover:text-blue-500 transition-colors duration-300">Logout</button>
                 </div>
             </div>
