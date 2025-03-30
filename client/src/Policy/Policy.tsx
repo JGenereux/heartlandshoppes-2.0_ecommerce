@@ -6,7 +6,7 @@ export default function Policy() {
                 <div className="space-y-4 text-gray-700">
                     <p>
                         Heartland Shoppes offers free shipping on orders over $125.00 (before tax and after discounts), valid for
-                        Canadian orders only. Free shipping is not applied to US orders.
+                        Canadian and US orders only.
                     </p>
                     <p>
                         We also offer local pickup. Once order is complete we will be in touch as to pick up location and
@@ -31,7 +31,7 @@ export default function Policy() {
                         In the event that your order is undeliverable or returned to sender due to inaccurate or incomplete shipping
                         information, please note that shipping fees are non-refundable.
                     </p>
-                    <p>Please not all customers are responsible for all duties and taxes on international shipments.</p>
+                    <p>Please note all customers are responsible for all duties and taxes on international shipments.</p>
                 </div>
             </section>
 
@@ -49,7 +49,7 @@ export default function Policy() {
 
                     <p>The following items are not eligible for return or exchange:</p>
                     <ul className="list-disc pl-6 space-y-1">
-                        <li>Gifts with Purchase</li>
+                        <li>Vendor Gifts with Purchase</li>
                         <li>Original Shipping Charges</li>
                         <li>Items that are not purchased directly through our website</li>
                     </ul>

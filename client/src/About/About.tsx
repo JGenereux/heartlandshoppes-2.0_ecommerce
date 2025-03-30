@@ -41,7 +41,7 @@ function AboutPage() {
         "Upon getting married, our family has lived in many cities and towns across Alberta, and have now settled in Southern Alberta.",
         "My love of crafting has always been with me, as my mom was into ceramics and would often ask if I would like to go with her. It was nice creating something different and unique. In high school, I took shop as I loved working with all the different mediums and again the fun of seeing an idea come too fruition.",
         "I learned at a young age that I really did enjoy unique gifts, not cookie cutter ones that everyone else received, again attributed to my mom who made gifts for her friends and family and seeing their expressions upon receipt. I remember one year, my parents had no idea what to get me for Christmas, and they ended up buying me a knitting machine. Needless to say I wore it out.",
-        "My vision for this new venture is to bring ideas to life. I would like to be a go to ,when people can’t seem to find that perfect gift. Retailers have all kinds of gifts that can express different feelings, but I find they are to generic. I want my gift to enable an emotional reaction from them, and one they will proudly display in their home.",
+        "My vision for this new venture is to bring ideas to life. I would like to be a go to, when people can’t seem to find that perfect gift. Retailers have all kinds of gifts that can express different feelings, but I find they are to generic. I want my gift to enable an emotional reaction from them, and one they will proudly display in their home.",
         " I believe you shouldn’t have to compromise style for function. We are passionate about designing one of a kind items to be used everyday, or to hang beautifully in your home."
     ])
 
@@ -158,7 +158,7 @@ function AboutPage() {
                             <div className="space-y-4 text-gray-700">
                                 <p>
                                     Heartland Shoppes offers free shipping on orders over $125.00 (before tax and after discounts), valid for
-                                    Canadian orders only. Free shipping is not applied to US orders.
+                                    Canadian and US orders only.
                                 </p>
                                 <p>
                                     We also offer local pickup. Once order is complete we will be in touch as to pick up location and
@@ -183,7 +183,7 @@ function AboutPage() {
                                     In the event that your order is undeliverable or returned to sender due to inaccurate or incomplete shipping
                                     information, please note that shipping fees are non-refundable.
                                 </p>
-                                <p>Please not all customers are responsible for all duties and taxes on international shipments.</p>
+                                <p>Please note all customers are responsible for all duties and taxes on international shipments.</p>
                             </div>
                         </section>
 
@@ -201,7 +201,7 @@ function AboutPage() {
 
                                 <p>The following items are not eligible for return or exchange:</p>
                                 <ul className="list-disc pl-6 space-y-1">
-                                    <li>Gifts with Purchase</li>
+                                    <li>Vendor Gifts with Purchase</li>
                                     <li>Original Shipping Charges</li>
                                     <li>Items that are not purchased directly through our website</li>
                                 </ul>
