@@ -1,6 +1,5 @@
 import { FormEvent, RefObject, useEffect, useRef, useState } from "react";
 import Drawer from "../Navbar/Drawer";
-import email from '../assets/email.png'
 import fblogo from '../assets/facebooklogo.png'
 import iglogo from '../assets/iglogo.png'
 import hsLogo from '../assets/LOGO.png'
@@ -286,11 +285,14 @@ function CustomProduct({ customProdRef }: CustomProductProps) {
 function Footer() {
     return (
         <div className="flex flex-col w-full bg-gray-600 p-2 items-center">
-            <img src={email} className="w-14 h-10"></img>
             <p className="text-white text-xl">Connect with me</p>
             <div className="flex flex-row space-x-4">
-                <img src={iglogo} className="w-10 h-10"></img>
-                <img src={fblogo} className="w-11 h-10"></img>
+                <a href="https://www.instagram.com/heartlandshoppes.ca/">
+                    <img src={iglogo} className="w-10 h-10"></img>
+                </a>
+                <a href="https://www.facebook.com/DonnaHeartlandShoppes">
+                    <img src={fblogo} className="w-10 h-10"></img>
+                </a>
             </div>
         </div>
     )
