@@ -95,7 +95,7 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
             await client.sendCommand(["EXPIRE", `${category}`, "300"]);
         }
 
-        return res.status(200).json(items)
+        return res.status(200).json(filteredItems)
     } catch(error) {
         res.status(500).json("Internal server error")
     }
