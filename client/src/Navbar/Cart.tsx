@@ -122,7 +122,7 @@ function Item({ item }: ItemProps) {
 
             <div className="flex flex-col pl-2 py-1 w-[65%]">
                 <p className="font-medium text-sm">{item.item.name}</p>
-                <p className="font-semibold text-sm">{item.item.price}</p>
+                <p className="font-semibold text-sm">${Number(item.item.price).toFixed(2)}</p>
 
                 <p className="text-xs text-gray-500 mt-1">Options</p>
                 {Object.keys(item.item.options).map((option) => (
