@@ -1,4 +1,3 @@
-import type React from "react"
 
 import { useState, useEffect, FormEvent } from "react"
 import { Mail, MapPin } from "lucide-react"
@@ -8,7 +7,6 @@ import Error from "../Loading/Error"
 import laser from '../assets/AboutPics/laser.jpg'
 import macbook from '../assets/AboutPics/macbook.jpg'
 import printer from '../assets/AboutPics/printer.jpg'
-import { Link } from "react-router-dom"
 const apiUrl = import.meta.env.VITE_API_URL;
 
 
