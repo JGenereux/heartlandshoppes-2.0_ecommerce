@@ -16,6 +16,8 @@ const stripe = new Stripe(STRIPE_KEY || '')
 
 const router = express.Router()
 
+const refundPolicy = 'Due to customization of our items, all sales are final. A final draft will be sent out to you for your approval and once you have accepted it, the article will go into production. If you notice an error please contact us as soon as possible, to see if it can be corrected. Once your item is complete, it cannot be corrected. The following items are not eligible for return or exchange -Gifts with Purchase -Original Shipping Charges -Items that are not purchased directly through our website Please note that the cost of doing a return and/or exchange is the responsibility of the customer. All orders are shipped from Canada and must be returned to Canada as well. Heartland Shoppes does not cover the cost of doing returns and/or exchange.'
+
 router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
     const { items } = req.body;
     
@@ -102,6 +104,11 @@ router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
                 },
                 quantity: currItem.quantity,
             })),
+            custom_text: {
+                terms_of_service_acceptance: {
+                    message: refundPolicy
+                }
+            },
             automatic_tax: {enabled: true},
             customer_creation: "always",
             invoice_creation: { enabled: true },
