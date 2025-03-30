@@ -283,7 +283,8 @@ router.route('/:id').put(authenticateToken, checkAdminRole,async(req: Request,re
         if((!oldTrackingNumber && trackingNumber) || (typeof oldTrackingNumber === "string" && typeof trackingNumber === "string" && (oldTrackingNumber !== trackingNumber))) {
             const orderInfo: MessageInfo = {name: orderUpdated.billingInfo.fullName, email: orderUpdated.billingInfo.email, id: orderUpdated.id, trackingNumber: orderUpdated.trackingNumber || '', invoice: orderUpdated.invoiceUrl }
             const message = `Hello, your order from HeartlandShoppes with order Id #${orderInfo.id} with the following invoice ${orderInfo.invoice} has been shipped the tracking number is ${orderInfo.trackingNumber}`
-    
+              
+            console.log('sending tracking number')
             sendTrackingNumberMessage({fullName: orderInfo.name, email: orderInfo.email, orderId: orderInfo.id, text: message })
         }
 
