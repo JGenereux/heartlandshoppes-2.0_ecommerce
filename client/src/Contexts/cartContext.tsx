@@ -68,8 +68,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     useEffect(() => {
-        window.addEventListener('beforeunload', saveCartOnUnload)
 
+        window.addEventListener('beforeunload', saveCartOnUnload)
         return () => {
             window.removeEventListener('beforeunload', saveCartOnUnload)
         }
