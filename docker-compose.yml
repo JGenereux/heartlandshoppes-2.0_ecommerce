@@ -17,18 +17,10 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./client  # Frontend located in the /client directory
+    build: ./client
     ports:
-      - "8080:8080"
-    depends_on:
-      - backend
-    volumes:
-      - ./client:/app  # Mapping the client folder
-      - /app/node_modules
+    - "8080:80"
     restart: unless-stopped
-    command: npm run dev
-    environment:
-      - VITE_HMR=true
 
   redis:
     image: "redis:alpine"
