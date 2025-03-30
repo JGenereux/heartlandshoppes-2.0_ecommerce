@@ -131,7 +131,7 @@ router.post("/reset", async(req: Request, res: Response): Promise<any> => {
 
         sendForgotPasswordMessage({
             email: userEmail,
-            text: `Click the link to reset your password. http://localhost:5000/auth/reset?token=${token}`
+            text: `Click the link to reset your password. https://heartlandshoppes.ca/api/auth/reset?token=${token}`
         })
 
         res.clearCookie("refreshToken", {
