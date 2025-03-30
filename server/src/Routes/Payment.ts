@@ -102,6 +102,7 @@ router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
                 },
                 quantity: currItem.quantity,
             })),
+            automatic_tax: {enabled: true},
             customer_creation: "always",
             invoice_creation: { enabled: true },
             billing_address_collection: 'required',
