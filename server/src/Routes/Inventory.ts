@@ -18,7 +18,7 @@ router.route('/').get(rateLimiter, async(req: Request,res: Response) => {
         const exists = await client.exists('items')
         
         if(exists === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', 'items', '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', 'items'])
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
             res.status(200).json(items)
             return
@@ -32,9 +32,9 @@ router.route('/').get(rateLimiter, async(req: Request,res: Response) => {
         }
         
         
-        await client.sendCommand(['DEL', 'items']); // Clear old list
+        await client.sendCommand(['DEL', 'items']); 
         if(items.length > 0) {
-            await client.sendCommand(['RPUSH', 'items', ...items.map(item => JSON.stringify(item))]); // Push all to Redis
+            await client.sendCommand(['SADD', 'items', ...items.map(item => JSON.stringify(item))]); 
             await client.sendCommand(["EXPIRE", "items", "300"]);
         }
         res.status(200).json(items)
@@ -56,7 +56,7 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
         const categoryExist = await client.exists(`${category}`)
 
         if(categoryExist === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', `${category}`, '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', `${category}`])
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
             return res.status(200).json(items) 
         } 
@@ -64,12 +64,12 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
         // since category doesn't exist check if the items cache exists
         const itemsExist = await client.exists('items')
         if(itemsExist === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', `items`])
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item)).filter((item: Item) => item.category.includes(category))
             if(items.length == 0 ){
                 return res.status(200).json([])
             }
-            await client.sendCommand(["RPUSH", `${category}`, ...items.map(item => JSON.stringify(item))])
+            await client.sendCommand(["SADD", `${category}`, ...items.map(item => JSON.stringify(item))])
             await client.sendCommand(["EXPIRE", `${category}`, "300"]);
             return res.status(200).json(items)
         }
@@ -85,13 +85,13 @@ router.route('/:category').get(async(req: Request,res: Response) : Promise<any> 
 
         if(items.length > 0) {
             await client.sendCommand(["DEL", `items`])
-            await client.sendCommand(["RPUSH", `items`, ...items.map(item => JSON.stringify(item))])
+            await client.sendCommand(["SADD", `items`, ...items.map(item => JSON.stringify(item))])
             await client.sendCommand(["EXPIRE", "items", "300"]);
         }
         
         if(filteredItems.length > 0) {
             await client.sendCommand(["DEL", `${category}`])
-            await client.sendCommand(["RPUSH", `${category}`, ...filteredItems.map(item => JSON.stringify(item))])
+            await client.sendCommand(["SADD", `${category}`, ...filteredItems.map(item => JSON.stringify(item))])
             await client.sendCommand(["EXPIRE", `${category}`, "300"]);
         }
 
@@ -112,7 +112,7 @@ router.route('/item/:name').get(async(req: Request,res: Response): Promise<any> 
     try{
         const itemsExist = await client.exists('items')
         if(itemsExist === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', `items`])
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
 
             const item = items.find((item: Item) => item.name === name)
@@ -144,10 +144,10 @@ router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : P
         await newItem.save()
 
         //add new item to items cache and category caches that the item belongs too
-        await client.sendCommand(['LPUSH','items', JSON.stringify(newItem)])
+        await client.sendCommand(['SADD','items', JSON.stringify(newItem)])
      
         for(const category of newItem.category) {
-            await client.sendCommand(['LPUSH', `${category}`, JSON.stringify(newItem)])
+            await client.sendCommand(['SADD', `${category}`, JSON.stringify(newItem)])
             await client.sendCommand(["EXPIRE", `${category}`, "300"]);
         }
       
@@ -182,7 +182,7 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
         const itemsExists = await client.exists('items')
 
         if(itemsExists === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', `items`])
             //remove item from items list
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
             //add new updated item to list
@@ -197,7 +197,7 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
             items[index] = {...items[index], ...item}
             
             await client.sendCommand(['DEL', `items`])
-            await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+            await client.sendCommand(['SADD', 'items', ...items.map((item) => JSON.stringify(item))])
             await client.sendCommand(["EXPIRE", "items", "300"]);
             //delete old categories before updating new ones
             for(const category of oldCategories) {
@@ -209,7 +209,7 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
                 const itemCategory = category
                 const categoryExist = await client.exists(`${itemCategory}`)
                 if(categoryExist === 1) {
-                    const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                    const cachedCategory = await client.sendCommand(['SMEMBERS', `${itemCategory}`])
                     const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
                     const index = categoryItems.findIndex((item: Item) => item.name === name)
                     if (index != -1) {
@@ -217,7 +217,7 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
                     }
 
                     await client.sendCommand(['DEL', `${itemCategory}`])
-                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(['SADD', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
                     await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                     console.log(`Removed item from ${itemCategory} cache`)
                 }
@@ -292,7 +292,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
         const itemsExists = await client.exists('items')
 
         if(itemsExists === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', `items`])
             //remove item from items list
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
             //add new updated item to list
@@ -311,7 +311,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
             }
 
             await client.sendCommand(['DEL', `items`])
-            await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+            await client.sendCommand(['SADD', 'items', ...items.map((item) => JSON.stringify(item))])
             await client.sendCommand(["EXPIRE", "items", "300"]);
          
             // update item for each category list cache
@@ -319,7 +319,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
                 const itemCategory = category
                 const categoryExist = await client.exists(`${itemCategory}`)
                 if(categoryExist === 1) {
-                    const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                    const cachedCategory = await client.sendCommand(['SMEMBERS', `${itemCategory}`])
                     const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
                     const index = categoryItems.findIndex((item: Item) => item.name === name)
                     if (index === -1) {
@@ -333,7 +333,7 @@ router.route('/item/:name/review').put(async(req: Request, res: Response) : Prom
                     }
                 
                     await client.sendCommand(['DEL', `${itemCategory}`])
-                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(['SADD', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
                     await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                 }
             }
@@ -371,7 +371,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
         const itemsExists = await client.exists('items')
 
         if(itemsExists === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', `items`])
             //remove item from items list
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
             
@@ -387,7 +387,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
             items[index].reviews = items[index].reviews.filter((currReview) => currReview.fullName === review.fullName)
             
             await client.sendCommand(['DEL', `items`])
-            await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+            await client.sendCommand(['SADD', 'items', ...items.map((item) => JSON.stringify(item))])
             await client.sendCommand(["EXPIRE", "items", "300"]);
             
             // update item in category list cache
@@ -395,7 +395,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
                 const itemCategory = category
                 const categoryExist = await client.exists(`${itemCategory}`)
                 if(categoryExist === 1) {
-                    const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                    const cachedCategory = await client.sendCommand(['SMEMBERS', `${itemCategory}`])
                     const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
                     const index = categoryItems.findIndex((item: Item) => item.name === name)
                     if (index === -1) {
@@ -405,7 +405,7 @@ router.route('/item/:name/review').delete(async(req: Request, res: Response): Pr
                     categoryItems[index].reviews = items[index].reviews.filter((currReview) => currReview.fullName === review.fullName)
                 
                     await client.sendCommand(['DEL', `${itemCategory}`])
-                    await client.sendCommand(['RPUSH', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(['SADD', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
                     await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                 }
             }
@@ -435,7 +435,7 @@ router.route('/item/:name').delete(authenticateToken, checkAdminRole,async(req,r
         const itemsExists = await client.exists('items')
 
         if(itemsExists === 1) {
-            const cachedItems = await client.sendCommand(['LRANGE', `items`, '0', '-1'])
+            const cachedItems = await client.sendCommand(['SMEMBERS', `items`])
             const items: Item[] = cachedItems.map((item: any) => JSON.parse(item))
 
             const index = items.findIndex((item: Item) => item.name === name)
@@ -446,7 +446,7 @@ router.route('/item/:name').delete(authenticateToken, checkAdminRole,async(req,r
 
                 await client.sendCommand(['DEL', `items`])
                 if(items.length != 0) {
-                    await client.sendCommand(['RPUSH', 'items', ...items.map((item) => JSON.stringify(item))])
+                    await client.sendCommand(['SADD', 'items', ...items.map((item) => JSON.stringify(item))])
                     await client.sendCommand(["EXPIRE", "items", "300"]);
                 }
             }
@@ -461,7 +461,7 @@ router.route('/item/:name').delete(authenticateToken, checkAdminRole,async(req,r
             const itemCategory = category
             const categoryExist = await client.exists(`${itemCategory}`)
             if(categoryExist === 1) {
-                const cachedCategory = await client.sendCommand(['LRANGE', `${itemCategory}`, '0', '-1'])
+                const cachedCategory = await client.sendCommand(['SMEMBERS', `${itemCategory}`])
                 const categoryItems: Item[] = cachedCategory.map((item: any) => JSON.parse(item))
                 const index = categoryItems.findIndex((item: Item) => item.name === name)
                 if (index !== -1) {
@@ -471,7 +471,7 @@ router.route('/item/:name').delete(authenticateToken, checkAdminRole,async(req,r
                     await client.sendCommand(['DEL', `${itemCategory}`])
                     
                     if(validItems.length != 0) {
-                        await client.sendCommand(['RPUSH', `${itemCategory}`, ...validItems.map((item) => JSON.stringify(item))])
+                        await client.sendCommand(['SADD', `${itemCategory}`, ...validItems.map((item) => JSON.stringify(item))])
                         await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
                     }   
                 }
