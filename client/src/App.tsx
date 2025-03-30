@@ -11,6 +11,7 @@ import Account from "./Login/Account"
 import React from "react"
 import { useAuth } from "./Contexts/authContext"
 import Reset from "./Login/Reset"
+import Policy from "./Policy/Policy"
 
 interface ProtectedComponentProps {
   children: React.ReactNode,
@@ -41,6 +42,7 @@ function App() {
       <Route path="/reset/:token" element={<Reset />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/policy" element={<Policy />} />
       <Route path="/account" element={<Account />} />
     </Routes>
   )
