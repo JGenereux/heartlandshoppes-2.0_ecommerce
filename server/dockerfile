@@ -9,11 +9,10 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# Install TypeScript and ts-node globally
-RUN npm install -g typescript ts-node nodemon
+# Start the application in development mode (using ts-node)
+RUN npm run build
+CMD ["npm", "start"]
 
 # Expose backend port
 EXPOSE 5000
 
-# Start the application in development mode (using ts-node)
-CMD ["npm", "run", "dev"]
