@@ -126,6 +126,8 @@ function ItemDescription({ item }: DisplayItemProps) {
         }
     }
 
+    const [errorAddingToCart, setErrorAddingToCart] = useState<string>("");
+    const [customMsg, setCustomMsg] = useState<string>("");
     const [quantity, setQuantity] = useState(() => retrieveItem())
 
     const [currentBundleOpts] = useState<Record<string, number>>(
@@ -193,6 +195,10 @@ function ItemDescription({ item }: DisplayItemProps) {
     }
 
     const handleAddToCart = () => {
+        if (item.category.includes("Custom Order") && customMsg.length === 0) {
+            setErrorAddingToCart("Personalization Box must be filled in!");
+            return;
+        }
         if (bundleAmounts.length > 0) {
             // Bundle case - original functionality
             if (quantity > 0) return;
@@ -261,95 +267,113 @@ function ItemDescription({ item }: DisplayItemProps) {
         setQuantity(0);
     }
 
+    const HandleCustomMsg = (msg: string) => {
+        setErrorAddingToCart("");
+        setCustomMsg(msg);
+
+        setTempItem((prevItem) => {
+            const currOptions = item.options;
+            currOptions["customMSG"] = [msg];
+            return { ...prevItem, options: currOptions }
+        })
+    }
+
     return <div className="flex flex-col h-full text-lg pt-1 w-full">
         <div className="flex flex-col">
             <h3 className="text-2xl md:text-3xl font-headerFont">{item.name}</h3>
-            <p className="text-lg md:text-xl font-regular">${tempItem.price.toFixed(2)}</p>
+            <p className="text-lg md:text-xl font-regular">${Number(tempItem.price).toFixed(2)}</p>
         </div>
         <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-24">
             <DisplayOptions options={item.options} setItem={setTempItem} />
+            {(item.category.includes("Custom Order") && Number(item.price) > 0) && <label className="font-button">
+                {errorAddingToCart.length > 0 && <p className="text-red-400">{errorAddingToCart}</p>}
+                How Do You Want It Personalized?
+                <textarea className="border-gray-400 border-2 px-1 w-full md:w-[80%] resize-none font-regular" value={customMsg} onChange={(e) => HandleCustomMsg(e.target.value)}></textarea>
+            </label>}
         </div>
 
-        {Object.keys(currentBundleOpts).length > 0 ? (
-            <div className="flex flex-col space-y-4 pt-4">
-                <div className="flex flex-col space-y-2">
-                    <select
-                        value={selectedBundle}
-                        onChange={handleBundleChange}
-                        className="p-2 border border-gray-300 rounded-md"
-                    >
-                        {bundleAmounts.map((amount) => (
-                            <option key={amount} value={amount}>
-                                {amount} items for ${currentBundleOpts[amount].toFixed(2)}
-                            </option>
-                        ))}
-                    </select>
+        {
+            Object.keys(currentBundleOpts).length > 0 ? (
+                <div className="flex flex-col space-y-4 pt-4">
+                    <div className="flex flex-col space-y-2">
+                        <select
+                            value={selectedBundle}
+                            onChange={handleBundleChange}
+                            className="p-2 border border-gray-300 rounded-md"
+                        >
+                            {bundleAmounts.map((amount) => (
+                                <option key={amount} value={amount}>
+                                    {amount} items for ${currentBundleOpts[amount].toFixed(2)}
+                                </option>
+                            ))}
+                        </select>
 
-                    {(quantity === 0) ? (
-                        <button
-                            onClick={() => handleAddToCart()}
-                            className="md:self-start self-center w-fit my-2 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button"
-                        >
-                            Add To Cart
-                        </button>
-                    ) : (
-                        <div className="flex flex-col space-y-2">
-                            <p className="font-regular">
-                                <span className="font-bold">{quantity} items</span> in cart at <span className="font-bold">${tempItem.price.toFixed(2)}/each</span>
-                            </p>
+                        {(quantity === 0) ? (
                             <button
-                                onClick={handleClearCart}
-                                className="md:self-start self-center w-fit text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-red-500 hover:border-2 font-button"
+                                onClick={() => handleAddToCart()}
+                                className="md:self-start self-center w-fit my-2 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button"
                             >
-                                Remove From Cart
+                                Add To Cart
                             </button>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="flex flex-col space-y-2">
+                                <p className="font-regular">
+                                    <span className="font-bold">{quantity} items</span> in cart at <span className="font-bold">${tempItem.price.toFixed(2)}/each</span>
+                                </p>
+                                <button
+                                    onClick={handleClearCart}
+                                    className="md:self-start self-center w-fit text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-red-500 hover:border-2 font-button"
+                                >
+                                    Remove From Cart
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        ) : (
-            item.price > 0 &&
-            <div className="flex flex-col space-y-4 pt-4">
-                <div className="flex flex-col space-y-2">
-                    {quantity === 0 ? (
-                        <button
-                            onClick={() => handleAddToCart()}
-                            className="md:self-start self-center w-fit my-2 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button"
-                        >
-                            Add To Cart
-                        </button>
-                    ) : (
-                        <div className="flex items-center space-x-2">
+            ) : (
+                item.price > 0 &&
+                <div className="flex flex-col space-y-4 pt-4">
+                    <div className="flex flex-col space-y-2">
+                        {quantity === 0 ? (
                             <button
-                                onClick={handleRemoveFromCart}
-                                className="px-3 py-1 text-xl font-bold border border-gray-300 rounded-md hover:bg-gray-100"
+                                onClick={() => handleAddToCart()}
+                                className="md:self-start self-center w-fit my-2 text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-actionColor hover:border-2 font-button"
                             >
-                                -
+                                Add To Cart
                             </button>
-                            <span className="px-3 py-1 font-bold">{quantity}</span>
-                            <button
-                                onClick={handleAddToCart}
-                                className="px-3 py-1 text-xl font-bold border border-gray-300 rounded-md hover:bg-gray-100"
-                            >
-                                +
-                            </button>
-                            <button
-                                onClick={handleClearCart}
-                                className="ml-2 md:self-start self-center w-fit text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-red-500 hover:border-2 font-button"
-                            >
-                                Remove All
-                            </button>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={handleRemoveFromCart}
+                                    className="px-3 py-1 text-xl font-bold border border-gray-300 rounded-md hover:bg-gray-100"
+                                >
+                                    -
+                                </button>
+                                <span className="px-3 py-1 font-bold">{quantity}</span>
+                                <button
+                                    onClick={handleAddToCart}
+                                    className="px-3 py-1 text-xl font-bold border border-gray-300 rounded-md hover:bg-gray-100"
+                                >
+                                    +
+                                </button>
+                                <button
+                                    onClick={handleClearCart}
+                                    className="ml-2 md:self-start self-center w-fit text-lg md:text-xl border-black border-1 cursor-pointer rounded-full p-2 px-4 shadow-gray-400 shadow-sm hover:border-red-500 hover:border-2 font-button"
+                                >
+                                    Remove All
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        )}
+            )
+        }
 
         <div className="flex flex-col pt-4 w-[100%]">
             <p className="font-button font-bold">About this item: </p>
             <p className="font-regular text-md ml-2 md:ml-0">{item.description}</p>
         </div>
-    </div>
+    </div >
 }
 
 interface DisplayOptionsProps {
@@ -370,7 +394,7 @@ function DisplayOptions({ options, setItem }: DisplayOptionsProps) {
 
     return <div className="flex flex-col space-y-2">
         {Object.keys(options).map((option) => {
-            return <label key={option}>
+            return option != "customMSG" && <label key={option}>
                 {option.charAt(0).toUpperCase() + option.slice(1)}:
                 <DisplayOption option={option} optionValues={options} currOptions={currOptions} setCurrOptions={setCurrOptions} />
             </label>
