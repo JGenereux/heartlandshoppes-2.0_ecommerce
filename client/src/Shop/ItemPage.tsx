@@ -111,8 +111,9 @@ function ItemDescription({ item }: DisplayItemProps) {
         options: {}
     })
 
-    const retrieveItem = (): number => {
-        if (!cart) return 0
+    const retrieveItem = (): [number, Record<string, string[]> | null] => {
+        if (!cart) return [0, null];
+
         const itemIndex = cart.findIndex(
             (currItem) =>
                 currItem.item.name === item.name &&
@@ -120,15 +121,15 @@ function ItemDescription({ item }: DisplayItemProps) {
         );
 
         if (itemIndex !== -1) {
-            return cart[itemIndex].quantity
+            return [cart[itemIndex].quantity, cart[itemIndex].item.options];
         } else {
-            return 0
+            return [0, null];
         }
     }
 
     const [errorAddingToCart, setErrorAddingToCart] = useState<string>("");
     const [customMsg, setCustomMsg] = useState<string>("");
-    const [quantity, setQuantity] = useState(() => retrieveItem())
+    const [quantity, setQuantity] = useState(() => retrieveItem()[0])
 
     const [currentBundleOpts] = useState<Record<string, number>>(
         (item.priceOptions && Object.keys(item.priceOptions).length > 0) ?
@@ -167,7 +168,11 @@ function ItemDescription({ item }: DisplayItemProps) {
     }, [selectedBundle])
 
     useEffect(() => {
-        const itemQuantity = retrieveItem()
+        const itemQuantity = retrieveItem()[0];
+        const itemInCartOptions = retrieveItem()[1];
+        if (itemInCartOptions != null && itemInCartOptions["customMSG"]) {
+            setCustomMsg(itemInCartOptions["customMSG"][0])
+        }
         setQuantity(itemQuantity)
     }, [cart, tempItem.options])
 
@@ -285,12 +290,16 @@ function ItemDescription({ item }: DisplayItemProps) {
         </div>
         <div className="flex flex-row items-center space-x-1 font-regular pt-4 md:pt-24">
             <DisplayOptions options={item.options} setItem={setTempItem} />
-            {(item.category.includes("Custom Order") && Number(item.price) > 0) && <label className="font-button">
-                {errorAddingToCart.length > 0 && <p className="text-red-400">{errorAddingToCart}</p>}
-                How Do You Want It Personalized?
-                <textarea className="border-gray-400 border-2 px-1 w-full md:w-[80%] resize-none font-regular" value={customMsg} onChange={(e) => HandleCustomMsg(e.target.value)}></textarea>
-            </label>}
         </div>
+
+        {(item.category.includes("Custom Order") && Number(item.price) > 0) &&
+            <div className="mt-2 flex flex-col">
+                <label className="font-button">
+                    {errorAddingToCart.length > 0 && <p className="text-red-400">{errorAddingToCart}</p>}
+                    How Do You Want It Personalized?
+                    <textarea className="border-gray-400 border-2 px-1 w-full md:w-[80%] resize-none font-regular" value={customMsg} onChange={(e) => HandleCustomMsg(e.target.value)}></textarea>
+                </label>
+            </div>}
 
         {
             Object.keys(currentBundleOpts).length > 0 ? (
@@ -368,6 +377,10 @@ function ItemDescription({ item }: DisplayItemProps) {
                 </div>
             )
         }
+
+        {quantity > 0 && <p className="font-button text-red-400 text-md">
+            * Quantity in cart must match number of items requested for personalization
+        </p>}
 
         <div className="flex flex-col pt-4 w-[100%]">
             <p className="font-button font-bold">About this item: </p>
