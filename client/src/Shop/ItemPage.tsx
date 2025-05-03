@@ -165,7 +165,7 @@ function ItemDescription({ item }: DisplayItemProps) {
                 price: price
             }));
         }
-    }, [selectedBundle])
+    }, [selectedBundle, bundleAmounts.length, currentBundleOpts])
 
     useEffect(() => {
         const itemQuantity = retrieveItem()[0];
@@ -174,7 +174,7 @@ function ItemDescription({ item }: DisplayItemProps) {
             setCustomMsg(itemInCartOptions["customMSG"][0])
         }
         setQuantity(itemQuantity)
-    }, [cart, tempItem.options])
+    }, [cart, tempItem.options, retrieveItem])
 
     const handleBundleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newBundle = Number(e.target.value);
@@ -217,6 +217,7 @@ function ItemDescription({ item }: DisplayItemProps) {
                 price: price
             };
 
+            console.log("Updated Item:", updatedItem);
             // Update the tempItem state
             setTempItem(updatedItem);
 
@@ -230,6 +231,7 @@ function ItemDescription({ item }: DisplayItemProps) {
                 price: tempItem.price
             };
 
+            console.log("Updated Item:", updatedItem);
             // Add one item to the cart
             addToCart({ item: updatedItem, quantity: quantity + 1 });
             setQuantity(quantity + 1);
@@ -277,9 +279,8 @@ function ItemDescription({ item }: DisplayItemProps) {
         setCustomMsg(msg);
 
         setTempItem((prevItem) => {
-            const currOptions = item.options;
-            currOptions["customMSG"] = [msg];
-            return { ...prevItem, options: currOptions }
+            const newOptions = { ...prevItem.options, customMSG: [msg] };
+            return { ...prevItem, options: newOptions }
         })
     }
 
