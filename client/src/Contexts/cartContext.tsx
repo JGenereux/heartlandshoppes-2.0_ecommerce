@@ -142,11 +142,26 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const removeFromCart = (item: CartItem) => {
         if (!cart) return
 
-        const itemIndex = cart.findIndex(
-            (currItem) =>
-                currItem.item.name === item.item.name &&
-                JSON.stringify(currItem.item.options) === JSON.stringify(item.item.options)
-        );
+        const itemIndex = cart.findIndex((currItem) => {
+            // Compare item names
+            if (currItem.item.name !== item.item.name) return false;
+
+            // Get options keys for both items, excluding customMSG
+            const currItemOptionKeys = Object.keys(currItem.item.options || {}).filter(key => key !== "customMSG");
+            const itemOptionKeys = Object.keys(item.item.options || {}).filter(key => key !== "customMSG");
+
+            // Check if they have the same keys (excluding customMSG)
+            if (JSON.stringify(currItemOptionKeys.sort()) !== JSON.stringify(itemOptionKeys.sort())) return false;
+
+            // Compare the values of each option (excluding customMSG)
+            for (const key of currItemOptionKeys) {
+                if (JSON.stringify(currItem.item.options[key]) !== JSON.stringify(item.item.options[key])) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
 
         if (itemIndex === -1) return
 

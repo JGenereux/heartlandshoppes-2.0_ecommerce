@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import Rating from '@mui/material/Rating';
 import { useParams } from "react-router-dom";
@@ -111,14 +111,87 @@ function ItemDescription({ item }: DisplayItemProps) {
         options: {}
     })
 
+    // Track the last non-customMSG options for comparison
+    const lastOptionsRef = useRef({});
+    const isInitialRender = useRef(true);
+
+    useEffect(() => {
+        const itemQuantity = retrieveItem()[0];
+        const itemInCartOptions = retrieveItem()[1];
+
+        // Check if item is in cart and has customMSG
+        if (itemInCartOptions != null && itemInCartOptions["customMSG"]) {
+            const customMSG = itemInCartOptions["customMSG"][0]
+            if (customMSG && customMSG != "") {
+                setCustomMsg(customMSG)
+            } else {
+                setCustomMsg("")
+            }
+        } else if (!isInitialRender.current) {
+            // Extract current options excluding customMSG for comparison
+            const currentOptionsExcludingMsg = { ...tempItem.options };
+            delete currentOptionsExcludingMsg?.customMSG;
+
+            // Check if actual product options changed (not just customMSG)
+            const optionsChanged = JSON.stringify(currentOptionsExcludingMsg) !== JSON.stringify(lastOptionsRef.current);
+
+            // Reset customMsg only if options changed and not on initial render
+            if (optionsChanged) {
+                setCustomMsg("");
+                // Also remove customMSG from tempItem if it exists
+                if (tempItem.options?.customMSG) {
+                    setTempItem(prev => {
+                        const newOptions = { ...prev.options };
+                        delete newOptions.customMSG;
+                        return { ...prev, options: newOptions };
+                    });
+                }
+            }
+        }
+
+        // Extract current options excluding customMSG and update reference
+        const currentOptionsExcludingMsg = { ...tempItem.options };
+        delete currentOptionsExcludingMsg?.customMSG;
+        lastOptionsRef.current = currentOptionsExcludingMsg;
+
+        // Update quantity
+        setQuantity(itemQuantity);
+
+        // Mark that initial render is complete
+        isInitialRender.current = false;
+    }, [tempItem.options])
+
+
     const retrieveItem = (): [number, Record<string, string[]> | null] => {
         if (!cart) return [0, null];
 
-        const itemIndex = cart.findIndex(
-            (currItem) =>
-                currItem.item.name === item.name &&
-                JSON.stringify(currItem.item.options) === JSON.stringify(tempItem.options)
-        );
+        const itemIndex = cart.findIndex((currItem) => {
+            // For Custom Order items, compare options excluding customMSG
+            if (item.category.includes("Custom Order")) {
+                // First ensure item name matches
+                if (currItem.item.name !== item.name) return false;
+
+                // Compare all options except customMSG
+                const tempItemOptionKeys = Object.keys(tempItem.options || {}).filter(key => key !== "customMSG");
+                const cartItemOptionKeys = Object.keys(currItem.item.options || {}).filter(key => key !== "customMSG");
+
+                // Check if they have the same keys (excluding customMSG)
+                if (JSON.stringify(tempItemOptionKeys.sort()) !== JSON.stringify(cartItemOptionKeys.sort())) return false;
+
+                // Compare the values of each option (excluding customMSG)
+                for (const key of tempItemOptionKeys) {
+                    if (JSON.stringify(tempItem.options[key]) !== JSON.stringify(currItem.item.options[key])) {
+                        return false;
+                    }
+                }
+
+                return true;
+            } else {
+                // For non-Custom Order items, compare name and entire options object
+                return currItem.item.name === item.name &&
+                    JSON.stringify(currItem.item.options) === JSON.stringify(tempItem.options);
+            }
+        });
 
         if (itemIndex !== -1) {
             return [cart[itemIndex].quantity, cart[itemIndex].item.options];
@@ -167,15 +240,6 @@ function ItemDescription({ item }: DisplayItemProps) {
         }
     }, [selectedBundle, bundleAmounts.length, currentBundleOpts])
 
-    useEffect(() => {
-        const itemQuantity = retrieveItem()[0];
-        const itemInCartOptions = retrieveItem()[1];
-        if (itemInCartOptions != null && itemInCartOptions["customMSG"]) {
-            setCustomMsg(itemInCartOptions["customMSG"][0])
-        }
-        setQuantity(itemQuantity)
-    }, [cart, tempItem.options, retrieveItem])
-
     const handleBundleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newBundle = Number(e.target.value);
         setSelectedBundle(newBundle);
@@ -217,7 +281,6 @@ function ItemDescription({ item }: DisplayItemProps) {
                 price: price
             };
 
-            console.log("Updated Item:", updatedItem);
             // Update the tempItem state
             setTempItem(updatedItem);
 
@@ -231,7 +294,6 @@ function ItemDescription({ item }: DisplayItemProps) {
                 price: tempItem.price
             };
 
-            console.log("Updated Item:", updatedItem);
             // Add one item to the cart
             addToCart({ item: updatedItem, quantity: quantity + 1 });
             setQuantity(quantity + 1);
@@ -272,6 +334,9 @@ function ItemDescription({ item }: DisplayItemProps) {
         // Remove the item from cart by setting quantity to 0
         removeFromCart({ item: updatedItem, quantity: 0 });
         setQuantity(0);
+        if (customMsg && customMsg.length > 0) {
+            setCustomMsg("")
+        }
     }
 
     const HandleCustomMsg = (msg: string) => {
@@ -380,7 +445,7 @@ function ItemDescription({ item }: DisplayItemProps) {
         }
 
         {(quantity > 0 && item.category.includes('Custom Order')) && <p className="font-button text-red-400 text-md">
-            * Quantity in cart must match number of items requested for personalization
+            * Quantity wanted must match number of items requested for personalization
         </p>}
 
         <div className="flex flex-col pt-4 w-[100%]">
@@ -390,22 +455,32 @@ function ItemDescription({ item }: DisplayItemProps) {
     </div >
 }
 
+
 interface DisplayOptionsProps {
     setItem: React.Dispatch<React.SetStateAction<Item>>,
     options: Record<string, string[]>
 }
-
 function DisplayOptions({ options, setItem }: DisplayOptionsProps) {
-    const firstKey = Object.keys(options)[0]
-    const initialOptions = firstKey ? { [firstKey]: [options[firstKey][0]] } : {}
+    const initialOptions = Object.keys(options).reduce((acc, key) => {
+        if (key !== 'customMSG' && options[key].length > 0) {
+            acc[key] = [options[key][0]];
+        }
+        return acc;
+    }, {} as Record<string, string[]>);
 
     const [currOptions, setCurrOptions] = useState<Record<string, string[]>>(initialOptions)
     useEffect(() => {
         setItem((prevItem) => {
-            return { ...prevItem, options: currOptions }
+            // Create new options object without the customMSG key
+            const newOptions = { ...currOptions };
+            // Keep customMSG if it exists in prevItem options
+            if (prevItem.options && prevItem.options.customMSG) {
+                newOptions.customMSG = prevItem.options.customMSG;
+            }
+
+            return { ...prevItem, options: newOptions }
         })
     }, [currOptions, setItem])
-
     return <div className="flex flex-col space-y-2">
         {Object.keys(options).map((option) => {
             return option != "customMSG" && <label key={option}>
@@ -577,7 +652,6 @@ function UploadPhoto({ review, handleReviewChange }: UploadPhotoProps) {
 
     const handleFileRemove = () => {
         const photos = review.photos
-        console.log(photoUrl)
         const filteredPhotos = photos.filter((photo) => photo !== photoUrl)
 
         handleReviewChange('photos', filteredPhotos)
