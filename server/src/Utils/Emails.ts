@@ -216,6 +216,12 @@ async function sendReadyToPickupOrder(body: MessageBody, items: ItemInvoice[], t
           width: 100%;
           border-collapse: collapse;
         }
+        .pickup-location {
+          margin-top: 20px;
+          background-color: #f2efe9;
+          padding: 15px;
+          border-radius: 5px;
+        }
         .footer {
           text-align: center;
           font-size: 12px;
@@ -223,15 +229,6 @@ async function sendReadyToPickupOrder(body: MessageBody, items: ItemInvoice[], t
           margin-top: 30px;
           padding-top: 15px;
           border-top: 1px solid #ddd;
-        }
-        .button {
-          display: inline-block;
-          background-color: #8b4513;
-          color: white;
-          padding: 10px 20px;
-          text-decoration: none;
-          border-radius: 4px;
-          margin-top: 15px;
         }
         @media only screen and (max-width: 480px) {
           body {
@@ -278,6 +275,12 @@ async function sendReadyToPickupOrder(body: MessageBody, items: ItemInvoice[], t
         <p>Thank you for shopping with us!</p>
       </div>
 
+      <div class="pickup-location">
+        <p><strong>Pickup Location:</strong><br />
+        323 Hamptons Way SE<br />
+        Medicine Hat, Alberta</p>
+      </div>
+
       <div class="footer">
         <p>If you have any questions, contact us at <a href="mailto:support@heartlandshoppes.ca">support@heartlandshoppes.ca</a></p>
         <p>&copy; ${new Date().getFullYear()} Heartland Shoppes. All rights reserved.</p>
@@ -287,23 +290,27 @@ async function sendReadyToPickupOrder(body: MessageBody, items: ItemInvoice[], t
   `;
 
   const textTemplate = `
-    Heartland Shoppes
-    =================
+Heartland Shoppes
+=================
 
-    Your Order is Ready for Pickup!
-    Order #: ${body.orderId}
-    Customer Name: ${body.fullName}
+Your Order is Ready for Pickup!
+Order #: ${body.orderId}
+Customer Name: ${body.fullName}
 
-    Items:
-    ${itemsText}
+Items:
+${itemsText}
 
-    Order Total: $${totalPrice.toFixed(2)}
+Order Total: $${totalPrice.toFixed(2)}
 
-    Please come by to pick up your order during business hours.
+Pickup Location:
+323 Hamptons Way SE
+Medicine Hat, Alberta
 
-    If you have questions, email support@heartlandshoppes.ca
+Please come by to pick up your order during business hours.
 
-    © ${new Date().getFullYear()} Heartland Shoppes. All rights reserved.
+If you have questions, email support@heartlandshoppes.ca
+
+© ${new Date().getFullYear()} Heartland Shoppes. All rights reserved.
   `.trim();
 
   try {
@@ -318,6 +325,7 @@ async function sendReadyToPickupOrder(body: MessageBody, items: ItemInvoice[], t
     console.error("Error sending pickup email:", error);
   }
 }
+
 
 
 
