@@ -444,10 +444,11 @@ function ItemDescription({ item }: DisplayItemProps) {
             )
         }
 
-        {(quantity > 0 && item.category.includes('Custom Order')) && <p className="font-button text-red-400 text-md">
+        {/*
+        {(quantity > 0 && item.category.includes('Custom Order')) && <p className="font-button text-md">
             * Quantity wanted must match number of items requested for personalization
         </p>}
-
+        */}
         <div className="flex flex-col pt-4 w-[100%]">
             <p className="font-button font-bold">About this item: </p>
             <p className="font-regular text-md ml-2 md:ml-0" dangerouslySetInnerHTML={{ __html: item.description.replace(/\n/g, '<br>') }}></p>

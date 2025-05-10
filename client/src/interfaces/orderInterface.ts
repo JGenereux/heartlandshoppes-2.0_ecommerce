@@ -22,7 +22,8 @@ interface Order {
     billingInfo: Bill,
     status: string,
     trackingNumber?: string | null,
-    date: Date
+    date: Date,
+    local: boolean
 }
 
 export type {Bill, Order, ItemInvoice}

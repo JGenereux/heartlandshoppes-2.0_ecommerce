@@ -27,8 +27,10 @@ const orderSchema = new mongoose.Schema({
     status: { type: String, required: true },
     trackingNumber: {type: String, required: false},
     date: { type: Date, default: Date.now, required: true },
-    invoiceUrl: {type: String, required: true}
+    invoiceUrl: {type: String, required: true},
+    local: {type: Boolean, required: true}
 });
+
 const Orders = mongoose.model('Orders', orderSchema)
 
 export {Orders, orderSchema, billingSchema}

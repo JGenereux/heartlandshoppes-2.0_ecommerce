@@ -31,7 +31,7 @@ export default function Orders() {
     useEffect(() => {
         if (!ordersData || ordersData.length === 0) return
         setOrders(ordersData)
-        console.log('updated orders')
+        console.log(`fetched orders: `, ordersData)
     }, [ordersData])
 
     useEffect(() => {
@@ -220,20 +220,26 @@ function DisplayOrder({ order }: DisplayOrderProps) {
         <div className="flex flex-col border-gray-800 border-1 rounded-xl w-96 p-2 font-headerFont">
             <div className="flex flex-row border-black border-b-1 w-full pb-2">
                 <div className="flex flex-col flex-grow overflow-hidden">
-                    <label className="flex flex-row">
-                        Order ID:<p className="font-regular truncate">{order._id}</p>
+                    <label className="flex flex-row text-nowrap">
+                        Order ID:<p className="font-regular truncate ml-1">{order._id}</p>
                     </label>
-                    <label className="flex flex-row">
+                    <label className="flex text-nowrap flex-row">
                         Tracking Number:
-                        {editOrder ? (
+                        {(editOrder && !order.local) ? (
                             <input
                                 className="w-32 ml-1 border-gray-700 border-2 rounded-lg font-regular hover:ring-blue-500 hover:ring-1 hover:border-blue-500"
                                 defaultValue={order.trackingNumber || ""}
                                 onChange={(e) => setTrackingNumber(e.target.value)}
                             />
                         ) : (
-                            <p className="ml-1 font-regular truncate">{order.trackingNumber || "Not Available"}</p>
+                            <p className="ml-1 font-regular truncate">{(order.local ? "Not Available" : (order.trackingNumber || 'Not Available'))}</p>
                         )}
+                    </label>
+                    <label className="flex flex-row">
+                        Local Pickup:
+                        <p className="font-regular truncate ml-1">
+                            {order.local ? "Yes" : "No"}
+                        </p>
                     </label>
                 </div>
                 <div className="w-28 flex-shrink-0 flex items-start">

@@ -3,7 +3,7 @@ import { useCart } from "../Contexts/cartContext"
 import type { CartItem } from "../interfaces/userinterface"
 import axios from "axios"
 import { useAuth } from "../Contexts/authContext"
-import { ShoppingCart, X, Plus, Minus } from "lucide-react"
+import { ShoppingCart, Plus, Minus, ArrowBigRight } from "lucide-react"
 
 const apiUrl = import.meta.env.VITE_API_URL
 
@@ -59,8 +59,8 @@ export default function Cart() {
                         {/* Cart Header */}
                         <div className="flex flex-row items-center mb-2">
                             <h3 className="text-xl font-medium">Cart</h3>
-                            <button onClick={() => setIsOpen(false)} className="ml-auto cursor-pointer">
-                                <X className="h-5 w-5" />
+                            <button onClick={() => setIsOpen(false)} className="font-regular flex flex-row ml-auto cursor-pointer">
+                                Go Back <ArrowBigRight />
                             </button>
                         </div>
 

@@ -1,14 +1,12 @@
 import Stripe from "stripe";
 import { Request, Response } from "express";
 import express from 'express'
-import { Item } from "../Interfaces/itemInterface";
 import { CartItem } from "../Interfaces/userInterface";
-import { ItemInvoice, Order } from "../Interfaces/orderInterface";
-import axios from "axios";
-const { parseStringPromise } = require('xml2js');
+import { ItemInvoice } from "../Interfaces/orderInterface";
 import { Orders } from "../Models/Order";
 import { Users } from "../Models/User";
 import { client } from "../../redis-client";
+import { sendNewOrderEmail } from "../Utils/Emails";
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 const STRIPE_KEY = process.env.STRIPE_SECRET
@@ -145,7 +143,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
 
     if(event.type === 'invoice.finalized') {
         const invoice = event.data.object
-     
+        
         try {
             const detailedInvoice = await stripe.invoices.retrieve(invoice.id, {
                 expand: ['lines.data']
@@ -176,6 +174,8 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
             if(!detailedInvoice.customer_shipping || !detailedInvoice.customer_email || !detailedInvoice.customer_name) {
                 return response.status(403).json('Error retrieving full details for order')
             }
+
+            const localPickup = detailedInvoice.amount_shipping == 0 ? true : false
            
             const newOrder = new Orders({items: invoiceItems, totalPrice: invoice.amount_paid || 0, billingInfo: {
                 fullName: detailedInvoice.customer_name || '',
@@ -186,7 +186,7 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
                 postalCode: detailedInvoice.customer_shipping?.address?.postal_code || "",
                 email: detailedInvoice.customer_email || '',
                 phone: detailedInvoice.customer_shipping?.phone || null,
-            }, status: "added", trackingNumber: null, date: new Date(Date.now()), invoiceUrl: detailedInvoice.hosted_invoice_url || ''})
+            }, status: "added", trackingNumber: null, date: new Date(Date.now()), invoiceUrl: detailedInvoice.hosted_invoice_url || '', local: localPickup})
             
             await newOrder.save()
 
@@ -200,6 +200,9 @@ router.post('/webhook',express.raw({type: 'application/json'}), async (request, 
             await client.sendCommand(["LPUSH", "orders", JSON.stringify(newOrder)])
             await client.sendCommand(["EXPIRE", "orders", "1000"])
 
+            // Send New Order Email To Owner
+            await sendNewOrderEmail({orderId: JSON.stringify(newOrder._id) || String(invoiceID), fullName: newOrder.billingInfo.fullName, email: newOrder.billingInfo.email}, invoiceItems, invoice.amount_paid || 0 )
+            
             return response.status(200).json(newOrder)
         } catch (error) {
             console.error('Error adding invoice details:', error);

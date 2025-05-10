@@ -4,7 +4,7 @@ import { Order } from '../Interfaces/orderInterface'
 import { Orders } from '../Models/Order'
 import { client } from "../../redis-client";
 import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
-import {sendTrackingNumberMessage} from "../Utils/Emails";
+import {sendReadyToPickupOrder, sendTrackingNumberMessage} from "../Utils/Emails";
 
 const router = express.Router()
 
@@ -146,7 +146,6 @@ router.route('/').get(authenticateToken, checkAdminRole, async(req: Request,res:
             return res.status(200).json(cachedOrders)
         }
 
-        console.log('pinging orders')
 
         const orders = await Orders.find();
         const formattedOrders: Order[] = orders.map(order => ({
@@ -157,22 +156,21 @@ router.route('/').get(authenticateToken, checkAdminRole, async(req: Request,res:
             status: order.status,
             trackingNumber: order.trackingNumber,
             date: order.date,
-            invoiceUrl: order.invoiceUrl
+            invoiceUrl: order.invoiceUrl,
+            local: order.local
         }));
         
-        console.log('pinging orders')
         if(!orders) {
             return res.status(404).json("Error fetching all orders from db")
         } else if(orders.length == 0) {
             return res.status(200).json([])
         }
-        console.log('pinging orders')
         // Set orders list to fetched orders
         await client.sendCommand(["DEL", "orders"])
         await client.sendCommand(["LPUSH", "orders", ...formattedOrders.map((order: Order) => JSON.stringify(order))])
 
         await client.sendCommand(["EXPIRE", "orders", "300"])
-        console.log('pinging orders')
+       
         return res.status(200).json(orders)
     } catch(error) {
         res.status(500).json(`Internal Server Error: ${error}`)
@@ -239,18 +237,15 @@ interface MessageInfo {
  * @returns {Number} The status code indicating if the req was successful or not
  */
 router.route('/:id').put(authenticateToken, checkAdminRole,async(req: Request,res: Response) : Promise<any> => {
-    console.log('u called?')
     const {id} = req.params
     const {status, trackingNumber} = req.body
-    console.log(`id: ${id}`)
 
     try{
-
         const order = await Orders.findOne({_id: id})
+        
         const oldTrackingNumber = order?.trackingNumber
+        const oldStatus = order?.status
 
-
-      
         const orderUpdated = await Orders.findOneAndUpdate(
             {
                 _id: id,
@@ -280,12 +275,14 @@ router.route('/:id').put(authenticateToken, checkAdminRole,async(req: Request,re
             return res.status(404).json("Error updating cache for order")
         }
         
+        // If Tracking number updated
         if((!oldTrackingNumber && trackingNumber) || (typeof oldTrackingNumber === "string" && typeof trackingNumber === "string" && (oldTrackingNumber !== trackingNumber))) {
             const orderInfo: MessageInfo = {name: orderUpdated.billingInfo.fullName, email: orderUpdated.billingInfo.email, id: orderUpdated.id, trackingNumber: orderUpdated.trackingNumber || '', invoice: orderUpdated.invoiceUrl }
             const message = `Hello, your order from HeartlandShoppes with order Id #${orderInfo.id} with the following invoice ${orderInfo.invoice} has been shipped the tracking number is ${orderInfo.trackingNumber}`
               
-            console.log('sending tracking number')
             sendTrackingNumberMessage({fullName: orderInfo.name, email: orderInfo.email, orderId: orderInfo.id, text: message })
+        }  else if(orderUpdated.local == true && typeof oldStatus === 'string' && oldStatus != status && status === 'ready') {
+            sendReadyToPickupOrder({fullName: orderUpdated.billingInfo.fullName, email: orderUpdated.billingInfo.email, orderId: orderUpdated.id}, orderUpdated.items, orderUpdated.totalPrice)
         }
 
         return res.status(200).json("Order status successfully updated")
