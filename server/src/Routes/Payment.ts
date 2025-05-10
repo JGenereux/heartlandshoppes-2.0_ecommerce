@@ -19,42 +19,9 @@ router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
     
     const cartItems: CartItem[] = items;
     
-    const cartTotal = cartItems.reduce((acc, currItem) => {
-        return acc + currItem.item.price * currItem.quantity * 100;
-    }, 0);
-
     try {
         // Define shipping options with correct Stripe typing
-        const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = cartTotal >= 12500 ? [
-            {
-                shipping_rate_data: {
-                    type: 'fixed_amount',
-                    fixed_amount: {
-                        amount: 0,
-                        currency: 'cad',
-                    },
-                    display_name: 'Free Shipping',
-                    delivery_estimate: {
-                        minimum: { unit: 'business_day', value: 3 },
-                        maximum: { unit: 'business_day', value: 7 },
-                    },
-                },
-            },
-            {
-                shipping_rate_data: {
-                    type: 'fixed_amount',
-                    fixed_amount: {
-                        amount: 0,
-                        currency: 'cad',
-                    },
-                    display_name: 'Local Pickup (Medicine Hat, AB)',
-                    delivery_estimate: {
-                        minimum: { unit: 'business_day', value: 1 },
-                        maximum: { unit: 'business_day', value: 7 },
-                    },
-                },
-            }
-        ] : [
+        const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [
             {
                 shipping_rate_data: {
                     type: 'fixed_amount',

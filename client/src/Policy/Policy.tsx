@@ -5,8 +5,8 @@ export default function Policy() {
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">SHIPPING POLICY</h1>
                 <div className="space-y-4 text-gray-700">
                     <p>
-                        Heartland Shoppes offers free shipping on orders over $125.00 (before tax and after discounts), valid for
-                        Canadian and US orders only.
+                        Heartland Shoppes offers a standard rate of $22.00 CAD on all orders and only ships to Canada and United
+                        States.
                     </p>
                     <p>
                         We also offer local pickup. Once order is complete we will be in touch as to pick up location and
