@@ -281,7 +281,7 @@ router.route('/:id').put(authenticateToken, checkAdminRole,async(req: Request,re
             const message = `Hello, your order from HeartlandShoppes with order Id #${orderInfo.id} with the following invoice ${orderInfo.invoice} has been shipped the tracking number is ${orderInfo.trackingNumber}`
               
             sendTrackingNumberMessage({fullName: orderInfo.name, email: orderInfo.email, orderId: orderInfo.id, text: message })
-        }  else if(orderUpdated.local == true && typeof oldStatus === 'string' && oldStatus != status && status === 'ready') {
+        }  else if(orderUpdated.local == true && typeof oldStatus === 'string' && oldStatus != status && status === 'fulfilled') {
             sendReadyToPickupOrder({fullName: orderUpdated.billingInfo.fullName, email: orderUpdated.billingInfo.email, orderId: orderUpdated.id}, orderUpdated.items, orderUpdated.totalPrice)
         }
 
