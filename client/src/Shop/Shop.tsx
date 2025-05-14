@@ -25,6 +25,7 @@ export default function Shop() {
         <Route path="seasonal" element={<ShopMenu category="Seasonal" />} />
         <Route path="customorder" element={<ShopMenu category="Custom Order" />} />
         <Route path="miscellaneous" element={<ShopMenu category="Miscellaneous" />} />
+        <Route path="t-shirt-bar" element={<ShopMenu category="T-Shirt Bar" />} />
     </Routes>
 }
 
@@ -43,6 +44,10 @@ function ShopMenu({ category }: ShopMenuProps) {
         gcTime: 10 * 60 * 1000,
         refetchInterval: 10 * 60 * 1000
     })
+
+    useEffect(() => {
+        console.log(inventoryData)
+    }, [inventoryData])
     const navigate = useNavigate()
 
     const handleCustomRequest = () => {
@@ -179,7 +184,7 @@ function CategoriesBar({ category }: categoryProps) {
     return (
         <div className="flex flex-col w-full h-fit border-gray-600 border-b-2 items-center justify-center font-button pt-1.5">
             <p className="text-md md:text-lg">{category}</p>
-            <div className="flex flex-row flex-wrap w-full text-md md:text-lg space-x-4 md:space-x-10 justify-center">
+            <div className="flex flex-row flex-wrap w-full text-md md:text-lg space-x-4 md:space-x-8 justify-center">
                 <Link to="/shop">Featured</Link>
                 <Link to="/shop/tumblers">Tumblers</Link>
                 <Link to="/shop/accessories">Tumbler Accessories</Link>
@@ -188,6 +193,7 @@ function CategoriesBar({ category }: categoryProps) {
                 <Link to="/shop/customorder">Custom Order</Link>
                 <Link to="/shop/miscellaneous">Miscellaneous</Link>
             </div>
+            <Link to="/shop/t-shirt-bar" className="text-md md:text-lg">T-Shirt Bar</Link>
         </div>
     )
 }
@@ -223,7 +229,7 @@ function DisplayItem({ item }: ItemProps) {
     const [itemPriceKey] = useState<string | null>(Object.keys(item.priceOptions).length > 0 ? String(Object.keys(item.priceOptions)[0]) : null)
 
     return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
-        <img src={item?.photos[0]} className="h-40">
+        <img src={item?.photos[0].photo} alt={item?.photos[0].tag ? item.photos[0].tag : ''} className="h-40">
         </img>
         <div className="flex flex-col font-regular items-center">
             <p className="overflow-hidden line-clamp-1">{item.name}</p>

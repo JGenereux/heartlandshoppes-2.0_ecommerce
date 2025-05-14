@@ -170,7 +170,7 @@ function DisplayItem({ item }: DisplayItemProps) {
                     <ModifyItem item={item} />
                 ) : (
                     <>
-                        <img src={item?.photos[0]} className="w-full h-[250px] object-contain" />
+                        <img src={item?.photos[0].photo} className="w-full h-[250px] object-contain" />
                         <div className="md:text-lg">
                             <p>Name: {item.name}</p>
                             {item.isBundle ? (
@@ -222,13 +222,17 @@ function DisplayItem({ item }: DisplayItemProps) {
     );
 }
 
+interface Photo {
+    photo: string,
+    tag?: string
+}
 
 function ModifyItem({ item }: DisplayItemProps) {
     const { accessToken } = useAuth();
-    const [photos, setPhotos] = useState<string[]>(item.photos);
+    const [photos, setPhotos] = useState<Photo[]>(item.photos);
     const [modifiedItem, setModifiedItem] = useState<Item>(item);
 
-    const handleItemChange = (property: keyof Item, value: string | string[] | number) => {
+    const handleItemChange = (property: keyof Item, value: string | Photo[] | number) => {
         if (property === 'category' && typeof value === 'string') {
             const categories = value.split(',');
             setModifiedItem({
@@ -251,7 +255,7 @@ function ModifyItem({ item }: DisplayItemProps) {
 
     const updateMutation = useMutation({
         mutationFn: async (updatedItem: Item) => {
-            updatedItem.photos = updatedItem.photos.filter(photo => photo.length !== 0);
+            updatedItem.photos = updatedItem.photos.filter(photo => photo.photo.length !== 0);
             const response = await axios.put(`${apiUrl}/inventory/item/${item.name}`, {
                 item: updatedItem,
                 oldCategories: item.category
@@ -341,8 +345,8 @@ function ModifyItem({ item }: DisplayItemProps) {
                 </div>
 
                 <div className="flex flex-col items-center justify-center gap-4">
-                    {photos?.map((photo) => (
-                        <PhotoUpload key={photo} item={item} photo={photo} setPhotos={setPhotos} />
+                    {photos?.map((photo, index) => (
+                        <PhotoUpload key={index} item={item} photo={photo} setPhotos={setPhotos} />
                     ))}
                     <PhotoUpload item={item} setPhotos={setPhotos} />
                 </div>
@@ -371,7 +375,16 @@ interface AddItemProps {
     categories: Set<string>
 }
 
+interface Photo {
+    photo: string,
+    tag?: string
+}
+
 function AddItem({ categories }: AddItemProps) {
+    const emptyPhoto: Photo = { photo: '', tag: '' };
+    const [photos, setPhotos] = useState<Photo[]>(
+        Array(3).fill({ ...emptyPhoto })
+    );
     const queryClient = useQueryClient()
     const { accessToken } = useAuth()
     const [item, setItem] = useState<Item>({
@@ -440,6 +453,25 @@ function AddItem({ categories }: AddItemProps) {
         }));
     }
 
+    useEffect(() => {
+
+        const nonEmptyPhotos: Photo[] = [];
+
+        for (let i = 0; i < photos.length; i++) {
+            if (photos[i].photo && photos[i].photo.length !== 0) {
+                nonEmptyPhotos.push(photos[i]);
+            }
+        }
+
+        setItem(prevItem => ({
+            ...prevItem,
+            photos: nonEmptyPhotos
+        }));
+
+    }, [photos])
+
+
+
     return <div className="w-full p-2 p-r-0  my-2 font-regular md:text-lg">
         <form onSubmit={(event) => handleAddItem(event)}>
             <div className="flex flex-col w-full">
@@ -465,9 +497,11 @@ function AddItem({ categories }: AddItemProps) {
                 <div className="flex flex-col mx-auto w-fit my-2">
                     <h3 className="text-2xl font-headerFont">Photos</h3>
                     <div className="grid grid-cols-3 gap-8 p-4 py-2">
-                        <PhotoUpload item={item} setItem={setItem} />
-                        <PhotoUpload item={item} setItem={setItem} />
-                        <PhotoUpload item={item} setItem={setItem} />
+                        {photos.map((photo, index) => {
+                            return <div key={index}>
+                                <PhotoUpload item={item} photo={photo} setPhotos={setPhotos} />
+                            </div>
+                        })}
                     </div>
                 </div>
                 <button className="border-black border-1 w-fit self-center px-4 py-2 rounded-full text-lg hover:border-blue-400 duration-300 transition-colors font-bold font-button" type="submit">Add Item to inventory</button>
@@ -803,15 +837,40 @@ interface ImageResponse {
 
 interface PhotoUploadProps {
     item: Item,
-    photo?: string,
+    photo?: Photo,
     setItem?: (item: Item) => void,
-    setPhotos?: React.Dispatch<React.SetStateAction<string[]>>;
+    setPhotos?: React.Dispatch<React.SetStateAction<Photo[]>>;
 }
 
 function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
 
-    const [photoUrl, setPhotoUrl] = useState<string>(photo || '')
+    const [photoUrl, setPhotoUrl] = useState<string>(photo?.photo || '')
+    const [photoTag, setPhotoTag] = useState<string>(photo?.tag || '')
 
+    const addPhoto = (photo: Photo) => {
+        if (!setPhotos) return
+        setPhotos((prevPhotos) => {
+            let allFull = true;
+            const updatedPhotos = [...prevPhotos]; // Create a copy of the previous photos array
+
+            // Find the first empty element and replace it
+            let updatedIndex = -1
+            for (let i = 0; i < updatedPhotos.length; i++) {
+                if (!updatedPhotos[i].photo || updatedPhotos[i].photo.length === 0) {
+                    updatedPhotos[i] = { ...photo };
+                    updatedIndex = i
+                    allFull = false;
+                    break; // Break after replacing the first empty element
+                }
+            }
+
+            if (allFull || (updatedIndex != -1 && updatedIndex == updatedPhotos.length - 1)) {
+                return [...updatedPhotos, { photo: '' }]
+            }
+
+            return updatedPhotos;
+        });
+    };
     useEffect(() => {
         if (item.photos.length === 0) {
             setPhotoUrl('')
@@ -836,14 +895,15 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
                 },
                 withCredentials: true
             })
-            console.log('res: ', res)
+
             if (setItem) {
                 const currentItem = { ...item }
-                currentItem.photos.push(res.data.imageUrl)
+                currentItem.photos.push({ photo: res.data.imageUrl })
                 setItem({ ...currentItem })
                 setPhotoUrl(res.data.imageUrl)
             } else if (setPhotos) {
-                setPhotos((prevPhotos) => [...prevPhotos, res.data.imageUrl])
+                addPhoto({ photo: res.data.imageUrl })
+                setPhotoUrl(res.data.imageUrl)
             }
 
             event.target.value = ""
@@ -857,16 +917,24 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
 
         if (setItem) {
             const currentItem = { ...item }
-            const filteredPhotos = currentItem.photos.filter((currUrl) => currUrl != url)
+            const filteredPhotos = currentItem.photos.filter(({ photo }) => photo != url)
             currentItem.photos = filteredPhotos
             setItem(currentItem)
         } else if (setPhotos) {
             setPhotos((prevPhotos) => {
-                return prevPhotos.filter((photo) => photo != url)
+                return prevPhotos.filter(({ photo }) => photo != url)
             })
         }
 
         setPhotoUrl('')
+    }
+
+    const handleTagChange = (tag: string) => {
+        setPhotoTag(tag)
+        if (!setPhotos) return
+        setPhotos((prevPhotos) => prevPhotos.map((photo) =>
+            photo.photo === photoUrl ? { ...photo, tag: tag } : photo
+        ))
     }
 
     return <div className="flex flex-col items-center justify-center transition-all duration-300 ease-in-out hover:-translate-y-1">
@@ -874,6 +942,7 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
             <div className="w-full h-full relative">
                 <img src={photoUrl} className="w-auto h-44"></img>
                 <button className="bg-red-500 p-0.5 pt-0 pb-0 rounded-lg absolute top-0 left-1 text-white" onClick={handleFileRemove}>-</button>
+                <input className="border-2 w-1/2 my-2 text-md px-1" placeholder="Tag" value={photoTag} onChange={(e) => handleTagChange(e.target.value)} />
             </div>
             :
             <div className="flex flex-col p-1">

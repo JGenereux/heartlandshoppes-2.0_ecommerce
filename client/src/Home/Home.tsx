@@ -250,8 +250,7 @@ function DisplayItem({ item }: DisplayItemProps) {
 
     return (
         <div className="flex flex-col pl-2 pt-2 cursor-pointer font-regular transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 items-center" onClick={navigateToItem}>
-            <img src={item.photos[0]} className="h-40 ">
-            </img>
+            <img src={item.photos[0].photo} alt={item.photos[0].tag && item.photos[0].tag.length > 0 ? item.photos[0].tag : ''} className="h-40 " />
             <p>{truncatedName}</p>
             <p>${Number(item.price).toFixed(2)}</p>
             <button className="bg-actionColor text-white p-1 rounded-md font-bold font-button cursor-pointer">Buy Now</button>

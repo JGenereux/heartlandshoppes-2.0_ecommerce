@@ -1,11 +1,13 @@
-interface priceOptions {
-    priceOptions: Record<string, number>
-}
 interface Review {
     fullName: string,
     stars: number,
     description: string,
-    photos: String[]
+    photos: string[]
+}
+
+interface Photo {
+    photo: string
+    tag?: string
 }
 
 interface Item {
@@ -16,8 +18,8 @@ interface Item {
     quantity: number,
     description: string,
     priceOptions: Record<string, number>
-    photos: string[],
+    photos: Photo[],
     isBundle: boolean,
     reviews: Review[]
 }
-export {Item}
+export {Item, Photo}

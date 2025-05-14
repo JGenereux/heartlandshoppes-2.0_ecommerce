@@ -118,7 +118,7 @@ function Item({ item }: ItemProps) {
 
     return (
         <div className="flex flex-row border border-gray-200 rounded-lg">
-            <img src={item.item?.photos[0] || "/placeholder.svg"} className="w-[35%] object-cover" alt={item.item.name} />
+            <img src={item.item?.photos[0].photo || "/placeholder.svg"} alt={item.item?.photos[0].tag ? item.item.photos[0].tag : ''} className="w-[35%] object-cover" />
 
             <div className="flex flex-col pl-2 py-1 w-[65%]">
                 <p className="font-medium text-sm">{item.item.name}</p>

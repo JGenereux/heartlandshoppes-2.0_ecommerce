@@ -10,6 +10,11 @@ const reviewSchema = new Schema({
     photos: {type: [String], required: false}
 })
 
+const photoSchema = new Schema({
+    photo: {type: String, required: true},
+    tag: {type: String, required: false}
+})
+
 const itemSchema = new Schema(
     {
         name: {type: String, required: true},
@@ -21,7 +26,7 @@ const itemSchema = new Schema(
         options: { type: Map, of: [String], required: false },
         quantity: {type: Number, required: true},
         description: {type: String, required: true},
-        photos: {type: [String], required: true},
+        photos: {type: [photoSchema], required: true},
         isBundle: {type: Boolean, required: true},
         reviews: {type: [reviewSchema], required: true, default: []}
     },

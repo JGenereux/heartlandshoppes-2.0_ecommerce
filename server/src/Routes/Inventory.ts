@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import express from 'express';
 import {Items}from '../Models/Item';
-import {Item} from '../Interfaces/itemInterface';
+import {Item, Photo} from '../Interfaces/itemInterface';
 import { client } from "../../redis-client";
 import { Orders } from "../Models/Order";
 import { authenticateToken, checkAdminRole } from "../Utils/authHelpers";
@@ -138,7 +138,7 @@ router.route('/item/:name').get(async(req: Request,res: Response): Promise<any> 
  */
 router.route('/item').post(authenticateToken, checkAdminRole, async(req,res) : Promise<any> => {
     const {item} = req.body
-	console.log(item)
+
     try{
         const newItem = new Items(item)
         await newItem.save()
@@ -219,7 +219,6 @@ router.route('/item/:name').put(authenticateToken, checkAdminRole,async(req: Req
                     await client.sendCommand(['DEL', `${itemCategory}`])
                     await client.sendCommand(['SADD', `${itemCategory}`, ...categoryItems.map((item) => JSON.stringify(item))])
                     await client.sendCommand(["EXPIRE", `${itemCategory}`, "300"]);
-                    console.log(`Removed item from ${itemCategory} cache`)
                 }
             }
             

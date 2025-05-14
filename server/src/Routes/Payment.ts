@@ -61,7 +61,7 @@ router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
                             .map(([key, values]) => `${key}: ${values.join(', ')}`)
                             .join(' | ')}`,
                         description: currItem.item.description,
-                        images: currItem.item.photos?.length ? [currItem.item.photos[0]] : [],
+                        images: currItem.item.photos?.length ? [currItem.item.photos[0].photo] : [],
                     },
                     unit_amount: currItem.item.price * 100,
                 },
