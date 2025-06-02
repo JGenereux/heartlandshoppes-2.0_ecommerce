@@ -52,13 +52,13 @@ interface DisplayItemProps {
 }
 
 function DisplayItem({ item }: DisplayItemProps) {
-    const [photoUrl, setPhotoUrl] = useState(item?.photos[0].photo || "")
+    const [photoUrl, setPhotoUrl] = useState(item?.photos?.[0]?.photo ?? '')
 
     return (
         <div className="w-[90%] md:w-[90%] h-fit flex flex-col mx-auto shadow-black shadow-lg pb-4">
             <div className="flex flex-col md:flex-row w-full h-[90%] bg-white">
                 <div className="flex flex-col h-full items-center mx-auto space-y-2 md:space-y-0 py-2">
-                    <img src={photoUrl} alt={item?.photos[0].tag ? item.photos[0].tag : ''} className="w-fit h-[50vh] md:h-[70vh] object-contain max-w-[50%]"></img>
+                    <img src={photoUrl} alt={item?.photos?.[0]?.tag ?? ''} className="w-fit h-[50vh] md:h-[70vh] object-contain max-w-[50%]"></img>
                     <ImageSlider item={item} setPhotoUrl={setPhotoUrl} />
                 </div>
                 <div className="w-full md:w-1/2 h-full flex flex-col px-4 md:pl-0">
@@ -93,7 +93,7 @@ function ImageSlider({ item, setPhotoUrl }: ImageSliderProps) {
         <div className="flex flex-row w-full p-2 justify-center space-x-3">
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                 {photos.map((photo, index) => {
-                    return <img key={index} src={photo.photo} alt={photo.tag ? photo.tag : ''} className="cursor-pointer  w-18 object-contain md:w-auto h-18" onClick={() => handlePhotoChange(photo.photo, index)}></img>
+                    return <img key={index} src={photo?.photo ?? ''} alt={photo?.tag ?? ''} className="cursor-pointer  w-18 object-contain md:w-auto h-18" onClick={() => handlePhotoChange(photo?.photo ?? '', index)}></img>
                 })}
             </div>
         </div>
