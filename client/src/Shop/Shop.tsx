@@ -229,7 +229,7 @@ function DisplayItem({ item }: ItemProps) {
     const [itemPriceKey] = useState<string | null>(Object.keys(item.priceOptions).length > 0 ? String(Object.keys(item.priceOptions)[0]) : null)
 
     return <div className="flex flex-col h-fit pl-2 py-2 rounded-md bg-white cursor-pointer items-center transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" onClick={handleItemRedirect}>
-        <img src={item?.photos[0].photo} alt={item?.photos[0].tag ? item.photos[0].tag : ''} className="h-40">
+        <img src={item?.photos?.[0]?.photo ?? ''} alt={item?.photos?.[0]?.tag ?? ''} className="h-40">
         </img>
         <div className="flex flex-col font-regular items-center">
             <p className="overflow-hidden line-clamp-1">{item.name}</p>

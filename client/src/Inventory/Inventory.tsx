@@ -170,7 +170,7 @@ function DisplayItem({ item }: DisplayItemProps) {
                     <ModifyItem item={item} />
                 ) : (
                     <>
-                        <img src={item?.photos[0].photo} className="w-full h-[250px] object-contain" />
+                        <img src={item?.photos?.[0]?.photo ?? ''} alt={item?.photos?.[0]?.tag ?? ''} className="w-full h-[250px] object-contain" />
                         <div className="md:text-lg">
                             <p>Name: {item.name}</p>
                             {item.isBundle ? (
