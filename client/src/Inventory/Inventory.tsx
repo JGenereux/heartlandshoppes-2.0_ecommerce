@@ -228,6 +228,7 @@ interface Photo {
 }
 
 function ModifyItem({ item }: DisplayItemProps) {
+    const queryClient = useQueryClient();
     const { accessToken } = useAuth();
     const [photos, setPhotos] = useState<Photo[]>(item.photos);
     const [modifiedItem, setModifiedItem] = useState<Item>(item);
@@ -250,8 +251,6 @@ function ModifyItem({ item }: DisplayItemProps) {
     useEffect(() => {
         handleItemChange('photos', photos);
     }, [photos]);
-
-    const queryClient = useQueryClient();
 
     const updateMutation = useMutation({
         mutationFn: async (updatedItem: Item) => {
@@ -346,9 +345,9 @@ function ModifyItem({ item }: DisplayItemProps) {
 
                 <div className="flex flex-col items-center justify-center gap-4">
                     {photos?.map((photo, index) => (
-                        <PhotoUpload key={index} item={item} photo={photo} setPhotos={setPhotos} />
+                        <PhotoUpload key={index} item={modifiedItem} setItem={setModifiedItem} photo={photo} setPhotos={setPhotos} />
                     ))}
-                    <PhotoUpload item={item} setPhotos={setPhotos} />
+                    <PhotoUpload item={modifiedItem} setItem={setModifiedItem} setPhotos={setPhotos} />
                 </div>
 
                 <div>
@@ -454,9 +453,7 @@ function AddItem({ categories }: AddItemProps) {
     }
 
     useEffect(() => {
-
         const nonEmptyPhotos: Photo[] = [];
-
         for (let i = 0; i < photos.length; i++) {
             if (photos[i].photo && photos[i].photo.length !== 0) {
                 nonEmptyPhotos.push(photos[i]);
@@ -467,7 +464,6 @@ function AddItem({ categories }: AddItemProps) {
             ...prevItem,
             photos: nonEmptyPhotos
         }));
-
     }, [photos])
 
 
@@ -843,7 +839,6 @@ interface PhotoUploadProps {
 }
 
 function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
-
     const [photoUrl, setPhotoUrl] = useState<string>(photo?.photo || '')
     const [photoTag, setPhotoTag] = useState<string>(photo?.tag || '')
 
@@ -922,7 +917,8 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
             setItem(currentItem)
         } else if (setPhotos) {
             setPhotos((prevPhotos) => {
-                return prevPhotos.filter(({ photo }) => photo != url)
+                const newPhotos = prevPhotos.filter(({ photo }) => photo != url)
+                return newPhotos
             })
         }
 
