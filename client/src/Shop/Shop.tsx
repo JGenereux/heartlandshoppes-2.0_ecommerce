@@ -127,7 +127,7 @@ function TShirtBarCarousel() {
                         <img
                             src={img}
                             alt={`Custom T-Shirt #${index}`}
-                            className="h-full object-contain"
+                            className="h-auto w-full"
                             loading="eager" // Prevents layout shift
                         />
                     </CarouselItem>
