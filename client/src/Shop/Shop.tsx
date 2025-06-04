@@ -254,8 +254,8 @@ function DisplayItems({ items, category }: DisplayItemsProps) {
                 </div>
                 {isTShirtBar && (
                     <div className="w-full md:w-64 bg-gray-50 p-4 rounded-lg text-center md:text-start">
-                        <h3 className="font-bold mb-2 text-center md:text-left">T-Shirt Bar Info</h3>
-                        <ul className="list-disc list-inside space-y-1 text-sm md:text-base">
+                        <h3 className="font-button font-bold mb-2 text-center md:text-left md:text-lg">T-Shirt Bar Info</h3>
+                        <ul className="font-regular list-disc list-inside space-y-1 text-sm md:text-base">
                             <li>Custom designs available</li>
                             <li>Premium quality fabric</li>
                             <li>Multiple sizes</li>
