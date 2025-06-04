@@ -93,7 +93,7 @@ function ShopMenu({ category }: ShopMenuProps) {
             <p className="font-regular font-bold text-xl">Loading Shop Items</p>
             <Loading />
         </div> : <div className="flex flex-col">
-            <DisplayItems items={inventoryData} />
+            <DisplayItems items={inventoryData} category={category} />
             {category.toLowerCase().trim() === "custom order" && <div className=" text-center w-full">
                 <CustomOrderSlide />
                 <div className="w-fit mx-auto">
@@ -237,19 +237,38 @@ function CustomOrderSlide() {
 }
 
 interface DisplayItemsProps {
-    items: Item[]
+    items: Item[],
+    category: string
 }
 
-function DisplayItems({ items }: DisplayItemsProps) {
+function DisplayItems({ items, category }: DisplayItemsProps) {
+    const isTShirtBar = category.trim().toLowerCase() === 't-shirt bar';
 
     return <div className="flex items-center justify-center w-full h-full my-2">
-        {items && items.length > 0 ? <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 max-w-6xl gap-6 w-full pb-4 pt-4 pr-2 pl-2">
-            {items?.map((item, index) => {
-                return <DisplayItem key={index} item={item} />
-            })}
-        </div> : <div className="flex h-full justify-center items-center my-6 font-headerFont text-lg md:text-xl lg:text-2xl">
-            <p>There are no items in this category.</p>
-        </div>}
+        {items && items.length > 0 ? (
+            <div className={`${isTShirtBar ? 'flex flex-col md:flex-row gap-4 md:gap-6' : ''} max-w-6xl w-full pb-4 pt-4 pr-2 pl-2`}>
+                <div className={`grid ${isTShirtBar ? 'grid-cols-1 sm:grid-cols-2 md:flex-1' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'} gap-6 w-full`}>
+                    {items?.map((item, index) => {
+                        return <DisplayItem key={index} item={item} />
+                    })}
+                </div>
+                {isTShirtBar && (
+                    <div className="w-full md:w-64 bg-gray-50 p-4 rounded-lg text-center md:text-start">
+                        <h3 className="font-bold mb-2 text-center md:text-left">T-Shirt Bar Info</h3>
+                        <ul className="list-disc list-inside space-y-1 text-sm md:text-base">
+                            <li>Custom designs available</li>
+                            <li>Premium quality fabric</li>
+                            <li>Multiple sizes</li>
+                            <li>Fast delivery</li>
+                        </ul>
+                    </div>
+                )}
+            </div>
+        ) : (
+            <div className="flex h-full justify-center items-center my-6 font-headerFont text-lg md:text-xl lg:text-2xl">
+                <p>There are no items in this category.</p>
+            </div>
+        )}
     </div>
 }
 
