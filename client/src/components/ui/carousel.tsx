@@ -185,8 +185,8 @@ function CarouselPrevious({
       className={cn(
         "absolute size-8 rounded-full bg-black",
         // Prevent background/foreground color change on active/focus/hover
-        "hover:bg-[rgb(172,162,162)] focus:hover:bg-[rgb(172,162,162)]",
-        "hover:text-white focus:text-white active:text-white",
+        "hover:bg-[rgb(172,162,162)] focus:hover:bg-[rgb(172,162,162)] active:bg-black",
+        "hover:text-white focus:text-white active:text-white ",
         orientation === "horizontal"
           ? "top-1/2 -left-12 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
@@ -217,7 +217,7 @@ function CarouselNext({
       size={size}
       className={cn(
         "absolute size-8 rounded-full bg-black",
-        "hover:bg-[rgb(172,162,162)] focus:hover:bg-[rgb(172,162,162)]",
+        "hover:bg-[rgb(172,162,162)] focus:hover:bg-[rgb(172,162,162)] active:bg-black",
         "hover:text-white focus:text-white active:text-white",
         orientation === "horizontal"
           ? "top-1/2 -right-12 -translate-y-1/2"
