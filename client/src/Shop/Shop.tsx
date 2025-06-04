@@ -13,7 +13,20 @@ import customCup from '../assets/CustomPics/customcup.jpg'
 import cuttingBoard from '../assets/CustomPics/cuttingBoard.jpg'
 import customCupTWO from '../assets/CustomPics/IMG_5268.jpg'
 import customCupTHREE from '../assets/CustomPics/IMG_9416.jpg'
+import tshirtOne from '../assets/images/tshirt_1.jpg'
+import tshirtTwo from '../assets/images/tshirt_2.jpg'
+import tshirtThree from '../assets/images/tshirt_3.jpg'
+import tshirtFour from '../assets/images/tshirt_4.jpg'
+import tshirtFive from '../assets/images/tshirt_5.jpg'
+
 import Modal from "@mui/material/Modal";
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/ui/carousel"
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export default function Shop() {
@@ -27,6 +40,28 @@ export default function Shop() {
         <Route path="miscellaneous" element={<ShopMenu category="Miscellaneous" />} />
         <Route path="t-shirt-bar" element={<ShopMenu category="T-Shirt Bar" />} />
     </Routes>
+}
+
+interface categoryProps {
+    category: string
+}
+
+function CategoriesBar({ category }: categoryProps) {
+    return (
+        <div className="flex flex-col w-full h-fit border-gray-600 border-b-2 items-center justify-center font-button pt-1.5">
+            <p className="text-md md:text-lg">{category}</p>
+            <div className="flex flex-row flex-wrap w-full text-md md:text-lg space-x-4 md:space-x-8 justify-center">
+                <Link to="/shop" className="hover:text-blue-500 transition-colors duration-300">Featured</Link>
+                <Link to="/shop/tumblers" className="hover:text-blue-500 transition-colors duration-300">Tumblers</Link>
+                <Link to="/shop/accessories" className="hover:text-blue-500 transition-colors duration-300">Tumbler Accessories</Link>
+                <Link to="/shop/homedecor" className="hover:text-blue-500 transition-colors duration-300">Home Decor</Link>
+                <Link to="/shop/seasonal" className="hover:text-blue-500 transition-colors duration-300">Seasonal</Link>
+                <Link to="/shop/customorder" className="hover:text-blue-500 transition-colors duration-300">Custom Order</Link>
+                <Link to="/shop/miscellaneous" className="hover:text-blue-500 transition-colors duration-300">Miscellaneous</Link>
+            </div>
+            <Link to="/shop/t-shirt-bar" className="text-md md:text-lg hover:text-blue-500 transition-colors duration-300">T-Shirt Bar</Link>
+        </div>
+    )
 }
 
 interface ShopMenuProps {
@@ -45,9 +80,6 @@ function ShopMenu({ category }: ShopMenuProps) {
         refetchInterval: 10 * 60 * 1000
     })
 
-    useEffect(() => {
-        console.log(inventoryData)
-    }, [inventoryData])
     const navigate = useNavigate()
 
     const handleCustomRequest = () => {
@@ -75,7 +107,28 @@ function ShopMenu({ category }: ShopMenuProps) {
                     </button>
                 </div>
             </div>}
+
+            {category.toLowerCase().trim() === "t-shirt bar" && <TShirtBarCarousel />}
         </div>}
+    </div>
+}
+
+function TShirtBarCarousel() {
+    const [images] = useState<string[]>([tshirtOne, tshirtTwo, tshirtThree, tshirtFour, tshirtFive])
+
+    return <div className="flex flex-col items-center text-center gap-2 mx-auto w-full my-2">
+        <p className="font-button md:text-xl">Design your own shirt in the T-Shirt Bar!</p>
+        <Carousel className="w-full max-w-3xs sm:max-w-xs md:max-w-xs">
+            <CarouselContent>
+                {images?.map((img, index) => {
+                    return <CarouselItem key={index}>
+                        <img src={img} alt={`Custom T-Shirt #${index}`} className="h-full object-contain" />
+                    </CarouselItem>
+                })}
+            </CarouselContent>
+            <CarouselPrevious className="ml-6 sm:ml-6 md:ml-0 " />
+            <CarouselNext className="mr-6 sm:mr-6 md:mr-0" />
+        </Carousel>
     </div>
 }
 
@@ -174,28 +227,6 @@ function CustomOrderSlide() {
             </Modal>
         </div >
     </div >
-}
-
-interface categoryProps {
-    category: string
-}
-
-function CategoriesBar({ category }: categoryProps) {
-    return (
-        <div className="flex flex-col w-full h-fit border-gray-600 border-b-2 items-center justify-center font-button pt-1.5">
-            <p className="text-md md:text-lg">{category}</p>
-            <div className="flex flex-row flex-wrap w-full text-md md:text-lg space-x-4 md:space-x-8 justify-center">
-                <Link to="/shop">Featured</Link>
-                <Link to="/shop/tumblers">Tumblers</Link>
-                <Link to="/shop/accessories">Tumbler Accessories</Link>
-                <Link to="/shop/homedecor">Home Decor</Link>
-                <Link to="/shop/seasonal">Seasonal</Link>
-                <Link to="/shop/customorder">Custom Order</Link>
-                <Link to="/shop/miscellaneous">Miscellaneous</Link>
-            </div>
-            <Link to="/shop/t-shirt-bar" className="text-md md:text-lg">T-Shirt Bar</Link>
-        </div>
-    )
 }
 
 interface DisplayItemsProps {

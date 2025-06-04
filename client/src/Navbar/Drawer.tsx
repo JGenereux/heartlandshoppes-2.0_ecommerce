@@ -259,7 +259,7 @@ function DisplayItem({ item, isFirst, isLast }: DisplayItemProps) {
         ${isLast ? 'rounded-b-lg' : ''}
     `} onClick={handleNav}>
         <div className="w-14 h-full justify-center">
-            <img src={item.photos[0]} className="w-auto h-max object-contain"></img>
+            <img src={item.photos[0]?.photo ?? ''} alt={item.photos[0]?.tag ?? ''} className="w-auto h-max object-contain"></img>
         </div>
         <div className="flex flex-col h-full ml-2">
             <p>{item.name}</p>

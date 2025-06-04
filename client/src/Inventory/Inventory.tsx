@@ -846,7 +846,7 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
         if (!setPhotos) return
         setPhotos((prevPhotos) => {
             let allFull = true;
-            const updatedPhotos = [...prevPhotos]; // Create a copy of the previous photos array
+            const updatedPhotos = [...prevPhotos];
 
             // Find the first empty element and replace it
             let updatedIndex = -1
@@ -855,7 +855,7 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
                     updatedPhotos[i] = { ...photo };
                     updatedIndex = i
                     allFull = false;
-                    break; // Break after replacing the first empty element
+                    break;
                 }
             }
 

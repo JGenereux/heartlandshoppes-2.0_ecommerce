@@ -31,7 +31,6 @@ export default function Orders() {
     useEffect(() => {
         if (!ordersData || ordersData.length === 0) return
         setOrders(ordersData)
-        console.log(`fetched orders: `, ordersData)
     }, [ordersData])
 
     useEffect(() => {
@@ -45,6 +44,15 @@ export default function Orders() {
         const currOrders = ordersData.filter((order) => order.status.toLowerCase().trim() === statusFilter.toLowerCase().trim())
         setOrders(currOrders)
     }, [statusFilter, ordersData])
+
+    if (isFetching) {
+        return (
+            <div className="flex flex-col items-center justify-center w-full p-12 space-y-1.5">
+                <h3 className="text-lg md:text-2xl font-button">Loading Featured Products</h3>
+                <Loading />
+            </div>
+        )
+    }
 
     if (error) return <Error message={error.message} />
 
