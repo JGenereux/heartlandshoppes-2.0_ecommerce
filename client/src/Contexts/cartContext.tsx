@@ -2,6 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useState 
 import { CartItem } from "../interfaces/userinterface";
 import { useAuth } from "./authContext";
 import axios from "axios";
+import { debounce } from 'lodash'; // You'll need to install lodash: npm install lodash @types/lodash
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -52,6 +53,41 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.error(error)
         }
     }, [cart, user?.email, accessToken])
+
+    // Create a debounced save function
+    const debouncedSaveCart = useCallback(
+        debounce(async (cartItems: CartItem[]) => {
+            if (!user?.email || !accessToken) return;
+
+            try {
+                await axios.put(`${apiUrl}/users/cart/${user.email}`,
+                    { cart: cartItems },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Failed to save cart:', error);
+            }
+        }, 1000), // Wait 1 second after last change
+        [user?.email, accessToken]
+    );
+
+    // Save cart whenever it changes
+    useEffect(() => {
+        if (cart && user) {
+            debouncedSaveCart(cart);
+        }
+    }, [cart, user, debouncedSaveCart]);
+
+    // Cleanup debounced function
+    useEffect(() => {
+        return () => {
+            debouncedSaveCart.cancel();
+        };
+    }, [debouncedSaveCart]);
 
     const resetCart = async () => {
         if (!user) return;

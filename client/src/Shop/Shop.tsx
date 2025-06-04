@@ -116,17 +116,24 @@ function ShopMenu({ category }: ShopMenuProps) {
 function TShirtBarCarousel() {
     const [images] = useState<string[]>([tshirtOne, tshirtTwo, tshirtThree, tshirtFour, tshirtFive])
 
-    return <div className="flex flex-col items-center text-center gap-2 mx-auto w-full my-2">
-        <p className="font-button md:text-xl">Design your own shirt in the T-Shirt Bar!</p>
-        <Carousel className="w-full max-w-3xs sm:max-w-xs md:max-w-xs">
+    return <div className="flex flex-col items-center text-center mx-auto w-full my-2">
+        <p className="font-button md:text-xl m-0 mb-2 leading-tight">
+            Design your own shirt in the T-Shirt Bar!
+        </p>
+        <Carousel className="w-full max-w-3xs sm:max-w-xs md:max-w-xs mt-0">
             <CarouselContent>
                 {images?.map((img, index) => {
                     return <CarouselItem key={index}>
-                        <img src={img} alt={`Custom T-Shirt #${index}`} className="h-full object-contain" />
+                        <img
+                            src={img}
+                            alt={`Custom T-Shirt #${index}`}
+                            className="h-full object-contain"
+                            loading="eager" // Prevents layout shift
+                        />
                     </CarouselItem>
                 })}
             </CarouselContent>
-            <CarouselPrevious className="ml-6 sm:ml-6 md:ml-0 " />
+            <CarouselPrevious className="ml-6 sm:ml-6 md:ml-0" />
             <CarouselNext className="mr-6 sm:mr-6 md:mr-0" />
         </Carousel>
     </div>
