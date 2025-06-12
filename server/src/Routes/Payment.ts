@@ -18,7 +18,7 @@ router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
     const { items } = req.body;
     
     const cartItems: CartItem[] = items;
-    
+    console.log('items: ', cartItems)
     try {
         // Define shipping options with correct Stripe typing
         const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [
@@ -53,32 +53,41 @@ router.post('/checkout', async (req: Request, res: Response): Promise<any> => {
         ];
 
         const sessionParams: Stripe.Checkout.SessionCreateParams = {
-            line_items: cartItems.map((currItem) => ({
-                price_data: {
-                    currency: 'cad',
-                    product_data: {
-                        name: `${currItem.item.name} - ${Object.entries(currItem.item.options)
-                            .map(([key, values]) => `${key}: ${values.join(', ')}`)
-                            .join(' | ')}`,
-                        description: currItem.item.description,
-                        images: currItem.item.photos?.length ? [currItem.item.photos[0].photo] : [],
-                    },
-                    unit_amount: currItem.item.price * 100,
-                },
-                quantity: currItem.quantity,
-            })),
-            automatic_tax: {enabled: true},
-            customer_creation: "always",
-            invoice_creation: { enabled: true },
-            billing_address_collection: 'required',
-            shipping_address_collection: {
-                allowed_countries: ['US', 'CA'],  
+        line_items: cartItems.map((currItem) => {
+          // multiply and round to nearest cent
+          const unitAmount = Math.round(currItem.item.price * 100);
+
+          return {
+            price_data: {
+              currency: 'cad',
+              product_data: {
+                name: `${currItem.item.name} - ${Object.entries(
+                  currItem.item.options
+                )
+                  .map(([key, values]) => `${key}: ${values.join(', ')}`)
+                  .join(' | ')}`,
+                description: currItem.item.description,
+                images: currItem.item.photos?.length
+                  ? [currItem.item.photos[0].photo]
+                  : [],
+              },
+              unit_amount: unitAmount,
             },
-            shipping_options: shippingOptions,
-            mode: 'payment',
-            success_url: `${process.env.FRONTEND_URL}/?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.FRONTEND_URL}/?success=false`, 
-        };
+            quantity: currItem.quantity,
+          };
+        }),
+        automatic_tax: { enabled: true },
+        customer_creation: 'always',
+        invoice_creation: { enabled: true },
+        billing_address_collection: 'required',
+        shipping_address_collection: {
+          allowed_countries: ['US', 'CA'],
+        },
+        shipping_options: shippingOptions,
+        mode: 'payment',
+        success_url: `${process.env.FRONTEND_URL}/?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL}/?success=false`,
+      };
 
         const session = await stripe.checkout.sessions.create(sessionParams);
 
