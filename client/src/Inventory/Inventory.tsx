@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect, useState } from "react";
 import Drawer from "../Navbar/Drawer";
 import uploadPhotoICON from '../assets/uploadPhotoICON.png'
 import { Item } from "../interfaces/iteminterface";
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import FormData from "form-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Orders from "./Orders";
@@ -230,8 +230,44 @@ interface Photo {
 function ModifyItem({ item }: DisplayItemProps) {
     const queryClient = useQueryClient();
     const { accessToken } = useAuth();
-    const [photos, setPhotos] = useState<Photo[]>(item.photos);
+    const [photos, setPhotos] = useState<Photo[]>(() => {
+        // Ensure we always have at least 3 photo slots
+        const initialPhotos = [...item.photos];
+        while (initialPhotos.length < 3) {
+            initialPhotos.push({ photo: '', tag: '' });
+        }
+        return initialPhotos;
+    });
     const [modifiedItem, setModifiedItem] = useState<Item>(item);
+
+    const handlePhotoChange = (index: number, photo: Photo) => {
+        setPhotos(prevPhotos => {
+            const newPhotos = [...prevPhotos];
+            newPhotos[index] = photo;
+
+            // Add a new empty slot if this was the last empty slot
+            const hasEmptySlot = newPhotos.some(p => !p.photo || p.photo.length === 0);
+            if (!hasEmptySlot) {
+                newPhotos.push({ photo: '', tag: '' });
+            }
+
+            return newPhotos;
+        });
+    };
+
+    const handlePhotoRemove = (index: number) => {
+        setPhotos(prevPhotos => {
+            const newPhotos = [...prevPhotos];
+            newPhotos[index] = { photo: '', tag: '' };
+
+            // Remove trailing empty slots, but keep at least 3
+            while (newPhotos.length > 3 && (!newPhotos[newPhotos.length - 1].photo || newPhotos[newPhotos.length - 1].photo.length === 0)) {
+                newPhotos.pop();
+            }
+
+            return newPhotos;
+        });
+    };
 
     const handleItemChange = (property: keyof Item, value: string | Photo[] | number) => {
         if (property === 'category' && typeof value === 'string') {
@@ -249,12 +285,13 @@ function ModifyItem({ item }: DisplayItemProps) {
     };
 
     useEffect(() => {
-        handleItemChange('photos', photos);
+        // Filter out empty photos before updating the item
+        const nonEmptyPhotos = photos.filter(photo => photo.photo && photo.photo.length > 0);
+        handleItemChange('photos', nonEmptyPhotos);
     }, [photos]);
 
     const updateMutation = useMutation({
         mutationFn: async (updatedItem: Item) => {
-            updatedItem.photos = updatedItem.photos.filter(photo => photo.photo.length !== 0);
             const response = await axios.put(`${apiUrl}/inventory/item/${item.name}`, {
                 item: updatedItem,
                 oldCategories: item.category
@@ -344,10 +381,15 @@ function ModifyItem({ item }: DisplayItemProps) {
                 </div>
 
                 <div className="flex flex-col items-center justify-center gap-4">
-                    {photos?.map((photo, index) => (
-                        <PhotoUpload key={index} item={modifiedItem} setItem={setModifiedItem} photo={photo} setPhotos={setPhotos} />
+                    {photos.map((photo, index) => (
+                        <PhotoUpload
+                            key={index}
+                            photo={photo}
+                            index={index}
+                            onPhotoChange={handlePhotoChange}
+                            onPhotoRemove={handlePhotoRemove}
+                        />
                     ))}
-                    <PhotoUpload item={modifiedItem} setItem={setModifiedItem} setPhotos={setPhotos} />
                 </div>
 
                 <div>
@@ -380,12 +422,11 @@ interface Photo {
 }
 
 function AddItem({ categories }: AddItemProps) {
-    const emptyPhoto: Photo = { photo: '', tag: '' };
-    const [photos, setPhotos] = useState<Photo[]>(
-        Array(3).fill({ ...emptyPhoto })
+    const [photos, setPhotos] = useState<Photo[]>(() =>
+        Array(3).fill(null).map(() => ({ photo: '', tag: '' }))
     );
-    const queryClient = useQueryClient()
-    const { accessToken } = useAuth()
+    const queryClient = useQueryClient();
+    const { accessToken } = useAuth();
     const [item, setItem] = useState<Item>({
         name: "",
         price: 0,
@@ -397,7 +438,44 @@ function AddItem({ categories }: AddItemProps) {
         priceOptions: {},
         isBundle: false,
         reviews: []
-    })
+    });
+
+    const handlePhotoChange = (index: number, photo: Photo) => {
+        setPhotos(prevPhotos => {
+            const newPhotos = [...prevPhotos];
+            newPhotos[index] = photo;
+
+            // Add a new empty slot if this was the last empty slot
+            const hasEmptySlot = newPhotos.some(p => !p.photo || p.photo.length === 0);
+            if (!hasEmptySlot) {
+                newPhotos.push({ photo: '', tag: '' });
+            }
+
+            return newPhotos;
+        });
+    };
+
+    const handlePhotoRemove = (index: number) => {
+        setPhotos(prevPhotos => {
+            const newPhotos = [...prevPhotos];
+            newPhotos[index] = { photo: '', tag: '' };
+
+            // Remove trailing empty slots, but keep at least 3
+            while (newPhotos.length > 3 && (!newPhotos[newPhotos.length - 1].photo || newPhotos[newPhotos.length - 1].photo.length === 0)) {
+                newPhotos.pop();
+            }
+
+            return newPhotos;
+        });
+    };
+
+    useEffect(() => {
+        const nonEmptyPhotos = photos.filter(photo => photo.photo && photo.photo.length > 0);
+        setItem(prevItem => ({
+            ...prevItem,
+            photos: nonEmptyPhotos
+        }));
+    }, [photos]);
 
     const itemMutate = useMutation({
         mutationFn: async ({ item }: ItemMutationProps) => {
@@ -405,7 +483,9 @@ function AddItem({ categories }: AddItemProps) {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
-            })
+            });
+
+            // Reset form
             setItem({
                 name: "",
                 price: 0,
@@ -417,93 +497,115 @@ function AddItem({ categories }: AddItemProps) {
                 priceOptions: {},
                 isBundle: false,
                 reviews: []
-            })
+            });
+
+            // Reset photos
+            setPhotos(Array(3).fill(null).map(() => ({ photo: '', tag: '' })));
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['inventory'] })
-            await queryClient.invalidateQueries({ queryKey: ['inventory', item.category] })
-            await queryClient.invalidateQueries({ queryKey: [item.name] })
+            await queryClient.invalidateQueries({ queryKey: ['inventory'] });
+            await queryClient.invalidateQueries({ queryKey: ['inventory', item.category] });
+            await queryClient.invalidateQueries({ queryKey: [item.name] });
 
-            await queryClient.refetchQueries({ queryKey: ['inventory'] })
-            await queryClient.refetchQueries({ queryKey: ['inventory', item.category] })
-            await queryClient.refetchQueries({ queryKey: [item.name] })
+            await queryClient.refetchQueries({ queryKey: ['inventory'] });
+            await queryClient.refetchQueries({ queryKey: ['inventory', item.category] });
+            await queryClient.refetchQueries({ queryKey: [item.name] });
         }
-    })
+    });
 
     const handleAddItem = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-
-        itemMutate.mutate({ item: item })
-    }
+        event.preventDefault();
+        itemMutate.mutate({ item: item });
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>, field: keyof Item) => {
         if (field === 'category' && typeof e.target.value === 'string') {
-            const categories = e.target.value.split(',')
+            const categories = e.target.value.split(',');
             setItem((prevItem) => ({
                 ...prevItem,
                 [field]: categories
-            }))
-            return
+            }));
+            return;
         }
         const value = e.target.value;
         setItem((prevItem) => ({
             ...prevItem,
             [field]: value,
         }));
-    }
+    };
 
-    useEffect(() => {
-        const nonEmptyPhotos: Photo[] = [];
-        for (let i = 0; i < photos.length; i++) {
-            if (photos[i].photo && photos[i].photo.length !== 0) {
-                nonEmptyPhotos.push(photos[i]);
-            }
-        }
-
-        setItem(prevItem => ({
-            ...prevItem,
-            photos: nonEmptyPhotos
-        }));
-    }, [photos])
-
-
-
-    return <div className="w-full p-2 p-r-0  my-2 font-regular md:text-lg">
-        <form onSubmit={(event) => handleAddItem(event)}>
-            <div className="flex flex-col w-full">
-                <div className="flex flex-col md:flex-row md:space-x-4">
-                    <div className="flex flex-col w-full md:w-1/2">
-                        <p>Item Name</p>
-                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.name} onChange={(event) => handleInputChange(event, "name")}></input>
-                        <p>Item Price</p>
-                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.price} onChange={(event) => handleInputChange(event, "price")}></input>
-                        <p>Category</p>
-                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.category} onChange={(event) => handleInputChange(event, "category")}></input>
-                        <p>Quantity</p>
-                        <input type="text" className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2" value={item.quantity} onChange={(event) => handleInputChange(event, "quantity")}></input>
-                        <p>Description</p>
-                        <textarea className="resize-none border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 h-fit ml-2" value={item.description} onChange={(event) => handleInputChange(event, "description")}></textarea>
+    return (
+        <div className="w-full p-2 p-r-0 my-2 font-regular md:text-lg">
+            <form onSubmit={handleAddItem}>
+                <div className="flex flex-col w-full">
+                    <div className="flex flex-col md:flex-row md:space-x-4">
+                        <div className="flex flex-col w-full md:w-1/2">
+                            <p>Item Name</p>
+                            <input
+                                type="text"
+                                className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2"
+                                value={item.name}
+                                onChange={(event) => handleInputChange(event, "name")}
+                            />
+                            <p>Item Price</p>
+                            <input
+                                type="text"
+                                className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2"
+                                value={item.price}
+                                onChange={(event) => handleInputChange(event, "price")}
+                            />
+                            <p>Category</p>
+                            <input
+                                type="text"
+                                className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2"
+                                value={item.category}
+                                onChange={(event) => handleInputChange(event, "category")}
+                            />
+                            <p>Quantity</p>
+                            <input
+                                type="text"
+                                className="md:py-0.5 border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 ml-2"
+                                value={item.quantity}
+                                onChange={(event) => handleInputChange(event, "quantity")}
+                            />
+                            <p>Description</p>
+                            <textarea
+                                className="resize-none border-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 hover:border-blue-400 focus:border-blue-400 transition-colors border-2 pl-1 h-fit ml-2"
+                                value={item.description}
+                                onChange={(event) => handleInputChange(event, "description")}
+                            />
+                        </div>
+                        <div className="flex flex-col my-4 md:my-auto ml-2 md:mx-auto space-y-4">
+                            <DisplayCategories categories={categories} />
+                            <DisplayOptions item={item} setItem={setItem} />
+                            <AddBundle setItem={setItem} />
+                        </div>
                     </div>
-                    <div className="flex flex-col my-4 md:my-auto ml-2 md:mx-auto space-y-4">
-                        <DisplayCategories categories={categories} />
-                        <DisplayOptions item={item} setItem={setItem} />
-                        <AddBundle setItem={setItem} />
+                    <div className="flex flex-col mx-auto w-fit my-2">
+                        <h3 className="text-2xl font-headerFont">Photos</h3>
+                        <div className="grid grid-cols-3 gap-8 p-4 py-2">
+                            {photos.map((photo, index) => (
+                                <div key={index}>
+                                    <PhotoUpload
+                                        photo={photo}
+                                        index={index}
+                                        onPhotoChange={handlePhotoChange}
+                                        onPhotoRemove={handlePhotoRemove}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
+                    <button
+                        className="border-black border-1 w-fit self-center px-4 py-2 rounded-full text-lg hover:border-blue-400 duration-300 transition-colors font-bold font-button"
+                        type="submit"
+                    >
+                        Add Item to inventory
+                    </button>
                 </div>
-                <div className="flex flex-col mx-auto w-fit my-2">
-                    <h3 className="text-2xl font-headerFont">Photos</h3>
-                    <div className="grid grid-cols-3 gap-8 p-4 py-2">
-                        {photos.map((photo, index) => {
-                            return <div key={index}>
-                                <PhotoUpload item={item} photo={photo} setPhotos={setPhotos} />
-                            </div>
-                        })}
-                    </div>
-                </div>
-                <button className="border-black border-1 w-fit self-center px-4 py-2 rounded-full text-lg hover:border-blue-400 duration-300 transition-colors font-bold font-button" type="submit">Add Item to inventory</button>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
+    );
 }
 
 interface AddBundleProps {
@@ -832,56 +934,25 @@ interface ImageResponse {
 }
 
 interface PhotoUploadProps {
-    item: Item,
-    photo?: Photo,
-    setItem?: (item: Item) => void,
-    setPhotos?: React.Dispatch<React.SetStateAction<Photo[]>>;
+    photo: Photo;
+    index: number;
+    onPhotoChange: (index: number, photo: Photo) => void;
+    onPhotoRemove: (index: number) => void;
 }
 
-function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
-    const [photoUrl, setPhotoUrl] = useState<string>(photo?.photo || '')
-    const [photoTag, setPhotoTag] = useState<string>(photo?.tag || '')
-
-    const addPhoto = (photo: Photo) => {
-        if (!setPhotos) return
-        setPhotos((prevPhotos) => {
-            let allFull = true;
-            const updatedPhotos = [...prevPhotos];
-
-            // Find the first empty element and replace it
-            let updatedIndex = -1
-            for (let i = 0; i < updatedPhotos.length; i++) {
-                if (!updatedPhotos[i].photo || updatedPhotos[i].photo.length === 0) {
-                    updatedPhotos[i] = { ...photo };
-                    updatedIndex = i
-                    allFull = false;
-                    break;
-                }
-            }
-
-            if (allFull || (updatedIndex != -1 && updatedIndex == updatedPhotos.length - 1)) {
-                return [...updatedPhotos, { photo: '' }]
-            }
-
-            return updatedPhotos;
-        });
-    };
-    useEffect(() => {
-        if (item.photos.length === 0) {
-            setPhotoUrl('')
-        }
-    }, [item.photos])
+function PhotoUpload({ photo, index, onPhotoChange, onPhotoRemove }: PhotoUploadProps) {
+    const [error, setError] = useState<string>('')
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
+        const file = event.target.files?.[0];
 
         if (!file) {
-            console.error('Error retrieving uploaded file')
-            return
+            console.error('Error retrieving uploaded file');
+            return;
         }
 
-        const formData = new FormData()
-        formData.append("image", file)
+        const formData = new FormData();
+        formData.append("image", file);
 
         try {
             const res = await axios.post<ImageResponse>(`${apiUrl}/image/`, formData, {
@@ -889,64 +960,59 @@ function PhotoUpload({ item, photo, setItem, setPhotos }: PhotoUploadProps) {
                     "Content-Type": "multipart/form-data",
                 },
                 withCredentials: true
-            })
+            });
 
-            if (setItem) {
-                const currentItem = { ...item }
-                currentItem.photos.push({ photo: res.data.imageUrl })
-                setItem({ ...currentItem })
-                setPhotoUrl(res.data.imageUrl)
-            } else if (setPhotos) {
-                addPhoto({ photo: res.data.imageUrl })
-                setPhotoUrl(res.data.imageUrl)
-            }
-
-            event.target.value = ""
+            onPhotoChange(index, { photo: res.data.imageUrl, tag: photo.tag || '' });
+            event.target.value = "";
         } catch (error) {
-            console.error(error)
+            if (error && error instanceof AxiosError) {
+                setError('Error uploading image, make sure format is of type jpeg, jpg, or png')
+            }
         }
-    }
-
-    const handleFileRemove = () => {
-        const url = photoUrl
-
-        if (setItem) {
-            const currentItem = { ...item }
-            const filteredPhotos = currentItem.photos.filter(({ photo }) => photo != url)
-            currentItem.photos = filteredPhotos
-            setItem(currentItem)
-        } else if (setPhotos) {
-            setPhotos((prevPhotos) => {
-                const newPhotos = prevPhotos.filter(({ photo }) => photo != url)
-                return newPhotos
-            })
-        }
-
-        setPhotoUrl('')
-    }
+    };
 
     const handleTagChange = (tag: string) => {
-        setPhotoTag(tag)
-        if (!setPhotos) return
-        setPhotos((prevPhotos) => prevPhotos.map((photo) =>
-            photo.photo === photoUrl ? { ...photo, tag: tag } : photo
-        ))
-    }
+        onPhotoChange(index, { ...photo, tag });
+    };
 
-    return <div className="flex flex-col items-center justify-center transition-all duration-300 ease-in-out hover:-translate-y-1">
-        {(photoUrl && photoUrl.length > 0) ?
-            <div className="w-full h-full relative">
-                <img src={photoUrl} className="w-auto h-44"></img>
-                <button className="bg-red-500 p-0.5 pt-0 pb-0 rounded-lg absolute top-0 left-1 text-white" onClick={handleFileRemove}>-</button>
-                <input className="border-2 w-1/2 my-2 text-md px-1" placeholder="Tag" value={photoTag} onChange={(e) => handleTagChange(e.target.value)} />
-            </div>
-            :
-            <div className="flex flex-col p-1">
-                <div style={setPhotos ? { height: 'fit' } : { width: 'fit', height: 'fit' }} className="flex flex-col relative items-center justify-center pl-2">
-                    <img src={uploadPhotoICON} className="h-12 w-12"></img>
-                    <input type="file" className="text-transparent w-full h-full absolute top-0 cursor-pointer" onChange={(event) => handleFileUpload(event)}></input>
+    const handleRemove = () => {
+        onPhotoRemove(index);
+    };
+
+    if (error.length > 0) { return <Error message={error} setError={setError} /> }
+
+    return (
+        <div className="flex flex-col items-center justify-center transition-all duration-300 ease-in-out hover:-translate-y-1">
+            {photo.photo && photo.photo.length > 0 ? (
+                <div className="w-full h-full relative">
+                    <img src={photo.photo} className="w-auto h-44" alt="Uploaded" />
+                    <button
+                        className="bg-red-500 p-0.5 pt-0 pb-0 rounded-lg absolute top-0 left-1 text-white"
+                        onClick={handleRemove}
+                        type="button"
+                    >
+                        -
+                    </button>
+                    <input
+                        className="border-2 w-1/2 my-2 text-md px-1"
+                        placeholder="Tag"
+                        value={photo.tag || ''}
+                        onChange={(e) => handleTagChange(e.target.value)}
+                    />
                 </div>
-            </div>}
-    </div>
+            ) : (
+                <div className="flex flex-col p-1">
+                    <div className="flex flex-col relative items-center justify-center pl-2">
+                        <img src={uploadPhotoICON} className="h-12 w-12" alt="Upload" />
+                        <input
+                            type="file"
+                            className="text-transparent w-full h-full absolute top-0 cursor-pointer"
+                            onChange={handleFileUpload}
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
