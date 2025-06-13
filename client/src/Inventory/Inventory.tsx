@@ -965,8 +965,14 @@ function PhotoUpload({ photo, index, onPhotoChange, onPhotoRemove }: PhotoUpload
             return;
         }
 
+        if (file.size >= 30 * 1024 * 1024) {
+            setError('File size too large. Please choose a smaller image.');
+            return;
+        }
+
         const formData = new FormData();
         formData.append("image", file);
+        formData.append("filename", file.name.split('.')[0]);
 
         try {
             const res = await axios.post<ImageResponse>(`${apiUrl}/image/`, formData, {

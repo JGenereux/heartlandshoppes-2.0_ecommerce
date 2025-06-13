@@ -5,7 +5,7 @@ interface ErrorProps {
     message: string
 }
 export default function Error({ setError, message }: ErrorProps) {
-    return <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full no-blur z-20 my-2">
+    return <div className="fixed top-0 left-1/2 transform -translate-x-1/2 w-full no-blur z-20 my-2">
         <SimpleErrorNotification message={message} setError={setError ? setError : undefined} />
     </div>
 }
