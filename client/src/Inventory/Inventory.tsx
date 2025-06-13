@@ -231,11 +231,9 @@ function ModifyItem({ item }: DisplayItemProps) {
     const queryClient = useQueryClient();
     const { accessToken } = useAuth();
     const [photos, setPhotos] = useState<Photo[]>(() => {
-        // Ensure we always have at least 3 photo slots
+        // Start with existing photos and add one empty slot for new uploads
         const initialPhotos = [...item.photos];
-        while (initialPhotos.length < 3) {
-            initialPhotos.push({ photo: '', tag: '' });
-        }
+        initialPhotos.push({ photo: '', tag: '' }); // Always have one empty slot available
         return initialPhotos;
     });
     const [modifiedItem, setModifiedItem] = useState<Item>(item);
@@ -258,11 +256,19 @@ function ModifyItem({ item }: DisplayItemProps) {
     const handlePhotoRemove = (index: number) => {
         setPhotos(prevPhotos => {
             const newPhotos = [...prevPhotos];
-            newPhotos[index] = { photo: '', tag: '' };
 
-            // Remove trailing empty slots, but keep at least 3
-            while (newPhotos.length > 3 && (!newPhotos[newPhotos.length - 1].photo || newPhotos[newPhotos.length - 1].photo.length === 0)) {
-                newPhotos.pop();
+            if (newPhotos.length === 1) {
+                // If only one photo, just clear it instead of removing
+                newPhotos[index] = { photo: '', tag: '' };
+            } else {
+                // Remove the photo at the specified index
+                newPhotos.splice(index, 1);
+            }
+
+            // Ensure there's always at least one empty slot for new uploads
+            const hasEmptySlot = newPhotos.some(p => !p.photo || p.photo.length === 0);
+            if (!hasEmptySlot) {
+                newPhotos.push({ photo: '', tag: '' });
             }
 
             return newPhotos;
@@ -422,9 +428,9 @@ interface Photo {
 }
 
 function AddItem({ categories }: AddItemProps) {
-    const [photos, setPhotos] = useState<Photo[]>(() =>
-        Array(3).fill(null).map(() => ({ photo: '', tag: '' }))
-    );
+    const [photos, setPhotos] = useState<Photo[]>([
+        { photo: '', tag: '' } // Start with just one empty slot
+    ]);
     const queryClient = useQueryClient();
     const { accessToken } = useAuth();
     const [item, setItem] = useState<Item>({
@@ -458,11 +464,19 @@ function AddItem({ categories }: AddItemProps) {
     const handlePhotoRemove = (index: number) => {
         setPhotos(prevPhotos => {
             const newPhotos = [...prevPhotos];
-            newPhotos[index] = { photo: '', tag: '' };
 
-            // Remove trailing empty slots, but keep at least 3
-            while (newPhotos.length > 3 && (!newPhotos[newPhotos.length - 1].photo || newPhotos[newPhotos.length - 1].photo.length === 0)) {
-                newPhotos.pop();
+            if (newPhotos.length === 1) {
+                // If only one photo, just clear it instead of removing
+                newPhotos[index] = { photo: '', tag: '' };
+            } else {
+                // Remove the photo at the specified index
+                newPhotos.splice(index, 1);
+            }
+
+            // Ensure there's always at least one empty slot for new uploads
+            const hasEmptySlot = newPhotos.some(p => !p.photo || p.photo.length === 0);
+            if (!hasEmptySlot) {
+                newPhotos.push({ photo: '', tag: '' });
             }
 
             return newPhotos;
@@ -499,8 +513,8 @@ function AddItem({ categories }: AddItemProps) {
                 reviews: []
             });
 
-            // Reset photos
-            setPhotos(Array(3).fill(null).map(() => ({ photo: '', tag: '' })));
+            // Reset photos to just one empty slot
+            setPhotos([{ photo: '', tag: '' }]);
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['inventory'] });
